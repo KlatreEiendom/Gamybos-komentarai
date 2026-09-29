@@ -225,6 +225,17 @@
   }
   .popover-add-btn:hover { background: #333; }
 
+  /* ---- taip/ne pasirinkimas (pvz. dažymo abi pusės): vienas mygtukas,
+     rodo tik pasirinktą reikšmę, paspaudus iškleidžia sąrašą su kitu variantu ---- */
+  .yesno-select-btn.yes { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .yesno-select-btn.yes .caret { color: #fff; }
+  .yesno-select-btn.no { background: var(--danger); border-color: var(--danger); color: #fff; }
+  .yesno-select-btn.no .caret { color: #fff; }
+
+  /* ---- dažymo eilutė: spalva kairėje, detalės dešinėje ---- */
+  .paint-color-wrap { position: relative; flex: 0 0 auto; padding: 9px 4px 9px 16px; }
+  .blanks-area.paint-details { flex: 1 1 auto; max-width: none; }
+
   .line-row { display: flex; align-items: flex-start; border-bottom: 1px solid var(--divider); transition: background .1s; }
   .line-row:last-child { border-bottom: none; }
   .line-row:hover { background: #faf9f6; }
@@ -521,7 +532,37 @@
   ];
   var POST_TYPE_OPTIONS = ensureNoneFirst(POST_TYPES_KEY, loadTypeList(POST_TYPES_KEY, DEFAULT_POST_TYPES));
 
+  // Dažymas box: each line pairs one paint color with the detail(s) that
+  // get painted in it. Both option lists are shared/editable like the
+  // Laiptai/Balkonas type dropdowns above.
+  var PAINT_COLOR_KEY = 'gamybos-dazymo-spalvos';
+  var DEFAULT_PAINT_COLORS = [
+    NONE_OPTION,
+    'Panna Cotta',
+    'BTX 1473',
+    'C5',
+    'Be apdailos'
+  ];
+  var PAINT_COLOR_OPTIONS = loadTypeList(PAINT_COLOR_KEY, DEFAULT_PAINT_COLORS);
+  // Make sure this option is present even for a list saved before it was added.
+  if(PAINT_COLOR_OPTIONS.indexOf('Be apdailos') === -1) PAINT_COLOR_OPTIONS.push('Be apdailos');
+  saveTypeList(PAINT_COLOR_KEY, PAINT_COLOR_OPTIONS);
+  PAINT_COLOR_OPTIONS = ensureNoneFirst(PAINT_COLOR_KEY, PAINT_COLOR_OPTIONS);
+
+  var PAINT_DETAIL_KEY = 'gamybos-dazymo-detales';
+  var DEFAULT_PAINT_DETAILS = [
+    'Pakopos',
+    'Porankiai',
+    'Tvorelė',
+    'Stulpeliai',
+    'Statramsčiai',
+    'Sijos'
+  ];
+  var PAINT_DETAIL_OPTIONS = loadTypeList(PAINT_DETAIL_KEY, DEFAULT_PAINT_DETAILS);
+  saveTypeList(PAINT_DETAIL_KEY, PAINT_DETAIL_OPTIONS);
+
   function newPairLine(text){ return { text: text || '', blanks: [] }; }
+  function newPaintLine(){ return { color: '', details: [] }; }
 
   function blankProjectState(){
     return {
@@ -533,7 +574,7 @@
       ],
       lists: [
         { title: 'Ruošiniai', lines: [''] },
-        { title: 'Dažymas', lines: [''] }
+        { title: 'Dažymas', lines: [ newPaintLine() ], bothSides: false }
       ],
       notes: ''
     };
@@ -631,7 +672,22 @@
       if(p.lines.length === 0) p.lines.push(newPairLine(''));
     });
     (s.lists || []).forEach(function(l){
-      if(l.lines.length === 0) l.lines.push('');
+      var isDazymas = /dažym|dazym/i.test(l.title || '');
+      if(isDazymas){
+        l.lines = (l.lines || []).map(function(item){
+          if(item && typeof item === 'object'){
+            if(typeof item.color !== 'string') item.color = '';
+            if(!Array.isArray(item.details)) item.details = [];
+            return item;
+          }
+          if(typeof item === 'string' && item.trim()) return { color: item.trim(), details: [] };
+          return newPaintLine();
+        });
+        if(l.lines.length === 0) l.lines.push(newPaintLine());
+        if(typeof l.bothSides !== 'boolean') l.bothSides = false;
+      } else {
+        if(l.lines.length === 0) l.lines.push('');
+      }
     });
   }
 
@@ -761,6 +817,7 @@
   // Groups of selectable raw-material options, one group per "list" section.
   function getBlankGroups(){
     var groups = (state.lists || [])
+      .filter(function(l){ return !/dažym|dazym/i.test(l.title || ''); })
       .map(function(l){
         return {
           title: (l.title || '').trim() || 'Be pavadinimo',
@@ -1045,6 +1102,53 @@
     box.appendChild(row);
   }
 
+  // Taip/Ne dropdown row (e.g. "ar yra detalių, kurios matosi iš abiejų
+  // pusių?" in the Dažymas box). fieldKey holds true/false directly on
+  // sectionData. Shown as a single button with the CURRENT value only
+  // (colored green/red), same "click to open a short list" pattern as the
+  // other type dropdowns — so nobody mistakes an unselected option for
+  // the chosen one.
+  function appendYesNoRow(box, sectionData, fieldKey, label){
+    if(typeof sectionData[fieldKey] !== 'boolean') sectionData[fieldKey] = false;
+    var row = el('div', {class:'type-picker-row'});
+    row.appendChild(el('span', {class:'type-picker-label', text: label}));
+
+    var wrap = el('div', {class:'type-picker-wrap'});
+    var pop = el('div', {class:'blanks-popover'});
+    [ {label:'Taip', val:true}, {label:'Ne', val:false} ].forEach(function(opt){
+      var cls = 'stair-type-opt';
+      if(sectionData[fieldKey] === opt.val) cls += ' selected';
+      var item = el('div', {class: cls, text: opt.label});
+      item.addEventListener('click', function(){
+        sectionData[fieldKey] = opt.val;
+        closeAllPopovers();
+        renderAll();
+        save();
+      });
+      pop.appendChild(item);
+    });
+
+    var toggle = el('button', {
+      class: 'type-select-btn yesno-select-btn ' + (sectionData[fieldKey] ? 'yes' : 'no'),
+      type: 'button'
+    });
+    toggle.appendChild(el('span', {text: sectionData[fieldKey] ? 'Taip' : 'Ne'}));
+    toggle.appendChild(el('span', {class:'caret', text:'▾'}));
+    toggle.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var isOpen = pop.classList.contains('open');
+      closeAllPopovers();
+      if(!isOpen){
+        pop.classList.add('open');
+        toggle.classList.add('open');
+      }
+    });
+    wrap.appendChild(pop);
+    wrap.appendChild(toggle);
+    row.appendChild(wrap);
+    box.appendChild(row);
+  }
+
   function makePairLineRow(lines, idx){
     var lineObj = lines[idx];
     var row = el('div', {class:'line-row'});
@@ -1057,6 +1161,115 @@
     del.addEventListener('click', function(){
       lines.splice(idx, 1);
       if(lines.length === 0) lines.push(newPairLine(''));
+      renderAll();
+    });
+    row.appendChild(del);
+    return row;
+  }
+
+  // ---- Dažymas paint-color rows: left = color dropdown, right = multi-select of details ----
+  function renderPaintDetailChips(area, lineObj){
+    area.querySelectorAll('.chip').forEach(function(c){ c.remove(); });
+    var toggle = area.querySelector('.blanks-toggle');
+    lineObj.details.forEach(function(val, i){
+      var chip = el('div', {class:'chip'});
+      chip.appendChild(el('span', {text: val}));
+      var rm = el('span', {class:'rm', title:'Šalinti', text:'×'});
+      rm.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        lineObj.details.splice(i, 1);
+        renderPaintDetailChips(area, lineObj);
+        save();
+      });
+      chip.appendChild(rm);
+      area.insertBefore(chip, toggle);
+    });
+  }
+
+  function buildPaintDetailsPopover(lineObj, area){
+    var pop = el('div', {class:'blanks-popover'});
+    if(PAINT_DETAIL_OPTIONS.length === 0){
+      pop.appendChild(el('div', {class:'empty-msg', text:'Nėra apibrėžtų detalių.'}));
+      return pop;
+    }
+    PAINT_DETAIL_OPTIONS.forEach(function(opt){
+      var label = el('label');
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = opt;
+      cb.checked = lineObj.details.indexOf(opt) !== -1;
+      cb.addEventListener('change', function(){
+        var idx = lineObj.details.indexOf(opt);
+        if(cb.checked && idx === -1) lineObj.details.push(opt);
+        if(!cb.checked && idx !== -1) lineObj.details.splice(idx, 1);
+        renderPaintDetailChips(area, lineObj);
+        save();
+      });
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(opt));
+      pop.appendChild(label);
+    });
+    return pop;
+  }
+
+  function makePaintDetailsArea(lineObj){
+    var area = el('div', {class:'blanks-area paint-details'});
+    var toggle = el('button', {class:'blanks-toggle', type:'button', text:'+ detalė'});
+    var pop = buildPaintDetailsPopover(lineObj, area);
+    toggle.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var isOpen = pop.classList.contains('open');
+      closeAllPopovers();
+      if(!isOpen){
+        var fresh = buildPaintDetailsPopover(lineObj, area);
+        pop.replaceWith(fresh);
+        pop = fresh;
+        pop.classList.add('open');
+      }
+    });
+    area.appendChild(pop);
+    area.appendChild(toggle);
+    renderPaintDetailChips(area, lineObj);
+    return area;
+  }
+
+  function makePaintLineRow(lines, idx){
+    var lineObj = lines[idx];
+    var row = el('div', {class:'line-row paint-line-row'});
+
+    var colorWrap = el('div', {class:'type-picker-wrap paint-color-wrap'});
+    function swapColor(addMode){
+      var fresh = buildTypeOptionsPopover(lineObj, 'color', PAINT_COLOR_OPTIONS, PAINT_COLOR_KEY, swapColor, addMode);
+      colorPop.replaceWith(fresh);
+      colorPop = fresh;
+      colorPop.classList.add('open');
+    }
+    var colorPop = buildTypeOptionsPopover(lineObj, 'color', PAINT_COLOR_OPTIONS, PAINT_COLOR_KEY, swapColor, false);
+    var colorToggle = el('button', {
+      class: 'type-select-btn' + (lineObj.color ? '' : ' placeholder'),
+      type: 'button'
+    });
+    colorToggle.appendChild(el('span', {text: lineObj.color ? typeDisplayLabel(lineObj.color) : 'Pasirinkti spalvą'}));
+    colorToggle.appendChild(el('span', {class:'caret', text:'▾'}));
+    colorToggle.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var isOpen = colorPop.classList.contains('open');
+      closeAllPopovers();
+      if(!isOpen){
+        swapColor(false);
+        colorToggle.classList.add('open');
+      }
+    });
+    colorWrap.appendChild(colorPop);
+    colorWrap.appendChild(colorToggle);
+    row.appendChild(colorWrap);
+
+    row.appendChild(makePaintDetailsArea(lineObj));
+
+    var del = el('button', {class:'del-line', type:'button', title:'Šalinti eilutę', text:'×'});
+    del.addEventListener('click', function(){
+      lines.splice(idx, 1);
+      if(lines.length === 0) lines.push(newPaintLine());
       renderAll();
     });
     row.appendChild(del);
@@ -1105,15 +1318,24 @@
       appendTypePickerRow(box, sectionData, 'postType', 'Stulpų tipas:', 'Pasirinkti tipą', POST_TYPE_OPTIONS, POST_TYPES_KEY);
     }
 
+    var isDazymasBox = !isPair && /dažym|dazym/i.test(sectionData.title || '');
+    if(isDazymasBox){
+      appendYesNoRow(box, sectionData, 'bothSides', 'Ar yra detalių, kurios matosi iš abiejų pusių?');
+    }
+
     var linesWrap = el('div', {class:'lines'});
     sectionData.lines.forEach(function(_, idx){
-      linesWrap.appendChild(isPair ? makePairLineRow(sectionData.lines, idx) : makeListLineRow(sectionData.lines, idx));
+      var rowEl;
+      if(isDazymasBox) rowEl = makePaintLineRow(sectionData.lines, idx);
+      else if(isPair) rowEl = makePairLineRow(sectionData.lines, idx);
+      else rowEl = makeListLineRow(sectionData.lines, idx);
+      linesWrap.appendChild(rowEl);
     });
     box.appendChild(linesWrap);
 
-    var addLine = el('button', {class:'add-line', type:'button', text:'+ eilutė'});
+    var addLine = el('button', {class:'add-line', type:'button', text: isDazymasBox ? '+ spalva' : '+ eilutė'});
     addLine.addEventListener('click', function(){
-      sectionData.lines.push(isPair ? newPairLine('') : '');
+      sectionData.lines.push(isDazymasBox ? newPaintLine() : (isPair ? newPairLine('') : ''));
       renderAll();
       focusLastLine(box);
     });
