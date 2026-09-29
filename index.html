@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gamybos užsakymo lapas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  :root {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    --paper: #f5f4f0;
+    --card: #ffffff;
+    --card-border: #e5e3dc;
+    --divider: #f2f0eb;
+    --ink: #111111;
+    --text: #1a1a1a;
+    --muted: #888888;
+    --muted-2: #999999;
+    --accent: #1D9E75;
+    --chip-bg: #f0ede6;
+    --danger: #c0524a;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100%;
+  }
+
+  /* ---------------- toolbar ---------------- */
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--paper);
+    padding: 14px clamp(12px, 3vw, 28px);
+    padding-top: calc(14px + env(safe-area-inset-top, 0px));
+    border-bottom: 1px solid var(--card-border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .toolbar h1 { font-size: 0.9rem; font-weight: 600; color: var(--ink); margin: 0 auto 0 0; }
+  .toolbar button {
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .toolbar button:hover { background: var(--paper); }
+  .toolbar button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .toolbar button.primary:hover { background: #333; }
+  .toolbar .save-hint { font-size: 0.72rem; color: var(--muted); width: 100%; order: 99; margin-top: 2px; }
+
+  /* ---------------- sheet ---------------- */
+  .sheet-wrap { display: flex; justify-content: center; padding: 2rem 1rem 140px; }
+  .sheet { width: 100%; max-width: 900px; }
+
+  .box {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .header-box { min-height: 90px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 14px 20px; }
+  #titleBox { font-size: clamp(1.15rem, 2.4vw, 1.4rem); font-weight: 800; letter-spacing: -0.02em; color: var(--ink); }
+  [contenteditable]:focus { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  [data-ph]:empty:before { content: attr(data-ph); color: #b9b4a8; font-weight: 400; font-size: 0.9rem; letter-spacing: normal; }
+
+  /* ---- pagrindinė medžiaga (multi-select) ---- */
+  .spec-box { flex-direction: column; gap: 8px; padding: 16px 20px; }
+  .spec-chips-wrap {
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px;
+  }
+  .spec-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--chip-bg); border: 1px solid var(--card-border); border-radius: 20px;
+    font-size: 0.78rem; font-weight: 600; color: var(--accent);
+    padding: 4px 8px 4px 12px; white-space: nowrap;
+  }
+  .spec-chip .rm { cursor: pointer; color: #bbb; font-size: 0.78rem; transition: color .15s; }
+  .spec-chip .rm:hover { color: var(--danger); }
+  .spec-empty { font-size: 0.85rem; color: #b9b4a8; }
+  .spec-picker { position: relative; }
+
+  .pairs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 640px) { .header-row, .pairs-grid { grid-template-columns: 1fr; } }
+
+  .full-stack .box { margin-bottom: 16px; }
+
+  .box-title-row {
+    background: #faf9f6;
+    border-bottom: 1px solid var(--divider);
+    padding: 12px 16px;
+    font-weight: 600;
+    text-align: left;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    color: var(--ink);
+  }
+
+  .line-row { display: flex; align-items: flex-start; border-bottom: 1px solid var(--divider); transition: background .1s; }
+  .line-row:last-child { border-bottom: none; }
+  .line-row:hover { background: #faf9f6; }
+  .line-text { flex: 1 1 auto; min-width: 0; padding: 9px 16px; font-size: 0.82rem; line-height: 1.45; color: #222; }
+  .line-text[data-ph]:empty:before { font-size: 0.82rem; }
+
+  /* ---- ruošiniai tag picker on the right edge of a line ---- */
+  .blanks-area {
+    position: relative;
+    flex: 0 0 auto;
+    max-width: 46%;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    justify-content: flex-end;
+    gap: 5px;
+    padding: 7px 10px 7px 4px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--chip-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--muted-2);
+    padding: 2px 8px 2px 10px;
+    white-space: nowrap;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chip .rm { cursor: pointer; color: #bbb; font-size: 0.72rem; flex: none; transition: color .15s; }
+  .chip .rm:hover { color: var(--danger); }
+  .blanks-toggle {
+    border: 1px solid #ddd;
+    background: var(--paper);
+    border-radius: 20px;
+    font-size: 0.68rem;
+    font-weight: 500;
+    padding: 3px 11px;
+    color: #555;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+    transition: background .15s, color .15s;
+  }
+  .blanks-toggle:hover { background: #ececE6; color: var(--ink); }
+  .blanks-popover {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 6px;
+    background: #fff;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    min-width: 210px;
+    max-width: 280px;
+    max-height: 240px;
+    overflow-y: auto;
+    box-shadow: 0 10px 24px rgba(20,20,20,.12);
+    z-index: 30;
+    text-align: left;
+  }
+  .blanks-popover.open { display: block; }
+  .blanks-popover .grp-title {
+    font-size: 0.66rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin: 6px 0 3px;
+  }
+  .blanks-popover .grp-title:first-child { margin-top: 0; }
+  .blanks-popover label {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    font-size: 0.8rem;
+    color: #333;
+    padding: 4px 2px;
+    cursor: pointer;
+    line-height: 1.3;
+    border-radius: 6px;
+  }
+  .blanks-popover label:hover { background: var(--paper); }
+  .blanks-popover input[type=checkbox] { accent-color: var(--accent); margin-top: 2px; cursor: pointer; }
+  .blanks-popover .empty-msg { font-size: 0.76rem; color: var(--muted); padding: 4px 2px; }
+
+  .del-line {
+    border: none;
+    background: transparent;
+    color: #bbb;
+    font-size: 0.95rem;
+    width: 26px;
+    cursor: pointer;
+    opacity: 0;
+    align-self: stretch;
+    transition: color .15s;
+  }
+  .del-line:hover { color: var(--danger); }
+  .line-row:hover .del-line, .line-row:focus-within .del-line { opacity: 1; }
+
+  .add-line {
+    display: block; width: 100%; text-align: left; padding: 9px 16px;
+    font-size: 0.76rem; font-weight: 500; color: var(--muted); background: transparent; border: none;
+    border-top: 1px solid var(--divider); cursor: pointer; font-family: inherit; transition: color .15s;
+  }
+  .add-line:hover { color: var(--accent); }
+
+  .del-section {
+    position: absolute; top: 10px; right: 10px; width: 22px; height: 22px;
+    border-radius: 50%; border: 1px solid var(--card-border); background: #fff; color: var(--muted-2);
+    font-size: 0.75rem; line-height: 1; cursor: pointer; opacity: 0; transition: opacity .1s, color .15s;
+  }
+  .del-section:hover { color: var(--danger); }
+  .box:hover .del-section { opacity: 1; }
+
+  .notes-box .notes-area { padding: 14px 16px; min-height: 130px; font-size: 0.85rem; line-height: 1.6; color: #222; white-space: pre-wrap; }
+
+  .add-section-bar { display: flex; gap: 8px; justify-content: center; margin: 18px 0 4px; }
+  .add-section-bar button {
+    font-family: inherit; font-size: 0.76rem; font-weight: 500; padding: 8px 16px; border: 1px dashed #ccc;
+    background: transparent; color: var(--muted); border-radius: 20px; cursor: pointer; transition: color .15s, border-color .15s;
+  }
+  .add-section-bar button:hover { color: var(--ink); border-color: var(--ink); }
+
+  @media print {
+    .toolbar, .add-line, .del-line, .del-section, .add-section-bar, .blanks-toggle, .blanks-popover, .chip .rm, .spec-picker, .spec-chip .rm { display: none !important; }
+    body { background: #fff; }
+    .sheet-wrap { padding: 0; }
+    .sheet { max-width: 100%; }
+    .box { border: 0.5px solid #ccc; border-radius: 8px; }
+    [contenteditable]:focus { outline: none; }
+    [data-ph]:empty:before { content: '' !important; }
+    .chip { padding: 2px 8px; background: #f0f0f0 !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>Gamybos užsakymo lapas</h1>
+  <button id="addPairBtn" type="button">+ Skiltis (2 stulp.)</button>
+  <button id="addListBtn" type="button">+ Eilučių blokas</button>
+  <button id="newBtn" type="button">Naujas (tuščias)</button>
+  <button id="sampleBtn" type="button">Pavyzdys</button>
+  <button id="printBtn" class="primary" type="button">Spausdinti</button>
+  <div class="save-hint">Duomenys saugomi automatiškai šioje naršyklėje. Kiekvienai detalės eilutei dešinėje galite pažymėti, kokie ruošiniai jai naudojami (galima kelis).</div>
+</div>
+
+<div class="sheet-wrap">
+  <div class="sheet" id="sheet">
+    <div class="header-row">
+      <div class="box header-box" id="titleBox" contenteditable="true" data-ph="Projekto pavadinimas"></div>
+      <div class="box header-box spec-box">
+        <div class="spec-chips-wrap" id="specChips"></div>
+        <div class="spec-picker">
+          <button class="blanks-toggle" type="button" id="specAddBtn">+ pasirinkti medžiagą</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pairs-grid" id="pairsGrid"></div>
+    <div class="full-stack" id="fullStack"></div>
+
+    <div class="box notes-box">
+      <div class="box-title-row">Papildoma informacija</div>
+      <div class="notes-area" id="notesArea" contenteditable="true" data-ph="Papildomos pastabos gamybai..."></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var STORAGE_KEY = 'gamybos-lapas-v4';
+
+  var MATERIAL_OPTIONS = [
+    'Ąžuolo masyvas – 42/40/20 mm',
+    'Dygiuotas ąžuolas – 41/38/20 mm',
+    'Uosio masyvas – 40/20 mm',
+    'Dygiuotas uosis – 40/20 mm'
+  ];
+
+  function newPairLine(text){ return { text: text || '', blanks: [] }; }
+
+  var sampleState = {
+    title: '',
+    specMaterials: [],
+    pairs: [
+      { title: 'Laiptai', lines: [ newPairLine('') ] },
+      { title: 'Balkonas', lines: [ newPairLine('') ] }
+    ],
+    lists: [
+      { title: 'Ruošiniai', lines: [''] },
+      { title: 'Dažymas', lines: [''] }
+    ],
+    notes: ''
+  };
+
+  var blankState = JSON.parse(JSON.stringify(sampleState));
+
+  var state = load() || clone(sampleState);
+  migrate(state);
+  var openPopoverId = null;
+
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+
+  // Upgrade older saved states where pair lines were plain strings,
+  // and where the main-material field was a single free-text string.
+  function migrate(s){
+    if(!Array.isArray(s.specMaterials)){
+      s.specMaterials = (typeof s.spec === 'string' && s.spec.trim()) ? [s.spec.trim()] : [];
+    }
+    delete s.spec;
+    (s.pairs || []).forEach(function(p){
+      p.lines = (p.lines || []).map(function(l){
+        if(typeof l === 'string') return newPairLine(l);
+        if(l && typeof l === 'object'){
+          if(!Array.isArray(l.blanks)) l.blanks = [];
+          if(typeof l.text !== 'string') l.text = '';
+          return l;
+        }
+        return newPairLine('');
+      });
+      if(p.lines.length === 0) p.lines.push(newPairLine(''));
+    });
+    (s.lists || []).forEach(function(l){
+      if(l.lines.length === 0) l.lines.push('');
+    });
+  }
+
+  function save(){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    catch(e) { /* storage unavailable — continue without persistence */ }
+  }
+  function load(){
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch(e) { return null; }
+  }
+
+  function el(tag, attrs, children){
+    var e = document.createElement(tag);
+    if(attrs) Object.keys(attrs).forEach(function(k){
+      if(k === 'text') e.textContent = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (children||[]).forEach(function(c){ e.appendChild(c); });
+    return e;
+  }
+
+  // Groups of selectable raw-material options, one group per "list" section.
+  // A section titled with "ruošin"/"ruosin" is shown first/preferred, but all
+  // list sections are offered as groups so any block can supply pickable tags.
+  function getBlankGroups(){
+    var groups = (state.lists || [])
+      .map(function(l){
+        return {
+          title: (l.title || '').trim() || 'Be pavadinimo',
+          options: (l.lines || []).map(function(t){ return t.trim(); }).filter(Boolean)
+        };
+      })
+      .filter(function(g){ return g.options.length > 0; });
+    groups.sort(function(a, b){
+      var ar = /ruoš|ruos/i.test(a.title) ? 0 : 1;
+      var br = /ruoš|ruos/i.test(b.title) ? 0 : 1;
+      return ar - br;
+    });
+    return groups;
+  }
+
+  function closeAllPopovers(){
+    document.querySelectorAll('.blanks-popover.open').forEach(function(p){ p.classList.remove('open'); });
+    openPopoverId = null;
+  }
+  document.addEventListener('click', function(e){
+    if(!e.target.closest('.blanks-area')) closeAllPopovers();
+  });
+
+  function renderChips(area, lineObj){
+    area.querySelectorAll('.chip').forEach(function(c){ c.remove(); });
+    var toggle = area.querySelector('.blanks-toggle');
+    lineObj.blanks.forEach(function(val, i){
+      var chip = el('div', {class:'chip'});
+      var span = el('span', {text: val});
+      var rm = el('span', {class:'rm', title:'Šalinti', text:'×'});
+      rm.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        lineObj.blanks.splice(i, 1);
+        renderChips(area, lineObj);
+        refreshPopoverChecks(area, lineObj);
+        save();
+      });
+      chip.appendChild(span);
+      chip.appendChild(rm);
+      area.insertBefore(chip, toggle);
+    });
+  }
+
+  function refreshPopoverChecks(area, lineObj){
+    var pop = area.querySelector('.blanks-popover');
+    if(!pop) return;
+    pop.querySelectorAll('input[type=checkbox]').forEach(function(cb){
+      cb.checked = lineObj.blanks.indexOf(cb.value) !== -1;
+    });
+  }
+
+  function buildPopover(lineObj, area){
+    var pop = el('div', {class:'blanks-popover'});
+    var groups = getBlankGroups();
+    if(groups.length === 0){
+      pop.appendChild(el('div', {class:'empty-msg', text:'Pridėkite eilučių į "Ruošiniai" bloką, kad galėtumėte jas čia pasirinkti.'}));
+      return pop;
+    }
+    groups.forEach(function(g){
+      pop.appendChild(el('div', {class:'grp-title', text: g.title}));
+      g.options.forEach(function(opt){
+        var label = el('label');
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.value = opt;
+        cb.checked = lineObj.blanks.indexOf(opt) !== -1;
+        cb.addEventListener('change', function(){
+          var idx = lineObj.blanks.indexOf(opt);
+          if(cb.checked && idx === -1) lineObj.blanks.push(opt);
+          if(!cb.checked && idx !== -1) lineObj.blanks.splice(idx, 1);
+          renderChips(area, lineObj);
+          save();
+        });
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(opt));
+        pop.appendChild(label);
+      });
+    });
+    return pop;
+  }
+
+  function makeBlanksArea(lineObj, popId){
+    var area = el('div', {class:'blanks-area'});
+    var toggle = el('button', {class:'blanks-toggle', type:'button', text:'+ ruošinys'});
+    var pop = buildPopover(lineObj, area);
+    toggle.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var isOpen = pop.classList.contains('open');
+      closeAllPopovers();
+      if(!isOpen){
+        // rebuild in case Ruošiniai list changed since last render
+        var fresh = buildPopover(lineObj, area);
+        pop.replaceWith(fresh);
+        pop = fresh;
+        pop.classList.add('open');
+      }
+    });
+    area.appendChild(pop);
+    area.appendChild(toggle);
+    renderChips(area, lineObj);
+    return area;
+  }
+
+  function renderSpecChips(){
+    var wrap = document.getElementById('specChips');
+    wrap.innerHTML = '';
+    if(state.specMaterials.length === 0){
+      wrap.appendChild(el('span', {class:'spec-empty', text:'Pagrindinė medžiaga nepasirinkta'}));
+      return;
+    }
+    state.specMaterials.forEach(function(val, i){
+      var chip = el('div', {class:'spec-chip'});
+      chip.appendChild(el('span', {text: val}));
+      var rm = el('span', {class:'rm', title:'Šalinti', text:'×'});
+      rm.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        state.specMaterials.splice(i, 1);
+        renderSpecChips();
+        refreshSpecPopoverChecks();
+        save();
+      });
+      chip.appendChild(rm);
+      wrap.appendChild(chip);
+    });
+  }
+
+  var specPopoverEl = null;
+
+  function refreshSpecPopoverChecks(){
+    if(!specPopoverEl) return;
+    specPopoverEl.querySelectorAll('input[type=checkbox]').forEach(function(cb){
+      cb.checked = state.specMaterials.indexOf(cb.value) !== -1;
+    });
+  }
+
+  function buildSpecPopover(){
+    var pop = el('div', {class:'blanks-popover'});
+    MATERIAL_OPTIONS.forEach(function(opt){
+      var label = el('label');
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = opt;
+      cb.checked = state.specMaterials.indexOf(opt) !== -1;
+      cb.addEventListener('change', function(){
+        var idx = state.specMaterials.indexOf(opt);
+        if(cb.checked && idx === -1) state.specMaterials.push(opt);
+        if(!cb.checked && idx !== -1) state.specMaterials.splice(idx, 1);
+        renderSpecChips();
+        save();
+      });
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(opt));
+      pop.appendChild(label);
+    });
+    return pop;
+  }
+
+  function initSpecPicker(){
+    var picker = document.querySelector('.spec-picker');
+    var toggle = document.getElementById('specAddBtn');
+    specPopoverEl = buildSpecPopover();
+    picker.appendChild(specPopoverEl);
+    toggle.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var isOpen = specPopoverEl.classList.contains('open');
+      closeAllPopovers();
+      if(!isOpen){
+        var fresh = buildSpecPopover();
+        specPopoverEl.replaceWith(fresh);
+        specPopoverEl = fresh;
+        specPopoverEl.classList.add('open');
+      }
+    });
+  }
+  document.addEventListener('click', function(e){
+    if(specPopoverEl && specPopoverEl.classList.contains('open') && !e.target.closest('.spec-picker')){
+      specPopoverEl.classList.remove('open');
+    }
+  });
+
+  function makePairLineRow(lines, idx){
+    var lineObj = lines[idx];
+    var row = el('div', {class:'line-row'});
+    var text = el('div', {class:'line-text', contenteditable:'true', 'data-ph':'įrašykite detalę...'});
+    text.textContent = lineObj.text;
+    text.addEventListener('input', function(){ lineObj.text = text.textContent; save(); });
+    row.appendChild(text);
+    row.appendChild(makeBlanksArea(lineObj));
+    var del = el('button', {class:'del-line', type:'button', title:'Šalinti eilutę', text:'×'});
+    del.addEventListener('click', function(){
+      lines.splice(idx, 1);
+      if(lines.length === 0) lines.push(newPairLine(''));
+      renderAll();
+    });
+    row.appendChild(del);
+    return row;
+  }
+
+  function makeListLineRow(lines, idx){
+    var row = el('div', {class:'line-row'});
+    var text = el('div', {class:'line-text', contenteditable:'true', 'data-ph':'įrašykite...'});
+    text.textContent = lines[idx] || '';
+    text.addEventListener('input', function(){ lines[idx] = text.textContent; save(); });
+    var del = el('button', {class:'del-line', type:'button', title:'Šalinti eilutę', text:'×'});
+    del.addEventListener('click', function(){
+      lines.splice(idx, 1);
+      if(lines.length === 0) lines.push('');
+      renderAll();
+    });
+    row.appendChild(text);
+    row.appendChild(del);
+    return row;
+  }
+
+  function renderBox(sectionData, onDeleteSection, isPair){
+    var box = el('div', {class:'box'});
+    if(onDeleteSection){
+      var delSec = el('button', {class:'del-section', type:'button', title:'Šalinti skiltį', text:'×'});
+      delSec.addEventListener('click', onDeleteSection);
+      box.appendChild(delSec);
+    }
+    var titleRow = el('div', {class:'box-title-row', contenteditable:'true', 'data-ph':'Pavadinimas'});
+    titleRow.textContent = sectionData.title || '';
+    titleRow.addEventListener('input', function(){ sectionData.title = titleRow.textContent; save(); });
+    box.appendChild(titleRow);
+
+    var linesWrap = el('div', {class:'lines'});
+    sectionData.lines.forEach(function(_, idx){
+      linesWrap.appendChild(isPair ? makePairLineRow(sectionData.lines, idx) : makeListLineRow(sectionData.lines, idx));
+    });
+    box.appendChild(linesWrap);
+
+    var addLine = el('button', {class:'add-line', type:'button', text:'+ eilutė'});
+    addLine.addEventListener('click', function(){
+      sectionData.lines.push(isPair ? newPairLine('') : '');
+      renderAll();
+      focusLastLine(box);
+    });
+    box.appendChild(addLine);
+    return box;
+  }
+
+  function focusLastLine(box){
+    var rows = box.querySelectorAll('.line-text');
+    if(rows.length) rows[rows.length - 1].focus();
+  }
+
+  function renderAll(){
+    var titleBox = document.getElementById('titleBox');
+    if(titleBox.textContent !== state.title) titleBox.textContent = state.title;
+    renderSpecChips();
+
+    var pairsGrid = document.getElementById('pairsGrid');
+    pairsGrid.innerHTML = '';
+    state.pairs.forEach(function(p, i){
+      pairsGrid.appendChild(renderBox(p, function(){
+        state.pairs.splice(i, 1);
+        renderAll(); save();
+      }, true));
+    });
+
+    var fullStack = document.getElementById('fullStack');
+    fullStack.innerHTML = '';
+    state.lists.forEach(function(l, i){
+      fullStack.appendChild(renderBox(l, function(){
+        state.lists.splice(i, 1);
+        renderAll(); save();
+      }, false));
+    });
+
+    var notesArea = document.getElementById('notesArea');
+    if(notesArea.textContent !== state.notes) notesArea.textContent = state.notes;
+  }
+
+  document.getElementById('titleBox').addEventListener('input', function(){ state.title = this.textContent; save(); });
+  document.getElementById('notesArea').addEventListener('input', function(){ state.notes = this.textContent; save(); });
+  initSpecPicker();
+
+  document.getElementById('addPairBtn').addEventListener('click', function(){
+    state.pairs.push({ title: '', lines: [ newPairLine('') ] });
+    renderAll(); save();
+  });
+  document.getElementById('addListBtn').addEventListener('click', function(){
+    state.lists.push({ title: '', lines: [''] });
+    renderAll(); save();
+  });
+  document.getElementById('newBtn').addEventListener('click', function(){
+    if(!confirm('Pradėti naują tuščią lapą? Dabartiniai duomenys bus pakeisti.')) return;
+    state = clone(blankState);
+    renderAll(); save();
+  });
+  document.getElementById('sampleBtn').addEventListener('click', function(){
+    if(!confirm('Įkelti pavyzdinį lapą? Dabartiniai duomenys bus pakeisti.')) return;
+    state = clone(sampleState);
+    renderAll(); save();
+  });
+  document.getElementById('printBtn').addEventListener('click', function(){ window.print(); });
+
+  renderAll();
+})();
+</script>
+
+</body>
+</html>
