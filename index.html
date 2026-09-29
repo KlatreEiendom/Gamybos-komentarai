@@ -132,7 +132,6 @@
     border: 1px solid var(--card-border);
     border-radius: 12px;
     position: relative;
-    overflow: hidden;
   }
 
   .header-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
@@ -172,6 +171,7 @@
     font-size: 0.78rem;
     letter-spacing: 0.03em;
     color: var(--ink);
+    border-radius: 12px 12px 0 0;
   }
 
   /* ---- laiptų tipas (single-select list w/ add-new, inside the Laiptai box) ---- */
@@ -202,6 +202,8 @@
   .stair-type-opt:hover { background: var(--paper); }
   .stair-type-opt.selected { font-weight: 600; color: var(--accent); }
   .stair-type-opt.selected:before { background: var(--accent); border-color: var(--accent); }
+  .stair-type-opt.none-opt { color: var(--muted); font-style: italic; }
+  .stair-type-opt.none-opt.selected { color: var(--accent); }
   .stair-type-opt.add-new {
     margin-top: 6px; padding-top: 9px; border-top: 1px solid var(--divider);
     color: var(--muted); font-weight: 500;
@@ -430,32 +432,94 @@
   var LEGACY_KEY = 'gamybos-lapas-v4'; // single-sheet storage from an earlier version
 
   var MATERIAL_OPTIONS = [
-    'Ąžuolo masyvas – 42/40/20 mm',
-    'Dygiuotas ąžuolas – 41/38/20 mm',
-    'Uosio masyvas – 40/20 mm',
-    'Dygiuotas uosis – 40/20 mm'
+    'Dygiuotas ąžuolas – 40/38/20 mm',
+    'Dygiuotas uosis – 40/20 mm',
+    'Ąžuolo masyvas – 40/20 mm',
+    'Uosio masyvas – 40/20 mm'
   ];
+
+  // Shared, editable option lists for the dropdown fields inside the
+  // Laiptai box. Adding a new value while editing one project makes it
+  // available in every other project too (stored outside any one project).
+  function loadTypeList(key, defaults){
+    try {
+      var raw = localStorage.getItem(key);
+      var arr = raw ? JSON.parse(raw) : null;
+      return Array.isArray(arr) && arr.length ? arr : defaults.slice();
+    } catch(e) { return defaults.slice(); }
+  }
+  function saveTypeList(key, arr){
+    try { localStorage.setItem(key, JSON.stringify(arr)); }
+    catch(e) { /* storage unavailable — continue without persistence */ }
+  }
+
+  // Every dropdown always offers this as its first option, so a detail
+  // that genuinely doesn't exist on this project can be marked as such —
+  // distinct from just not having picked anything yet.
+  var NONE_OPTION = '-';
+  function ensureNoneFirst(key, arr){
+    var idx = arr.indexOf(NONE_OPTION);
+    if(idx === -1){ arr.unshift(NONE_OPTION); saveTypeList(key, arr); }
+    else if(idx !== 0){ arr.splice(idx, 1); arr.unshift(NONE_OPTION); saveTypeList(key, arr); }
+    return arr;
+  }
 
   var STAIR_TYPES_KEY = 'gamybos-laiptu-tipai';
   var DEFAULT_STAIR_TYPES = [
+    NONE_OPTION,
     'Sijos iš šonų',
     'Sijos iš apačios',
     'Metalo sija'
   ];
-  function loadStairTypes(){
-    try {
-      var raw = localStorage.getItem(STAIR_TYPES_KEY);
-      var arr = raw ? JSON.parse(raw) : null;
-      return Array.isArray(arr) && arr.length ? arr : DEFAULT_STAIR_TYPES.slice();
-    } catch(e) { return DEFAULT_STAIR_TYPES.slice(); }
-  }
-  function saveStairTypes(arr){
-    try { localStorage.setItem(STAIR_TYPES_KEY, JSON.stringify(arr)); }
-    catch(e) { /* storage unavailable — continue without persistence */ }
-  }
-  // Shared across all projects, so a type added while editing one project
-  // is immediately offered in every other project too.
-  var STAIR_TYPE_OPTIONS = loadStairTypes();
+  var STAIR_TYPE_OPTIONS = ensureNoneFirst(STAIR_TYPES_KEY, loadTypeList(STAIR_TYPES_KEY, DEFAULT_STAIR_TYPES));
+
+  var BASE_TYPES_KEY = 'gamybos-statramsciu-tipai';
+  var DEFAULT_BASE_TYPES = [
+    NONE_OPTION,
+    'D28x28',
+    'Ø16',
+    'Ø22',
+    '4+4 stiklas',
+    '5+5 stiklas',
+    '6+6 stiklas',
+    '8+8 stiklas'
+  ];
+  var BASE_TYPE_OPTIONS = loadTypeList(BASE_TYPES_KEY, DEFAULT_BASE_TYPES);
+  // Make sure the glass options are present even for a list saved before
+  // they were added, so existing projects get them without losing anything.
+  ['4+4 stiklas', '5+5 stiklas', '6+6 stiklas', '8+8 stiklas'].forEach(function(v){
+    if(BASE_TYPE_OPTIONS.indexOf(v) === -1) BASE_TYPE_OPTIONS.push(v);
+  });
+  saveTypeList(BASE_TYPES_KEY, BASE_TYPE_OPTIONS);
+  BASE_TYPE_OPTIONS = ensureNoneFirst(BASE_TYPES_KEY, BASE_TYPE_OPTIONS);
+
+  var STEP_TYPES_KEY = 'gamybos-pakopu-tipai';
+  var DEFAULT_STEP_TYPES = [
+    NONE_OPTION,
+    'Uždaros pakopos su nosele',
+    'Uždaros pakopos be noselės',
+    'Atviros pakopos L-formos'
+  ];
+  var STEP_TYPE_OPTIONS = ensureNoneFirst(STEP_TYPES_KEY, loadTypeList(STEP_TYPES_KEY, DEFAULT_STEP_TYPES));
+
+  var HANDRAIL_TYPES_KEY = 'gamybos-porankiu-tipai';
+  var DEFAULT_HANDRAIL_TYPES = [
+    NONE_OPTION,
+    '38x60',
+    '40x60',
+    '38x80',
+    '40x80'
+  ];
+  var HANDRAIL_TYPE_OPTIONS = ensureNoneFirst(HANDRAIL_TYPES_KEY, loadTypeList(HANDRAIL_TYPES_KEY, DEFAULT_HANDRAIL_TYPES));
+
+  var POST_TYPES_KEY = 'gamybos-stulpu-tipai';
+  var DEFAULT_POST_TYPES = [
+    NONE_OPTION,
+    'S80x80',
+    '38x80',
+    '40x80'
+  ];
+  var POST_TYPE_OPTIONS = ensureNoneFirst(POST_TYPES_KEY, loadTypeList(POST_TYPES_KEY, DEFAULT_POST_TYPES));
 
   function newPairLine(text){ return { text: text || '', blanks: [] }; }
 
@@ -464,8 +528,8 @@
       title: '',
       specMaterials: [],
       pairs: [
-        { title: 'Laiptai', stairType: '', lines: [ newPairLine('') ] },
-        { title: 'Balkonas', lines: [ newPairLine('') ] }
+        { title: 'Laiptai', stairType: '', baseType: '', stepType: '', handrailType: '', postType: '', lines: [ newPairLine('') ] },
+        { title: 'Balkonas', baseType: '', handrailType: '', postType: '', lines: [ newPairLine('') ] }
       ],
       lists: [
         { title: 'Ruošiniai', lines: [''] },
@@ -543,7 +607,18 @@
   function migrate(s){
     if(!Array.isArray(s.specMaterials)) s.specMaterials = [];
     (s.pairs || []).forEach(function(p){
-      if(/laiptai/i.test(p.title || '') && typeof p.stairType !== 'string') p.stairType = '';
+      if(/laiptai/i.test(p.title || '')){
+        if(typeof p.stairType !== 'string') p.stairType = '';
+        if(typeof p.baseType !== 'string') p.baseType = '';
+        if(typeof p.stepType !== 'string') p.stepType = '';
+        if(typeof p.handrailType !== 'string') p.handrailType = '';
+        if(typeof p.postType !== 'string') p.postType = '';
+      }
+      if(/balkon/i.test(p.title || '')){
+        if(typeof p.baseType !== 'string') p.baseType = '';
+        if(typeof p.handrailType !== 'string') p.handrailType = '';
+        if(typeof p.postType !== 'string') p.postType = '';
+      }
       p.lines = (p.lines || []).map(function(l){
         if(typeof l === 'string') return newPairLine(l);
         if(l && typeof l === 'object'){
@@ -824,12 +899,13 @@
 
   function buildSpecPopover(){
     var pop = el('div', {class:'blanks-popover'});
+    var materials = (state && state.specMaterials) || [];
     MATERIAL_OPTIONS.forEach(function(opt){
       var label = el('label');
       var cb = document.createElement('input');
       cb.type = 'checkbox';
       cb.value = opt;
-      cb.checked = state.specMaterials.indexOf(opt) !== -1;
+      cb.checked = materials.indexOf(opt) !== -1;
       cb.addEventListener('change', function(){
         var idx = state.specMaterials.indexOf(opt);
         if(cb.checked && idx === -1) state.specMaterials.push(opt);
@@ -868,26 +944,30 @@
   });
   initSpecPicker();
 
+  // Generic single-select dropdown w/ an editable, shared option list.
+  // fieldKey is the property on sectionData holding the current value.
+  // optionsArray is one of the shared *_TYPE_OPTIONS arrays (mutated in
+  // place and persisted to storageKey so new entries stick around).
   // onSwap(addMode) rebuilds the popover in place (list mode, or the
   // "type a new one" mode) and keeps it open, without closing the dropdown.
-  function buildStairTypePopover(sectionData, onSwap, addMode){
+  function buildTypeOptionsPopover(sectionData, fieldKey, optionsArray, storageKey, onSwap, addMode){
     var pop = el('div', {class:'blanks-popover'});
 
     if(addMode){
       var addRow = el('div', {class:'popover-add-row'});
       var input = document.createElement('input');
       input.type = 'text';
-      input.placeholder = 'Įrašykite naują tipą...';
+      input.placeholder = 'Įrašykite naują variantą...';
       input.className = 'popover-add-input';
       var addBtn = el('button', {type:'button', class:'popover-add-btn', text:'+'});
       function confirmAdd(){
         var val = input.value.trim();
         if(!val) return;
-        if(STAIR_TYPE_OPTIONS.indexOf(val) === -1){
-          STAIR_TYPE_OPTIONS.push(val);
-          saveStairTypes(STAIR_TYPE_OPTIONS);
+        if(optionsArray.indexOf(val) === -1){
+          optionsArray.push(val);
+          saveTypeList(storageKey, optionsArray);
         }
-        sectionData.stairType = val;
+        sectionData[fieldKey] = val;
         closeAllPopovers();
         renderAll();
         save();
@@ -905,10 +985,13 @@
       return pop;
     }
 
-    STAIR_TYPE_OPTIONS.forEach(function(opt){
-      var item = el('div', {class:'stair-type-opt' + (sectionData.stairType === opt ? ' selected' : ''), text: opt});
+    optionsArray.forEach(function(opt){
+      var cls = 'stair-type-opt';
+      if(sectionData[fieldKey] === opt) cls += ' selected';
+      if(opt === NONE_OPTION) cls += ' none-opt';
+      var item = el('div', {class: cls, text: typeDisplayLabel(opt)});
       item.addEventListener('click', function(){
-        sectionData.stairType = (sectionData.stairType === opt) ? '' : opt;
+        sectionData[fieldKey] = (sectionData[fieldKey] === opt) ? '' : opt;
         closeAllPopovers();
         renderAll();
         save();
@@ -916,11 +999,50 @@
       pop.appendChild(item);
     });
 
-    var addOpt = el('div', {class:'stair-type-opt add-new', text:'+ Naujas tipas...'});
+    var addOpt = el('div', {class:'stair-type-opt add-new', text:'+ Naujas variantas...'});
     addOpt.addEventListener('click', function(ev){ ev.stopPropagation(); onSwap(true); });
     pop.appendChild(addOpt);
 
     return pop;
+  }
+
+  // Builds one "Label: [ dropdown ▾ ]" row and appends it to box.
+  function typeDisplayLabel(val){
+    return val === NONE_OPTION ? '– nėra –' : val;
+  }
+
+  function appendTypePickerRow(box, sectionData, fieldKey, label, placeholder, optionsArray, storageKey){
+    if(typeof sectionData[fieldKey] !== 'string') sectionData[fieldKey] = '';
+    var row = el('div', {class:'type-picker-row'});
+    row.appendChild(el('span', {class:'type-picker-label', text: label}));
+
+    var wrap = el('div', {class:'type-picker-wrap'});
+    function swap(addMode){
+      var fresh = buildTypeOptionsPopover(sectionData, fieldKey, optionsArray, storageKey, swap, addMode);
+      pop.replaceWith(fresh);
+      pop = fresh;
+      pop.classList.add('open');
+    }
+    var pop = buildTypeOptionsPopover(sectionData, fieldKey, optionsArray, storageKey, swap, false);
+    var toggle = el('button', {
+      class: 'type-select-btn' + (sectionData[fieldKey] ? '' : ' placeholder'),
+      type: 'button'
+    });
+    toggle.appendChild(el('span', {text: sectionData[fieldKey] ? typeDisplayLabel(sectionData[fieldKey]) : placeholder}));
+    toggle.appendChild(el('span', {class:'caret', text:'▾'}));
+    toggle.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var isOpen = pop.classList.contains('open');
+      closeAllPopovers();
+      if(!isOpen){
+        swap(false);
+        toggle.classList.add('open');
+      }
+    });
+    wrap.appendChild(pop);
+    wrap.appendChild(toggle);
+    row.appendChild(wrap);
+    box.appendChild(row);
   }
 
   function makePairLineRow(lines, idx){
@@ -969,39 +1091,18 @@
     titleRow.addEventListener('input', function(){ sectionData.title = titleRow.textContent; save(); });
     box.appendChild(titleRow);
 
-    var showStairType = isPair && /laiptai/i.test(sectionData.title || '');
-    if(showStairType){
-      if(typeof sectionData.stairType !== 'string') sectionData.stairType = '';
-      var typeRow = el('div', {class:'type-picker-row'});
-      typeRow.appendChild(el('span', {class:'type-picker-label', text:'Laiptų tipas:'}));
-
-      var typeWrap = el('div', {class:'type-picker-wrap'});
-      function swapTypePopover(addMode){
-        var fresh = buildStairTypePopover(sectionData, swapTypePopover, addMode);
-        typePop.replaceWith(fresh);
-        typePop = fresh;
-        typePop.classList.add('open');
-      }
-      var typePop = buildStairTypePopover(sectionData, swapTypePopover, false);
-      var typeToggle = el('button', {
-        class: 'type-select-btn' + (sectionData.stairType ? '' : ' placeholder'),
-        type: 'button'
-      });
-      typeToggle.appendChild(el('span', {text: sectionData.stairType || 'Pasirinkti tipą'}));
-      typeToggle.appendChild(el('span', {class:'caret', text:'▾'}));
-      typeToggle.addEventListener('click', function(ev){
-        ev.stopPropagation();
-        var isOpen = typePop.classList.contains('open');
-        closeAllPopovers();
-        if(!isOpen){
-          swapTypePopover(false);
-          typeToggle.classList.add('open');
-        }
-      });
-      typeWrap.appendChild(typePop);
-      typeWrap.appendChild(typeToggle);
-      typeRow.appendChild(typeWrap);
-      box.appendChild(typeRow);
+    var isLaiptaiBox = isPair && /laiptai/i.test(sectionData.title || '');
+    var isBalkonasBox = isPair && /balkon/i.test(sectionData.title || '');
+    if(isLaiptaiBox){
+      appendTypePickerRow(box, sectionData, 'stairType', 'Laiptų tipas:', 'Pasirinkti tipą', STAIR_TYPE_OPTIONS, STAIR_TYPES_KEY);
+      appendTypePickerRow(box, sectionData, 'baseType', 'Tvorelės tipas:', 'Pasirinkti tipą', BASE_TYPE_OPTIONS, BASE_TYPES_KEY);
+      appendTypePickerRow(box, sectionData, 'stepType', 'Pakopų tipas:', 'Pasirinkti tipą', STEP_TYPE_OPTIONS, STEP_TYPES_KEY);
+      appendTypePickerRow(box, sectionData, 'handrailType', 'Porankių tipas:', 'Pasirinkti tipą', HANDRAIL_TYPE_OPTIONS, HANDRAIL_TYPES_KEY);
+      appendTypePickerRow(box, sectionData, 'postType', 'Stulpų tipas:', 'Pasirinkti tipą', POST_TYPE_OPTIONS, POST_TYPES_KEY);
+    } else if(isBalkonasBox){
+      appendTypePickerRow(box, sectionData, 'baseType', 'Tvorelės tipas:', 'Pasirinkti tipą', BASE_TYPE_OPTIONS, BASE_TYPES_KEY);
+      appendTypePickerRow(box, sectionData, 'handrailType', 'Porankių tipas:', 'Pasirinkti tipą', HANDRAIL_TYPE_OPTIONS, HANDRAIL_TYPES_KEY);
+      appendTypePickerRow(box, sectionData, 'postType', 'Stulpų tipas:', 'Pasirinkti tipą', POST_TYPE_OPTIONS, POST_TYPES_KEY);
     }
 
     var linesWrap = el('div', {class:'lines'});
