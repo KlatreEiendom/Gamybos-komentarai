@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Gamybos užsakymo lapas</title>
+<title>Gamybos užsakymo lapai</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -33,7 +33,63 @@
     min-height: 100%;
   }
 
-  /* ---------------- toolbar ---------------- */
+  /* ================= PROJECT LIST VIEW ================= */
+  .list-wrap { max-width: 820px; margin: 0 auto; padding: 2rem 1rem 3rem; }
+  .list-head {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .list-head h1 { font-size: 1.05rem; font-weight: 700; color: var(--ink); margin: 0; }
+  .list-head p { font-size: 0.8rem; color: var(--muted); margin: 3px 0 0; }
+  .new-project-btn {
+    font-family: inherit; font-size: 0.82rem; font-weight: 600; padding: 10px 18px;
+    border-radius: 8px; border: none; background: var(--ink); color: #fff; cursor: pointer;
+    white-space: nowrap; transition: background .15s;
+  }
+  .new-project-btn:hover { background: #333; }
+
+  .project-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .project-card:hover { border-color: #cfcabd; box-shadow: 0 2px 10px rgba(20,20,20,.05); }
+  .project-card .pc-main { flex: 1; min-width: 0; }
+  .project-card .pc-title { font-size: 0.92rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .project-card .pc-title.untitled { color: #b9b4a8; font-weight: 500; font-style: normal; }
+  .project-card .pc-meta { font-size: 0.74rem; color: var(--muted); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .project-card .pc-chip {
+    background: var(--chip-bg); border: 1px solid var(--card-border); border-radius: 20px;
+    padding: 1px 9px; font-size: 0.68rem; color: var(--muted-2); white-space: nowrap;
+  }
+  .project-card .pc-del {
+    border: none; background: transparent; color: #ccc; font-size: 1rem; cursor: pointer;
+    width: 30px; height: 30px; border-radius: 50%; flex: none; transition: background .15s, color .15s;
+  }
+  .project-card .pc-del:hover { background: #f3ebe9; color: var(--danger); }
+
+  .list-empty {
+    text-align: center; padding: 48px 20px; color: var(--muted); font-size: 0.86rem;
+    background: var(--card); border: 1px dashed var(--card-border); border-radius: 12px;
+  }
+  .list-empty .new-project-btn { margin-top: 14px; }
+
+  /* ================= TOOLBAR (sheet editor) ================= */
   .toolbar {
     position: sticky;
     top: 0;
@@ -63,9 +119,11 @@
   .toolbar button:hover { background: var(--paper); }
   .toolbar button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
   .toolbar button.primary:hover { background: #333; }
+  .toolbar button.back-btn { border-color: transparent; background: transparent; padding: 8px 10px 8px 4px; color: #555; }
+  .toolbar button.back-btn:hover { color: var(--ink); background: transparent; }
   .toolbar .save-hint { font-size: 0.72rem; color: var(--muted); width: 100%; order: 99; margin-top: 2px; }
 
-  /* ---------------- sheet ---------------- */
+  /* ================= SHEET ================= */
   .sheet-wrap { display: flex; justify-content: center; padding: 2rem 1rem 140px; }
   .sheet { width: 100%; max-width: 900px; }
 
@@ -115,6 +173,55 @@
     letter-spacing: 0.03em;
     color: var(--ink);
   }
+
+  /* ---- laiptų tipas (single-select list w/ add-new, inside the Laiptai box) ---- */
+  .type-picker-row {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    padding: 10px 16px; border-bottom: 1px solid var(--divider);
+  }
+  .type-picker-label { font-size: 0.72rem; color: var(--muted); }
+  .type-picker-wrap { position: relative; margin-left: auto; }
+  .type-select-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: inherit; font-size: 0.82rem; font-weight: 600; color: var(--accent);
+    padding: 7px 11px; border-radius: 8px; border: 1px solid #ddd; background: #fff; cursor: pointer;
+    transition: border-color .15s;
+  }
+  .type-select-btn:hover { border-color: #bbb; }
+  .type-select-btn.placeholder { color: #b9b4a8; font-weight: 400; }
+  .type-select-btn .caret {
+    font-size: 0.6rem; color: #999; line-height: 1; transition: transform .15s; transform: rotate(0deg);
+  }
+  .type-select-btn.open .caret { transform: rotate(180deg); }
+
+  .stair-type-opt {
+    font-size: 0.82rem; color: #333; padding: 7px 8px; border-radius: 6px;
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+  }
+  .stair-type-opt:before { content: ''; width: 6px; height: 6px; border-radius: 50%; border: 1px solid #ccc; flex: none; }
+  .stair-type-opt:hover { background: var(--paper); }
+  .stair-type-opt.selected { font-weight: 600; color: var(--accent); }
+  .stair-type-opt.selected:before { background: var(--accent); border-color: var(--accent); }
+  .stair-type-opt.add-new {
+    margin-top: 6px; padding-top: 9px; border-top: 1px solid var(--divider);
+    color: var(--muted); font-weight: 500;
+  }
+  .stair-type-opt.add-new:before { display: none; }
+  .stair-type-opt.add-new:hover { color: var(--accent); }
+
+  .popover-add-row {
+    display: flex; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--divider);
+  }
+  .popover-add-input {
+    flex: 1; min-width: 0; font-family: inherit; font-size: 0.78rem;
+    padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; outline: none;
+  }
+  .popover-add-input:focus { border-color: var(--accent); }
+  .popover-add-btn {
+    font-family: inherit; font-size: 0.85rem; font-weight: 600; width: 30px; flex: none;
+    border-radius: 6px; border: 1px solid var(--ink); background: var(--ink); color: #fff; cursor: pointer;
+  }
+  .popover-add-btn:hover { background: #333; }
 
   .line-row { display: flex; align-items: flex-start; border-bottom: 1px solid var(--divider); transition: background .1s; }
   .line-row:last-child { border-bottom: none; }
@@ -256,46 +363,71 @@
     [contenteditable]:focus { outline: none; }
     [data-ph]:empty:before { content: '' !important; }
     .chip { padding: 2px 8px; background: #f0f0f0 !important; }
+    #projectListView { display: none !important; }
+    .type-select-btn { border: none !important; padding: 0 !important; background: none !important; color: #111 !important; }
+    .type-select-btn.placeholder { color: #999 !important; }
+    .type-select-btn .caret { display: none !important; }
   }
 </style>
 </head>
 <body>
 
-<div class="toolbar">
-  <h1>Gamybos užsakymo lapas</h1>
-  <button id="addPairBtn" type="button">+ Skiltis (2 stulp.)</button>
-  <button id="addListBtn" type="button">+ Eilučių blokas</button>
-  <button id="newBtn" type="button">Naujas (tuščias)</button>
-  <button id="sampleBtn" type="button">Pavyzdys</button>
-  <button id="printBtn" class="primary" type="button">Spausdinti</button>
-  <div class="save-hint">Duomenys saugomi automatiškai šioje naršyklėje. Kiekvienai detalės eilutei dešinėje galite pažymėti, kokie ruošiniai jai naudojami (galima kelis).</div>
+<!-- ================= PROJECT LIST VIEW ================= -->
+<div id="projectListView">
+  <div class="list-wrap">
+    <div class="list-head">
+      <div>
+        <h1>Gamybos užsakymo lapai</h1>
+        <p>Pasirinkite anksčiau sukurtą projektą arba sukurkite naują</p>
+      </div>
+      <button class="new-project-btn" type="button" id="newProjectBtn">+ Naujas projektas</button>
+    </div>
+    <div id="projectsContainer"></div>
+  </div>
 </div>
 
-<div class="sheet-wrap">
-  <div class="sheet" id="sheet">
-    <div class="header-row">
-      <div class="box header-box" id="titleBox" contenteditable="true" data-ph="Projekto pavadinimas"></div>
-      <div class="box header-box spec-box">
-        <div class="spec-chips-wrap" id="specChips"></div>
-        <div class="spec-picker">
-          <button class="blanks-toggle" type="button" id="specAddBtn">+ pasirinkti medžiagą</button>
+<!-- ================= SHEET EDITOR VIEW ================= -->
+<div id="sheetView" style="display:none;">
+
+  <div class="toolbar">
+    <button class="back-btn" id="backBtn" type="button">← Projektai</button>
+    <h1>Gamybos užsakymo lapas</h1>
+    <button id="addPairBtn" type="button">+ Skiltis (2 stulp.)</button>
+    <button id="addListBtn" type="button">+ Eilučių blokas</button>
+    <button id="clearBtn" type="button">Išvalyti lapą</button>
+    <button id="printBtn" class="primary" type="button">Spausdinti</button>
+    <div class="save-hint">Duomenys saugomi automatiškai šioje naršyklėje. Kiekvienai detalės eilutei dešinėje galite pažymėti, kokie ruošiniai jai naudojami (galima kelis).</div>
+  </div>
+
+  <div class="sheet-wrap">
+    <div class="sheet" id="sheet">
+      <div class="header-row">
+        <div class="box header-box" id="titleBox" contenteditable="true" data-ph="Projekto pavadinimas"></div>
+        <div class="box header-box spec-box">
+          <div class="spec-chips-wrap" id="specChips"></div>
+          <div class="spec-picker">
+            <button class="blanks-toggle" type="button" id="specAddBtn">+ pasirinkti medžiagą</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="pairs-grid" id="pairsGrid"></div>
-    <div class="full-stack" id="fullStack"></div>
+      <div class="pairs-grid" id="pairsGrid"></div>
+      <div class="full-stack" id="fullStack"></div>
 
-    <div class="box notes-box">
-      <div class="box-title-row">Papildoma informacija</div>
-      <div class="notes-area" id="notesArea" contenteditable="true" data-ph="Papildomos pastabos gamybai..."></div>
+      <div class="box notes-box">
+        <div class="box-title-row">Papildoma informacija</div>
+        <div class="notes-area" id="notesArea" contenteditable="true" data-ph="Papildomos pastabos gamybai..."></div>
+      </div>
     </div>
   </div>
+
 </div>
 
 <script>
 (function(){
-  var STORAGE_KEY = 'gamybos-lapas-v4';
+  var INDEX_KEY = 'gamybos-projektai-index';
+  var PROJECT_KEY_PREFIX = 'gamybos-projektas-';
+  var LEGACY_KEY = 'gamybos-lapas-v4'; // single-sheet storage from an earlier version
 
   var MATERIAL_OPTIONS = [
     'Ąžuolo masyvas – 42/40/20 mm',
@@ -304,38 +436,114 @@
     'Dygiuotas uosis – 40/20 mm'
   ];
 
+  var STAIR_TYPES_KEY = 'gamybos-laiptu-tipai';
+  var DEFAULT_STAIR_TYPES = [
+    'Sijos iš šonų',
+    'Sijos iš apačios',
+    'Metalo sija'
+  ];
+  function loadStairTypes(){
+    try {
+      var raw = localStorage.getItem(STAIR_TYPES_KEY);
+      var arr = raw ? JSON.parse(raw) : null;
+      return Array.isArray(arr) && arr.length ? arr : DEFAULT_STAIR_TYPES.slice();
+    } catch(e) { return DEFAULT_STAIR_TYPES.slice(); }
+  }
+  function saveStairTypes(arr){
+    try { localStorage.setItem(STAIR_TYPES_KEY, JSON.stringify(arr)); }
+    catch(e) { /* storage unavailable — continue without persistence */ }
+  }
+  // Shared across all projects, so a type added while editing one project
+  // is immediately offered in every other project too.
+  var STAIR_TYPE_OPTIONS = loadStairTypes();
+
   function newPairLine(text){ return { text: text || '', blanks: [] }; }
 
-  var sampleState = {
-    title: '',
-    specMaterials: [],
-    pairs: [
-      { title: 'Laiptai', lines: [ newPairLine('') ] },
-      { title: 'Balkonas', lines: [ newPairLine('') ] }
-    ],
-    lists: [
-      { title: 'Ruošiniai', lines: [''] },
-      { title: 'Dažymas', lines: [''] }
-    ],
-    notes: ''
-  };
+  function blankProjectState(){
+    return {
+      title: '',
+      specMaterials: [],
+      pairs: [
+        { title: 'Laiptai', stairType: '', lines: [ newPairLine('') ] },
+        { title: 'Balkonas', lines: [ newPairLine('') ] }
+      ],
+      lists: [
+        { title: 'Ruošiniai', lines: [''] },
+        { title: 'Dažymas', lines: [''] }
+      ],
+      notes: ''
+    };
+  }
 
-  var blankState = JSON.parse(JSON.stringify(sampleState));
-
-  var state = load() || clone(sampleState);
-  migrate(state);
-  var openPopoverId = null;
-
+  function el(tag, attrs, children){
+    var e = document.createElement(tag);
+    if(attrs) Object.keys(attrs).forEach(function(k){
+      if(k === 'text') e.textContent = attrs[k];
+      else e.setAttribute(k, attrs[k]);
+    });
+    (children||[]).forEach(function(c){ e.appendChild(c); });
+    return e;
+  }
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function uid(){ return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 
-  // Upgrade older saved states where pair lines were plain strings,
-  // and where the main-material field was a single free-text string.
+  /* ============== storage: projects index ============== */
+  function loadIndex(){
+    try {
+      var raw = localStorage.getItem(INDEX_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e) { return []; }
+  }
+  function saveIndex(idx){
+    try { localStorage.setItem(INDEX_KEY, JSON.stringify(idx)); }
+    catch(e) { /* storage unavailable — continue without persistence */ }
+  }
+  function loadProjectState(id){
+    try {
+      var raw = localStorage.getItem(PROJECT_KEY_PREFIX + id);
+      return raw ? JSON.parse(raw) : null;
+    } catch(e) { return null; }
+  }
+  function saveProjectState(id, st){
+    try { localStorage.setItem(PROJECT_KEY_PREFIX + id, JSON.stringify(st)); }
+    catch(e) { /* storage unavailable — continue without persistence */ }
+  }
+  function deleteProjectState(id){
+    try { localStorage.removeItem(PROJECT_KEY_PREFIX + id); }
+    catch(e) { /* ignore */ }
+  }
+
+  // One-time migration: an earlier version of this page stored a single
+  // sheet under LEGACY_KEY. If that exists and no project index exists yet,
+  // turn it into the first project so nothing already filled in is lost.
+  (function migrateLegacy(){
+    var idx = loadIndex();
+    if(idx.length > 0) return;
+    var raw;
+    try { raw = localStorage.getItem(LEGACY_KEY); } catch(e){ raw = null; }
+    if(!raw) return;
+    var legacy;
+    try { legacy = JSON.parse(raw); } catch(e){ return; }
+    if(!legacy || typeof legacy !== 'object') return;
+    var id = uid();
+    var st = blankProjectState();
+    st.title = typeof legacy.title === 'string' ? legacy.title : '';
+    st.specMaterials = Array.isArray(legacy.specMaterials) ? legacy.specMaterials :
+      (typeof legacy.spec === 'string' && legacy.spec.trim() ? [legacy.spec.trim()] : []);
+    if(Array.isArray(legacy.pairs) && legacy.pairs.length) st.pairs = legacy.pairs;
+    if(Array.isArray(legacy.lists) && legacy.lists.length) st.lists = legacy.lists;
+    st.notes = typeof legacy.notes === 'string' ? legacy.notes : '';
+    migrate(st);
+    saveProjectState(id, st);
+    idx.push({ id: id, title: st.title, updatedAt: Date.now() });
+    saveIndex(idx);
+  })();
+
+  // Upgrade older saved project states where pair lines were plain strings.
   function migrate(s){
-    if(!Array.isArray(s.specMaterials)){
-      s.specMaterials = (typeof s.spec === 'string' && s.spec.trim()) ? [s.spec.trim()] : [];
-    }
-    delete s.spec;
+    if(!Array.isArray(s.specMaterials)) s.specMaterials = [];
     (s.pairs || []).forEach(function(p){
+      if(/laiptai/i.test(p.title || '') && typeof p.stairType !== 'string') p.stairType = '';
       p.lines = (p.lines || []).map(function(l){
         if(typeof l === 'string') return newPairLine(l);
         if(l && typeof l === 'object'){
@@ -352,30 +560,130 @@
     });
   }
 
-  function save(){
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-    catch(e) { /* storage unavailable — continue without persistence */ }
-  }
-  function load(){
-    try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch(e) { return null; }
+  function fmtDate(ts){
+    var d = new Date(ts);
+    var pad = function(n){ return (n < 10 ? '0' : '') + n; };
+    return pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
   }
 
-  function el(tag, attrs, children){
-    var e = document.createElement(tag);
-    if(attrs) Object.keys(attrs).forEach(function(k){
-      if(k === 'text') e.textContent = attrs[k];
-      else e.setAttribute(k, attrs[k]);
-    });
-    (children||[]).forEach(function(c){ e.appendChild(c); });
-    return e;
+  function countFilled(st){
+    var n = 0;
+    (st.pairs || []).forEach(function(p){ (p.lines||[]).forEach(function(l){ if((l.text||'').trim()) n++; }); });
+    (st.lists || []).forEach(function(l){ (l.lines||[]).forEach(function(t){ if((t||'').trim()) n++; }); });
+    return n;
   }
+
+  /* ============== project list view ============== */
+  function renderProjectList(){
+    var idx = loadIndex().slice().sort(function(a, b){ return b.updatedAt - a.updatedAt; });
+    var container = document.getElementById('projectsContainer');
+    container.innerHTML = '';
+
+    if(idx.length === 0){
+      var empty = el('div', {class:'list-empty'});
+      empty.appendChild(el('div', {text:'Dar nėra sukurtų projektų'}));
+      var btn = el('button', {class:'new-project-btn', type:'button', text:'+ Naujas projektas'});
+      btn.addEventListener('click', createNewProject);
+      empty.appendChild(btn);
+      container.appendChild(empty);
+      return;
+    }
+
+    idx.forEach(function(entry){
+      var card = el('div', {class:'project-card'});
+      var main = el('div', {class:'pc-main'});
+      var titleText = (entry.title || '').trim();
+      main.appendChild(el('div', {class: 'pc-title' + (titleText ? '' : ' untitled'), text: titleText || 'Be pavadinimo'}));
+
+      var meta = el('div', {class:'pc-meta'});
+      meta.appendChild(el('span', {text: 'Atnaujinta ' + fmtDate(entry.updatedAt)}));
+      var st = loadProjectState(entry.id);
+      if(st){
+        var filled = countFilled(st);
+        meta.appendChild(el('span', {class:'pc-chip', text: filled + ' įrašyti punktai'}));
+        if(st.specMaterials && st.specMaterials.length){
+          meta.appendChild(el('span', {class:'pc-chip', text: st.specMaterials.length === 1 ? st.specMaterials[0] : st.specMaterials.length + ' medžiagos'}));
+        }
+      }
+      main.appendChild(meta);
+      card.appendChild(main);
+
+      var del = el('button', {class:'pc-del', type:'button', title:'Šalinti projektą', text:'×'});
+      del.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        if(!confirm('Ištrinti projektą' + (titleText ? ' „' + titleText + '“' : '') + '? Šio veiksmo atšaukti negalima.')) return;
+        deleteProjectState(entry.id);
+        var idx2 = loadIndex().filter(function(e){ return e.id !== entry.id; });
+        saveIndex(idx2);
+        renderProjectList();
+      });
+      card.appendChild(del);
+
+      card.addEventListener('click', function(){ openProject(entry.id); });
+      container.appendChild(card);
+    });
+  }
+
+  function createNewProject(){
+    var id = uid();
+    var st = blankProjectState();
+    saveProjectState(id, st);
+    var idx = loadIndex();
+    idx.push({ id: id, title: '', updatedAt: Date.now() });
+    saveIndex(idx);
+    openProject(id);
+  }
+
+  document.getElementById('newProjectBtn').addEventListener('click', createNewProject);
+
+  /* ============== sheet editor ============== */
+  var currentProjectId = null;
+  var state = null;
+  var openPopoverId = null;
+
+  function touchIndexEntry(){
+    if(!currentProjectId) return;
+    var idx = loadIndex();
+    var found = false;
+    idx.forEach(function(e){
+      if(e.id === currentProjectId){
+        e.title = state.title || '';
+        e.updatedAt = Date.now();
+        found = true;
+      }
+    });
+    if(!found) idx.push({ id: currentProjectId, title: state.title || '', updatedAt: Date.now() });
+    saveIndex(idx);
+  }
+
+  function save(){
+    if(!currentProjectId) return;
+    saveProjectState(currentProjectId, state);
+    touchIndexEntry();
+  }
+
+  function showListView(){
+    document.getElementById('projectListView').style.display = '';
+    document.getElementById('sheetView').style.display = 'none';
+    currentProjectId = null;
+    renderProjectList();
+  }
+
+  function openProject(id){
+    var st = loadProjectState(id);
+    if(!st){ st = blankProjectState(); saveProjectState(id, st); }
+    migrate(st);
+    currentProjectId = id;
+    state = st;
+    document.getElementById('projectListView').style.display = 'none';
+    document.getElementById('sheetView').style.display = '';
+    window.scrollTo(0, 0);
+    renderAll();
+  }
+
+  document.getElementById('backBtn').addEventListener('click', showListView);
 
   // Groups of selectable raw-material options, one group per "list" section.
-  // A section titled with "ruošin"/"ruosin" is shown first/preferred, but all
-  // list sections are offered as groups so any block can supply pickable tags.
   function getBlankGroups(){
     var groups = (state.lists || [])
       .map(function(l){
@@ -395,10 +703,11 @@
 
   function closeAllPopovers(){
     document.querySelectorAll('.blanks-popover.open').forEach(function(p){ p.classList.remove('open'); });
+    document.querySelectorAll('.type-select-btn.open').forEach(function(b){ b.classList.remove('open'); });
     openPopoverId = null;
   }
   document.addEventListener('click', function(e){
-    if(!e.target.closest('.blanks-area')) closeAllPopovers();
+    if(!e.target.closest('.blanks-area, .type-picker-wrap')) closeAllPopovers();
   });
 
   function renderChips(area, lineObj){
@@ -557,6 +866,62 @@
       specPopoverEl.classList.remove('open');
     }
   });
+  initSpecPicker();
+
+  // onSwap(addMode) rebuilds the popover in place (list mode, or the
+  // "type a new one" mode) and keeps it open, without closing the dropdown.
+  function buildStairTypePopover(sectionData, onSwap, addMode){
+    var pop = el('div', {class:'blanks-popover'});
+
+    if(addMode){
+      var addRow = el('div', {class:'popover-add-row'});
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Įrašykite naują tipą...';
+      input.className = 'popover-add-input';
+      var addBtn = el('button', {type:'button', class:'popover-add-btn', text:'+'});
+      function confirmAdd(){
+        var val = input.value.trim();
+        if(!val) return;
+        if(STAIR_TYPE_OPTIONS.indexOf(val) === -1){
+          STAIR_TYPE_OPTIONS.push(val);
+          saveStairTypes(STAIR_TYPE_OPTIONS);
+        }
+        sectionData.stairType = val;
+        closeAllPopovers();
+        renderAll();
+        save();
+      }
+      addBtn.addEventListener('click', function(ev){ ev.stopPropagation(); confirmAdd(); });
+      input.addEventListener('click', function(ev){ ev.stopPropagation(); });
+      input.addEventListener('keydown', function(ev){
+        if(ev.key === 'Enter'){ ev.preventDefault(); confirmAdd(); }
+        if(ev.key === 'Escape'){ ev.preventDefault(); onSwap(false); }
+      });
+      addRow.appendChild(input);
+      addRow.appendChild(addBtn);
+      pop.appendChild(addRow);
+      setTimeout(function(){ input.focus(); }, 0);
+      return pop;
+    }
+
+    STAIR_TYPE_OPTIONS.forEach(function(opt){
+      var item = el('div', {class:'stair-type-opt' + (sectionData.stairType === opt ? ' selected' : ''), text: opt});
+      item.addEventListener('click', function(){
+        sectionData.stairType = (sectionData.stairType === opt) ? '' : opt;
+        closeAllPopovers();
+        renderAll();
+        save();
+      });
+      pop.appendChild(item);
+    });
+
+    var addOpt = el('div', {class:'stair-type-opt add-new', text:'+ Naujas tipas...'});
+    addOpt.addEventListener('click', function(ev){ ev.stopPropagation(); onSwap(true); });
+    pop.appendChild(addOpt);
+
+    return pop;
+  }
 
   function makePairLineRow(lines, idx){
     var lineObj = lines[idx];
@@ -603,6 +968,41 @@
     titleRow.textContent = sectionData.title || '';
     titleRow.addEventListener('input', function(){ sectionData.title = titleRow.textContent; save(); });
     box.appendChild(titleRow);
+
+    var showStairType = isPair && /laiptai/i.test(sectionData.title || '');
+    if(showStairType){
+      if(typeof sectionData.stairType !== 'string') sectionData.stairType = '';
+      var typeRow = el('div', {class:'type-picker-row'});
+      typeRow.appendChild(el('span', {class:'type-picker-label', text:'Laiptų tipas:'}));
+
+      var typeWrap = el('div', {class:'type-picker-wrap'});
+      function swapTypePopover(addMode){
+        var fresh = buildStairTypePopover(sectionData, swapTypePopover, addMode);
+        typePop.replaceWith(fresh);
+        typePop = fresh;
+        typePop.classList.add('open');
+      }
+      var typePop = buildStairTypePopover(sectionData, swapTypePopover, false);
+      var typeToggle = el('button', {
+        class: 'type-select-btn' + (sectionData.stairType ? '' : ' placeholder'),
+        type: 'button'
+      });
+      typeToggle.appendChild(el('span', {text: sectionData.stairType || 'Pasirinkti tipą'}));
+      typeToggle.appendChild(el('span', {class:'caret', text:'▾'}));
+      typeToggle.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        var isOpen = typePop.classList.contains('open');
+        closeAllPopovers();
+        if(!isOpen){
+          swapTypePopover(false);
+          typeToggle.classList.add('open');
+        }
+      });
+      typeWrap.appendChild(typePop);
+      typeWrap.appendChild(typeToggle);
+      typeRow.appendChild(typeWrap);
+      box.appendChild(typeRow);
+    }
 
     var linesWrap = el('div', {class:'lines'});
     sectionData.lines.forEach(function(_, idx){
@@ -654,7 +1054,6 @@
 
   document.getElementById('titleBox').addEventListener('input', function(){ state.title = this.textContent; save(); });
   document.getElementById('notesArea').addEventListener('input', function(){ state.notes = this.textContent; save(); });
-  initSpecPicker();
 
   document.getElementById('addPairBtn').addEventListener('click', function(){
     state.pairs.push({ title: '', lines: [ newPairLine('') ] });
@@ -664,19 +1063,15 @@
     state.lists.push({ title: '', lines: [''] });
     renderAll(); save();
   });
-  document.getElementById('newBtn').addEventListener('click', function(){
-    if(!confirm('Pradėti naują tuščią lapą? Dabartiniai duomenys bus pakeisti.')) return;
-    state = clone(blankState);
-    renderAll(); save();
-  });
-  document.getElementById('sampleBtn').addEventListener('click', function(){
-    if(!confirm('Įkelti pavyzdinį lapą? Dabartiniai duomenys bus pakeisti.')) return;
-    state = clone(sampleState);
+  document.getElementById('clearBtn').addEventListener('click', function(){
+    if(!confirm('Išvalyti šio projekto lapą? Duomenys šiame projekte bus pakeisti tuščiais.')) return;
+    state = blankProjectState();
     renderAll(); save();
   });
   document.getElementById('printBtn').addEventListener('click', function(){ window.print(); });
 
-  renderAll();
+  // Start on the project list.
+  renderProjectList();
 })();
 </script>
 
