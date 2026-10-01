@@ -24,7 +24,9 @@
     --chip-bg: #f0ede6;
     --danger: #c0524a;
   }
-  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  /* Every size in this file is in rem, so bumping the root size scales all
+     text (and anything sized off it) together, uniformly, in one place. */
+  html { font-size: 118%; scroll-padding-top: env(safe-area-inset-top, 0px); }
   body {
     margin: 0;
     background: var(--paper);
@@ -136,7 +138,13 @@
 
   .header-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
   .header-box { min-height: 90px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 14px 20px; }
-  #titleBox { font-size: clamp(1.15rem, 2.4vw, 1.4rem); font-weight: 800; letter-spacing: -0.02em; color: var(--ink); }
+  /* Base/placeholder size; while text is entered, JS sets an inline
+     font-size (fitTitleFont) that grows short titles and shrinks long
+     ones so the name always fills the box as much as possible. */
+  #titleBox {
+    font-size: clamp(1.15rem, 2.4vw, 1.4rem); font-weight: 800; letter-spacing: -0.02em; color: var(--ink);
+    white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+  }
   [contenteditable]:focus { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
   [data-ph]:empty:before { content: attr(data-ph); color: #b9b4a8; font-weight: 400; font-size: 0.9rem; letter-spacing: normal; }
 
@@ -151,8 +159,9 @@
     font-size: 0.78rem; font-weight: 600; color: var(--accent);
     padding: 4px 8px 4px 12px; white-space: nowrap;
   }
-  .spec-chip .rm { cursor: pointer; color: #bbb; font-size: 0.78rem; transition: color .15s; }
+  .spec-chip .rm { cursor: pointer; color: #bbb; font-size: 0.78rem; opacity: 0; transition: color .15s, opacity .15s; }
   .spec-chip .rm:hover { color: var(--danger); }
+  .spec-chip:hover .rm, .spec-chip:focus-within .rm { opacity: 1; }
   .spec-empty { font-size: 0.85rem; color: #b9b4a8; }
   .spec-picker { position: relative; }
 
@@ -184,14 +193,20 @@
   .type-select-btn {
     display: inline-flex; align-items: center; gap: 8px;
     font-family: inherit; font-size: 0.82rem; font-weight: 600; color: var(--accent);
-    padding: 7px 11px; border-radius: 8px; border: 1px solid #ddd; background: #fff; cursor: pointer;
-    transition: border-color .15s;
+    padding: 7px 11px; border-radius: 8px; border: 1px solid transparent; background: transparent; cursor: pointer;
+    transition: border-color .15s, background .15s;
   }
-  .type-select-btn:hover { border-color: #bbb; }
+  /* At rest it reads like plain printed text (no visible button chrome);
+     the border/background only appear on hover or while open, as a hint
+     that it's clickable — so the filled-in sheet already looks close to
+     how it will print, without losing the ability to edit it. */
+  .type-select-btn:hover, .type-select-btn.open { border-color: #ddd; background: #fff; }
   .type-select-btn.placeholder { color: #b9b4a8; font-weight: 400; }
   .type-select-btn .caret {
-    font-size: 0.6rem; color: #999; line-height: 1; transition: transform .15s; transform: rotate(0deg);
+    font-size: 0.6rem; color: #999; line-height: 1; transition: transform .15s, opacity .15s; transform: rotate(0deg);
+    opacity: 0.35;
   }
+  .type-select-btn:hover .caret, .type-select-btn.open .caret { opacity: 1; }
   .type-select-btn.open .caret { transform: rotate(180deg); }
 
   .stair-type-opt {
@@ -220,7 +235,7 @@
   }
   .popover-add-input:focus { border-color: var(--accent); }
   .popover-add-btn {
-    font-family: inherit; font-size: 0.85rem; font-weight: 600; width: 30px; flex: none;
+    font-family: inherit; font-size: 0.85rem; font-weight: 600; width: 34px; flex: none;
     border-radius: 6px; border: 1px solid var(--ink); background: var(--ink); color: #fff; cursor: pointer;
   }
   .popover-add-btn:hover { background: #333; }
@@ -266,12 +281,13 @@
     color: var(--muted-2);
     padding: 2px 8px 2px 10px;
     white-space: nowrap;
-    max-width: 160px;
+    max-width: 190px;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .chip .rm { cursor: pointer; color: #bbb; font-size: 0.72rem; flex: none; transition: color .15s; }
+  .chip .rm { cursor: pointer; color: #bbb; font-size: 0.72rem; flex: none; opacity: 0; transition: color .15s, opacity .15s; }
   .chip .rm:hover { color: var(--danger); }
+  .chip:hover .rm, .chip:focus-within .rm { opacity: 1; }
   .blanks-toggle {
     border: 1px solid #ddd;
     background: var(--paper);
@@ -283,9 +299,13 @@
     cursor: pointer;
     white-space: nowrap;
     font-family: inherit;
-    transition: background .15s, color .15s;
+    opacity: 0;
+    transition: background .15s, color .15s, opacity .15s;
   }
   .blanks-toggle:hover { background: #ececE6; color: var(--ink); }
+  .line-row:hover .blanks-toggle, .line-row:focus-within .blanks-toggle,
+  .spec-box:hover .blanks-toggle, .spec-box:focus-within .blanks-toggle,
+  .blanks-popover.open ~ .blanks-toggle { opacity: 1; }
   .blanks-popover {
     display: none;
     position: absolute;
@@ -334,7 +354,7 @@
     background: transparent;
     color: #bbb;
     font-size: 0.95rem;
-    width: 26px;
+    width: 30px;
     cursor: pointer;
     opacity: 0;
     align-self: stretch;
@@ -346,12 +366,14 @@
   .add-line {
     display: block; width: 100%; text-align: left; padding: 9px 16px;
     font-size: 0.76rem; font-weight: 500; color: var(--muted); background: transparent; border: none;
-    border-top: 1px solid var(--divider); cursor: pointer; font-family: inherit; transition: color .15s;
+    border-top: 1px solid var(--divider); cursor: pointer; font-family: inherit;
+    opacity: 0; transition: color .15s, opacity .15s;
   }
   .add-line:hover { color: var(--accent); }
+  .box:hover .add-line, .box:focus-within .add-line { opacity: 1; }
 
   .del-section {
-    position: absolute; top: 10px; right: 10px; width: 22px; height: 22px;
+    position: absolute; top: 10px; right: 10px; width: 24px; height: 24px;
     border-radius: 50%; border: 1px solid var(--card-border); background: #fff; color: var(--muted-2);
     font-size: 0.75rem; line-height: 1; cursor: pointer; opacity: 0; transition: opacity .1s, color .15s;
   }
@@ -359,6 +381,22 @@
   .box:hover .del-section { opacity: 1; }
 
   .notes-box .notes-area { padding: 14px 16px; min-height: 130px; font-size: 0.85rem; line-height: 1.6; color: #222; white-space: pre-wrap; }
+
+  /* ---- komentaro mygtukas prie atskiro lauko (pvz. Laiptų tipas, Tvorelės
+     tipas): piktograma, paspaudus atsiranda įrašymo laukas po tuo lauku;
+     kol nereikia, nieko papildomo nerodoma ir vietos neužima ---- */
+  .row-comment-btn {
+    border: none; background: transparent; cursor: pointer; padding: 5px; margin-left: 2px;
+    border-radius: 6px; flex: none; color: #ccc; display: inline-flex; align-items: center;
+    transition: color .15s, background .15s;
+  }
+  .row-comment-btn:hover { background: var(--paper); color: #888; }
+  .row-comment-btn.has-comment { color: var(--accent); }
+  .row-comment-row { padding: 0 16px 10px; border-bottom: 1px solid var(--divider); }
+  .row-comment-area {
+    font-size: 0.78rem; line-height: 1.5; color: #333; white-space: pre-wrap;
+    background: var(--paper); border-radius: 8px; padding: 8px 10px; min-height: 18px;
+  }
 
   .add-section-bar { display: flex; gap: 8px; justify-content: center; margin: 18px 0 4px; }
   .add-section-bar button {
@@ -368,18 +406,61 @@
   .add-section-bar button:hover { color: var(--ink); border-color: var(--ink); }
 
   @media print {
-    .toolbar, .add-line, .del-line, .del-section, .add-section-bar, .blanks-toggle, .blanks-popover, .chip .rm, .spec-picker, .spec-chip .rm { display: none !important; }
+    /* Without this, most browsers silently drop background colors/fills
+       when printing — forcing it on is what makes every rule below (the
+       section banners, chip fills, Taip/Ne pills) actually show up on paper
+       instead of fading to plain black-on-white. */
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
+
+    .toolbar, .add-line, .del-line, .del-section, .add-section-bar, .blanks-toggle, .blanks-popover, .chip .rm, .spec-picker, .spec-chip .rm, .row-comment-btn { display: none !important; }
     body { background: #fff; }
     .sheet-wrap { padding: 0; }
     .sheet { max-width: 100%; }
-    .box { border: 0.5px solid #ccc; border-radius: 8px; }
     [contenteditable]:focus { outline: none; }
     [data-ph]:empty:before { content: '' !important; }
-    .chip { padding: 2px 8px; background: #f0f0f0 !important; }
     #projectListView { display: none !important; }
-    .type-select-btn { border: none !important; padding: 0 !important; background: none !important; color: #111 !important; }
-    .type-select-btn.placeholder { color: #999 !important; }
+
+    /* Stronger, unmistakable section boundaries. */
+    .box { border: 1.2px solid #999; border-radius: 8px; break-inside: avoid; }
+    .header-row, .pairs-grid { break-inside: avoid; }
+
+    /* Section headers (LAIPTAI / BALKONAS / RUOŠINIAI / DAŽYMAS / ...) as a
+       solid dark banner with white text — reads instantly, even in
+       black-and-white, and separates one "grafa" from the next at a glance. */
+    .box-title-row {
+      background: var(--ink) !important; color: #fff !important;
+      border-bottom: none; font-size: 0.82rem;
+    }
+
+    /* Darker row/field dividers — the faint on-screen tint reads as nearly
+       invisible on paper. */
+    .line-row, .type-picker-row, .row-comment-row { border-bottom-color: #ccc !important; }
+    .popover-add-row, .stair-type-opt.add-new { border-top-color: #ccc !important; }
+
+    /* Selected values (wood type, color, ruošinys, etc.) stay bold and
+       colored instead of flattening to plain body text, so they stand out
+       from the labels next to them. */
+    .type-select-btn { border: none !important; padding: 0 !important; background: none !important; color: var(--accent) !important; font-weight: 700 !important; }
+    .type-select-btn.placeholder { color: #999 !important; font-weight: 400 !important; }
     .type-select-btn .caret { display: none !important; }
+
+    /* Taip/Ne keeps its solid colored pill — a flag like this benefits from
+       being impossible to miss on the printed sheet. */
+    .yesno-select-btn.yes, .yesno-select-btn.no {
+      border: none !important; padding: 5px 12px !important; border-radius: 6px !important; font-weight: 700 !important;
+    }
+    .yesno-select-btn.yes { background: var(--accent) !important; color: #fff !important; }
+    .yesno-select-btn.no { background: var(--danger) !important; color: #fff !important; }
+
+    /* Tag chips (ruošiniai / detalės / pagrindinė medžiaga) with a visible
+       fill and border so they read as distinct labels, not stray text. */
+    .chip, .spec-chip {
+      background: var(--chip-bg) !important; border: 1px solid #bbb !important; color: #333 !important;
+    }
+    .chip { padding: 2px 8px; }
+
+    /* Per-field comments: a light tinted note box instead of plain inline text. */
+    .row-comment-area { background: #f3f2ee !important; border: 1px solid #ddd; }
   }
 </style>
 </head>
@@ -549,6 +630,9 @@
   saveTypeList(PAINT_COLOR_KEY, PAINT_COLOR_OPTIONS);
   PAINT_COLOR_OPTIONS = ensureNoneFirst(PAINT_COLOR_KEY, PAINT_COLOR_OPTIONS);
 
+  // "Detalės" (which part of the stairs/balcony) — shared between the
+  // Dažymas color rows and the Ruošiniai material rows below, since both
+  // are just pointing at the same physical components.
   var PAINT_DETAIL_KEY = 'gamybos-dazymo-detales';
   var DEFAULT_PAINT_DETAILS = [
     'Pakopos',
@@ -561,8 +645,22 @@
   var PAINT_DETAIL_OPTIONS = loadTypeList(PAINT_DETAIL_KEY, DEFAULT_PAINT_DETAILS);
   saveTypeList(PAINT_DETAIL_KEY, PAINT_DETAIL_OPTIONS);
 
+  // Ruošiniai box: each line pairs one wood blank/material with the
+  // detail(s) made from it — same two-part pattern as Dažymas above.
+  // The material choices are the same as "Pagrindinė medžiaga" above.
+  var RUOSINYS_KEY = 'gamybos-ruosiniai-sarasas';
+  var DEFAULT_RUOSINIAI = [ NONE_OPTION ].concat(MATERIAL_OPTIONS);
+  var RUOSINYS_OPTIONS = loadTypeList(RUOSINYS_KEY, DEFAULT_RUOSINIAI);
+  // Make sure these are present even for a list saved before this was added.
+  MATERIAL_OPTIONS.forEach(function(v){
+    if(RUOSINYS_OPTIONS.indexOf(v) === -1) RUOSINYS_OPTIONS.push(v);
+  });
+  saveTypeList(RUOSINYS_KEY, RUOSINYS_OPTIONS);
+  RUOSINYS_OPTIONS = ensureNoneFirst(RUOSINYS_KEY, RUOSINYS_OPTIONS);
+
   function newPairLine(text){ return { text: text || '', blanks: [] }; }
   function newPaintLine(){ return { color: '', details: [] }; }
+  function newMaterialLine(){ return { material: '', details: [] }; }
 
   function blankProjectState(){
     return {
@@ -573,7 +671,7 @@
         { title: 'Balkonas', baseType: '', handrailType: '', postType: '', lines: [ newPairLine('') ] }
       ],
       lists: [
-        { title: 'Ruošiniai', lines: [''] },
+        { title: 'Ruošiniai', lines: [ newMaterialLine() ] },
         { title: 'Dažymas', lines: [ newPaintLine() ], bothSides: false }
       ],
       notes: ''
@@ -673,6 +771,7 @@
     });
     (s.lists || []).forEach(function(l){
       var isDazymas = /dažym|dazym/i.test(l.title || '');
+      var isRuosiniai = /ruoš|ruos/i.test(l.title || '');
       if(isDazymas){
         l.lines = (l.lines || []).map(function(item){
           if(item && typeof item === 'object'){
@@ -685,6 +784,25 @@
         });
         if(l.lines.length === 0) l.lines.push(newPaintLine());
         if(typeof l.bothSides !== 'boolean') l.bothSides = false;
+      } else if(isRuosiniai){
+        l.lines = (l.lines || []).map(function(item){
+          if(item && typeof item === 'object'){
+            if(typeof item.material !== 'string') item.material = '';
+            if(!Array.isArray(item.details)) item.details = [];
+            return item;
+          }
+          if(typeof item === 'string' && item.trim()){
+            // keep whatever was typed before as a selectable option too
+            var val = item.trim();
+            if(RUOSINYS_OPTIONS.indexOf(val) === -1){
+              RUOSINYS_OPTIONS.push(val);
+              saveTypeList(RUOSINYS_KEY, RUOSINYS_OPTIONS);
+            }
+            return { material: val, details: [] };
+          }
+          return newMaterialLine();
+        });
+        if(l.lines.length === 0) l.lines.push(newMaterialLine());
       } else {
         if(l.lines.length === 0) l.lines.push('');
       }
@@ -819,10 +937,20 @@
     var groups = (state.lists || [])
       .filter(function(l){ return !/dažym|dazym/i.test(l.title || ''); })
       .map(function(l){
-        return {
-          title: (l.title || '').trim() || 'Be pavadinimo',
-          options: (l.lines || []).map(function(t){ return t.trim(); }).filter(Boolean)
-        };
+        var isRuosiniai = /ruoš|ruos/i.test(l.title || '');
+        var options;
+        if(isRuosiniai){
+          // lines are {material, details} objects now — pull the distinct,
+          // actually-chosen material names (skip blank/"-").
+          options = [];
+          (l.lines || []).forEach(function(item){
+            var val = item && typeof item === 'object' ? (item.material || '').trim() : '';
+            if(val && val !== NONE_OPTION && options.indexOf(val) === -1) options.push(val);
+          });
+        } else {
+          options = (l.lines || []).map(function(t){ return (t || '').trim(); }).filter(Boolean);
+        }
+        return { title: (l.title || '').trim() || 'Be pavadinimo', options: options };
       })
       .filter(function(g){ return g.options.length > 0; });
     groups.sort(function(a, b){
@@ -874,7 +1002,7 @@
     var pop = el('div', {class:'blanks-popover'});
     var groups = getBlankGroups();
     if(groups.length === 0){
-      pop.appendChild(el('div', {class:'empty-msg', text:'Pridėkite eilučių į "Ruošiniai" bloką, kad galėtumėte jas čia pasirinkti.'}));
+      pop.appendChild(el('div', {class:'empty-msg', text:'Pasirinkite ruošinį "Ruošiniai" bloke, kad galėtumėte jį čia pažymėti.'}));
       return pop;
     }
     groups.forEach(function(g){
@@ -1068,6 +1196,70 @@
     return val === NONE_OPTION ? '– nėra –' : val;
   }
 
+  // ---- optional per-field comment: a small icon after a field (Laiptų
+  // tipas, Tvorelės tipas, etc.) that reveals a one-line note field right
+  // under it when clicked. If there's nothing to say, nothing is shown and
+  // no space is taken up. "Open" state lives only in memory (keyed by the
+  // actual data object, which stays the same across re-renders) so it's
+  // never written to the saved project, and the field re-opens by itself
+  // whenever it already holds text.
+  var commentOpenState = new WeakMap();
+  function isCommentRowOpen(dataObj, fieldKey){
+    var rec = commentOpenState.get(dataObj);
+    if(rec && Object.prototype.hasOwnProperty.call(rec, fieldKey)) return rec[fieldKey];
+    return !!(dataObj[fieldKey + 'Comment'] && dataObj[fieldKey + 'Comment'].trim());
+  }
+  function setCommentRowOpen(dataObj, fieldKey, isOpen){
+    var rec = commentOpenState.get(dataObj);
+    if(!rec){ rec = {}; commentOpenState.set(dataObj, rec); }
+    rec[fieldKey] = isOpen;
+  }
+  function makeCommentIcon(){
+    var span = document.createElement('span');
+    span.style.display = 'inline-flex';
+    span.innerHTML = '<svg width="13" height="13" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">'
+      + '<path d="M3 4.5h14a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H9.2l-4.4 3.2a.5.5 0 0 1-.8-.4V13.5H3a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z" '
+      + 'stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+    return span;
+  }
+
+  // Appends the icon button to hostRow and, if open, a comment field right
+  // after hostRow in box. commentKey is the property name on dataObj that
+  // holds the note text (e.g. "stairTypeComment").
+  function appendFieldComment(box, hostRow, dataObj, fieldKey){
+    var commentKey = fieldKey + 'Comment';
+    if(typeof dataObj[commentKey] !== 'string') dataObj[commentKey] = '';
+
+    var btn = el('button', {type:'button', class:'row-comment-btn', title:'Komentaras'});
+    if(dataObj[commentKey].trim()) btn.classList.add('has-comment');
+    btn.appendChild(makeCommentIcon());
+    hostRow.appendChild(btn);
+
+    if(isCommentRowOpen(dataObj, fieldKey)){
+      var crow = el('div', {class:'row-comment-row'});
+      var area = el('div', {
+        class: 'row-comment-area',
+        contenteditable: 'true',
+        'data-ph': 'Komentaras...'
+      });
+      area.textContent = dataObj[commentKey];
+      area.addEventListener('input', function(){
+        dataObj[commentKey] = area.textContent;
+        if(area.textContent.trim()) btn.classList.add('has-comment');
+        else btn.classList.remove('has-comment');
+        save();
+      });
+      crow.appendChild(area);
+      hostRow.insertAdjacentElement('afterend', crow);
+    }
+
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      setCommentRowOpen(dataObj, fieldKey, !isCommentRowOpen(dataObj, fieldKey));
+      renderAll();
+    });
+  }
+
   function appendTypePickerRow(box, sectionData, fieldKey, label, placeholder, optionsArray, storageKey){
     if(typeof sectionData[fieldKey] !== 'string') sectionData[fieldKey] = '';
     var row = el('div', {class:'type-picker-row'});
@@ -1100,6 +1292,7 @@
     wrap.appendChild(toggle);
     row.appendChild(wrap);
     box.appendChild(row);
+    appendFieldComment(box, row, sectionData, fieldKey);
   }
 
   // Taip/Ne dropdown row (e.g. "ar yra detalių, kurios matosi iš abiejų
@@ -1147,6 +1340,7 @@
     wrap.appendChild(toggle);
     row.appendChild(wrap);
     box.appendChild(row);
+    appendFieldComment(box, row, sectionData, fieldKey);
   }
 
   function makePairLineRow(lines, idx){
@@ -1276,6 +1470,50 @@
     return row;
   }
 
+  // ---- Ruošiniai material rows: left = material dropdown, right = multi-select of details (same pattern as Dažymas) ----
+  function makeMaterialLineRow(lines, idx){
+    var lineObj = lines[idx];
+    var row = el('div', {class:'line-row paint-line-row'});
+
+    var matWrap = el('div', {class:'type-picker-wrap paint-color-wrap'});
+    function swapMat(addMode){
+      var fresh = buildTypeOptionsPopover(lineObj, 'material', RUOSINYS_OPTIONS, RUOSINYS_KEY, swapMat, addMode);
+      matPop.replaceWith(fresh);
+      matPop = fresh;
+      matPop.classList.add('open');
+    }
+    var matPop = buildTypeOptionsPopover(lineObj, 'material', RUOSINYS_OPTIONS, RUOSINYS_KEY, swapMat, false);
+    var matToggle = el('button', {
+      class: 'type-select-btn' + (lineObj.material ? '' : ' placeholder'),
+      type: 'button'
+    });
+    matToggle.appendChild(el('span', {text: lineObj.material ? typeDisplayLabel(lineObj.material) : 'Pasirinkti ruošinį'}));
+    matToggle.appendChild(el('span', {class:'caret', text:'▾'}));
+    matToggle.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var isOpen = matPop.classList.contains('open');
+      closeAllPopovers();
+      if(!isOpen){
+        swapMat(false);
+        matToggle.classList.add('open');
+      }
+    });
+    matWrap.appendChild(matPop);
+    matWrap.appendChild(matToggle);
+    row.appendChild(matWrap);
+
+    row.appendChild(makePaintDetailsArea(lineObj));
+
+    var del = el('button', {class:'del-line', type:'button', title:'Šalinti eilutę', text:'×'});
+    del.addEventListener('click', function(){
+      lines.splice(idx, 1);
+      if(lines.length === 0) lines.push(newMaterialLine());
+      renderAll();
+    });
+    row.appendChild(del);
+    return row;
+  }
+
   function makeListLineRow(lines, idx){
     var row = el('div', {class:'line-row'});
     var text = el('div', {class:'line-text', contenteditable:'true', 'data-ph':'įrašykite...'});
@@ -1319,6 +1557,7 @@
     }
 
     var isDazymasBox = !isPair && /dažym|dazym/i.test(sectionData.title || '');
+    var isRuosiniaiBox = !isPair && /ruoš|ruos/i.test(sectionData.title || '');
     if(isDazymasBox){
       appendYesNoRow(box, sectionData, 'bothSides', 'Ar yra detalių, kurios matosi iš abiejų pusių?');
     }
@@ -1327,15 +1566,18 @@
     sectionData.lines.forEach(function(_, idx){
       var rowEl;
       if(isDazymasBox) rowEl = makePaintLineRow(sectionData.lines, idx);
+      else if(isRuosiniaiBox) rowEl = makeMaterialLineRow(sectionData.lines, idx);
       else if(isPair) rowEl = makePairLineRow(sectionData.lines, idx);
       else rowEl = makeListLineRow(sectionData.lines, idx);
       linesWrap.appendChild(rowEl);
     });
     box.appendChild(linesWrap);
 
-    var addLine = el('button', {class:'add-line', type:'button', text: isDazymasBox ? '+ spalva' : '+ eilutė'});
+    var addLineText = isDazymasBox ? '+ spalva' : (isRuosiniaiBox ? '+ ruošinys' : '+ eilutė');
+    var addLine = el('button', {class:'add-line', type:'button', text: addLineText});
     addLine.addEventListener('click', function(){
-      sectionData.lines.push(isDazymasBox ? newPaintLine() : (isPair ? newPairLine('') : ''));
+      var newItem = isDazymasBox ? newPaintLine() : (isRuosiniaiBox ? newMaterialLine() : (isPair ? newPairLine('') : ''));
+      sectionData.lines.push(newItem);
       renderAll();
       focusLastLine(box);
     });
@@ -1348,9 +1590,27 @@
     if(rows.length) rows[rows.length - 1].focus();
   }
 
+  // Grows a short title as large as possible and shrinks a long one just
+  // enough to still fit on one line, instead of a fixed size for every name.
+  var TITLE_FONT_MAX = 44, TITLE_FONT_MIN = 15;
+  function fitTitleFont(){
+    var box = document.getElementById('titleBox');
+    if(!box.textContent || !box.textContent.trim()){ box.style.fontSize = ''; return; }
+    var size = TITLE_FONT_MAX;
+    box.style.fontSize = size + 'px';
+    while(box.scrollWidth > box.clientWidth && size > TITLE_FONT_MIN){
+      size -= 1;
+      box.style.fontSize = size + 'px';
+    }
+  }
+  window.addEventListener('resize', function(){
+    if(state) fitTitleFont();
+  });
+
   function renderAll(){
     var titleBox = document.getElementById('titleBox');
     if(titleBox.textContent !== state.title) titleBox.textContent = state.title;
+    fitTitleFont();
     renderSpecChips();
 
     var pairsGrid = document.getElementById('pairsGrid');
@@ -1375,7 +1635,7 @@
     if(notesArea.textContent !== state.notes) notesArea.textContent = state.notes;
   }
 
-  document.getElementById('titleBox').addEventListener('input', function(){ state.title = this.textContent; save(); });
+  document.getElementById('titleBox').addEventListener('input', function(){ state.title = this.textContent; fitTitleFont(); save(); });
   document.getElementById('notesArea').addEventListener('input', function(){ state.notes = this.textContent; save(); });
 
   document.getElementById('addPairBtn').addEventListener('click', function(){
