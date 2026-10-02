@@ -464,6 +464,12 @@
   }
   .add-section-bar button:hover { color: var(--ink); border-color: var(--ink); }
 
+  /* Fixed page geometry so the auto-fit script (fitSheetToPage, in the
+     script block) can compute an exact scale against a known printable
+     area — without this, a different default paper size/margins on the
+     user's printer would throw off the "always exactly 1 page" math. */
+  @page { size: A4; margin: 10mm; }
+
   @media print {
     /* Without this, most browsers silently drop background colors/fills
        when printing — forcing it on is what makes every rule below (the
@@ -473,7 +479,7 @@
 
     .toolbar, .add-line, .del-line, .del-section, .add-section-bar, .blanks-toggle, .blanks-popover, .chip .rm, .spec-picker, .spec-chip .rm, .row-comment-btn, .section-comment-btn { display: none !important; }
     body { background: #fff; }
-    .sheet-wrap { padding: 0; }
+    .sheet-wrap { padding: 0; overflow: hidden; }
     .sheet { max-width: 100%; }
     [contenteditable]:focus { outline: none; }
     [data-ph]:empty:before { content: '' !important; }
@@ -796,8 +802,7 @@
             newIdetiLine('Silikonas'), newIdetiLine('Kamštukai'), newIdetiLine('Apvalūs'),
             newIdetiLine('Dažai', true), newIdetiLine('Beicas', true), newIdetiLine('Apvalūs 300 mm', true),
             newIdetiLine('Atspausdinti brėžiniai', true), newIdetiLine('Pap. detalė', false, true)
-          ] },
-        { title: 'Apdaila', lines: [''] }
+          ] }
       ],
       notes: ''
     };
@@ -933,8 +938,7 @@
         });
       });
     }
-    var hasApdaila = s.lists.some(function(l){ return /apdail/i.test(l.title || ''); });
-    if(!hasApdaila) s.lists.push({ title: 'Apdaila', lines: [''] });
+    s.lists = s.lists.filter(function(l){ return !/^apdaila$/i.test((l.title || '').trim()); });
     (s.lists || []).forEach(function(l){
       var isDazymas = /dažym|dazym/i.test(l.title || '');
       var isRuosiniai = /ruoš|ruos/i.test(l.title || '');
@@ -2077,6 +2081,83 @@
     renderAll(); save();
   });
   document.getElementById('printBtn').addEventListener('click', function(){ window.print(); });
+
+  // ---- Auto-fit the printed sheet to exactly one page -------------------
+  // Scales the whole sheet up or down (via CSS transform) so it always
+  // fills exactly one printed page: text grows as large as it can when
+  // there's little content, and shrinks when there's a lot. Only if it
+  // still wouldn't fit even at the smallest readable size does it start
+  // dropping rows nobody ever filled in (and then empty list boxes), so a
+  // genuinely overflowing sheet still comes out as one page instead of
+  // spilling onto a second.
+  var PRINT_PAGE_W = 718, PRINT_PAGE_H = 1047; // A4 printable area in px @96dpi, minus the 10mm @page margin on every side
+  var PRINT_SCALE_MIN = 0.6, PRINT_SCALE_MAX = 2;
+  var printHiddenEls = [];
+
+  function hideForPrint(node){
+    node.style.display = 'none';
+    printHiddenEls.push(node);
+  }
+  function clearPrintHidden(){
+    printHiddenEls.forEach(function(node){ node.style.display = ''; });
+    printHiddenEls = [];
+  }
+  function rowIsBlank(row){
+    return row.textContent.replace(/\s+/g, '').length === 0;
+  }
+
+  function fitSheetToPage(){
+    var sheetView = document.getElementById('sheetView');
+    var sheet = document.getElementById('sheet');
+    if(!sheet || sheetView.style.display === 'none') return;
+
+    clearPrintHidden();
+    sheet.style.transform = 'none';
+    sheet.style.width = PRINT_PAGE_W + 'px';
+
+    var scale = PRINT_PAGE_H / sheet.scrollHeight;
+
+    if(scale < PRINT_SCALE_MIN){
+      var rows = Array.prototype.slice.call(sheet.querySelectorAll('.lines > .line-row'));
+      for(var i = 0; i < rows.length && scale < PRINT_SCALE_MIN; i++){
+        if(rowIsBlank(rows[i])){
+          hideForPrint(rows[i]);
+          scale = PRINT_PAGE_H / sheet.scrollHeight;
+        }
+      }
+      if(scale < PRINT_SCALE_MIN){
+        var listBoxes = Array.prototype.slice.call(document.querySelectorAll('#fullStack .box'));
+        for(var j = 0; j < listBoxes.length && scale < PRINT_SCALE_MIN; j++){
+          var box = listBoxes[j];
+          var titleRow = box.querySelector('.box-title-row');
+          if(titleRow && /dažym|dazym/i.test(titleRow.textContent || '')) continue; // keeps its yes/no field, never just rows
+          var lines = box.querySelector('.lines');
+          if(!lines || !lines.children.length) continue;
+          var allRowsHidden = Array.prototype.every.call(lines.children, function(row){
+            return printHiddenEls.indexOf(row) !== -1;
+          });
+          if(!allRowsHidden) continue;
+          hideForPrint(box);
+          scale = PRINT_PAGE_H / sheet.scrollHeight;
+        }
+      }
+      if(scale < PRINT_SCALE_MIN) scale = PRINT_SCALE_MIN;
+    }
+    if(scale > PRINT_SCALE_MAX) scale = PRINT_SCALE_MAX;
+
+    sheet.style.transformOrigin = 'top left';
+    sheet.style.transform = 'scale(' + scale + ')';
+    sheet.style.width = (PRINT_PAGE_W / scale) + 'px';
+  }
+
+  function resetSheetPrintStyles(){
+    var sheet = document.getElementById('sheet');
+    if(sheet){ sheet.style.transform = ''; sheet.style.width = ''; sheet.style.transformOrigin = ''; }
+    clearPrintHidden();
+  }
+
+  window.addEventListener('beforeprint', fitSheetToPage);
+  window.addEventListener('afterprint', resetSheetPrintStyles);
 
   // Start on the project list.
   renderProjectList();
