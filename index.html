@@ -137,7 +137,13 @@
   }
 
   .header-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .field-with-label { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .field-label {
+    font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--muted); padding-left: 4px;
+  }
   .header-box { min-height: 90px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 14px 20px; }
+  .field-with-label .header-box { flex: 1; }
   /* Base/placeholder size; while text is entered, JS sets an inline
      font-size (fitTitleFont) that grows short titles and shrinks long
      ones so the name always fills the box as much as possible. */
@@ -256,6 +262,46 @@
   .line-row:hover { background: #faf9f6; }
   .line-text { flex: 1 1 auto; min-width: 0; padding: 9px 16px; font-size: 0.82rem; line-height: 1.45; color: #222; }
   .line-text[data-ph]:empty:before { font-size: 0.82rem; }
+
+  /* ---- Įdėti eilutė: pavadinimas kairėje, po to neprivaloma apdailos
+     grafa, kiekis (+ vnt.) per vidurį, o dešinėje — laukelis pakrovusio
+     darbuotojo inicialams ---- */
+  .ideti-finish-wrap {
+    margin-left: 0; flex: 0 0 auto; padding: 9px 4px 9px 12px; border-left: 1px solid var(--divider);
+  }
+  .ideti-qty-wrap {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 5px;
+    padding: 9px 12px; border-left: 1px solid var(--divider);
+  }
+  .ideti-qty-input {
+    min-width: 20px; max-width: 70px; font-size: 0.82rem; font-weight: 700;
+    color: var(--accent); text-align: right;
+  }
+  .ideti-qty-input[data-ph]:empty:before { font-weight: 400; color: #b9b4a8; }
+  .ideti-unit { font-size: 0.72rem; font-weight: 500; color: var(--muted); white-space: nowrap; }
+  .ideti-initials {
+    flex: 0 0 auto; width: 92px; padding: 9px 12px; font-size: 0.78rem; font-weight: 600;
+    color: #333; text-align: center; border-left: 1px solid var(--divider);
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .ideti-initials[data-ph]:empty:before {
+    font-weight: 400; color: #b9b4a8; text-transform: none; letter-spacing: normal; font-size: 0.72rem;
+  }
+
+  /* ---- Įdėti "detailed" eilutė (pvz. "Pap. detalė"): viskas sutalpinta
+     vienoje eilutėje, kad inicialų grafa liktų toje pačioje vietoje kaip ir
+     kitose Įdėti eilutėse ---- */
+  .ideti-detail-row .line-text { flex: 1 1 auto; min-width: 60px; }
+  .ideti-dim-wrap {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 3px;
+    padding: 9px 10px; border-left: 1px solid var(--divider); white-space: nowrap;
+  }
+  .ideti-dim-input {
+    min-width: 20px; max-width: 42px; font-size: 0.78rem; font-weight: 600;
+    color: var(--accent); text-align: center; border-bottom: 1px dashed var(--card-border); padding: 0 1px;
+  }
+  .ideti-dim-input[data-ph]:empty:before { font-weight: 400; color: #b9b4a8; }
+  .ideti-dim-x { font-size: 0.7rem; color: var(--muted); }
 
   /* ---- ruošiniai tag picker on the right edge of a line ---- */
   .blanks-area {
@@ -380,6 +426,19 @@
   .del-section:hover { color: var(--danger); }
   .box:hover .del-section { opacity: 1; }
 
+  /* ---- visos skilties komentaras: tas pats piktogramos principas kaip ir
+     prie atskirų laukų — paspaudus atsiranda komentaro laukas po
+     antrašte, kol nereikia, nieko papildomo nerodoma ---- */
+  .section-comment-btn {
+    position: absolute; top: 10px; right: 40px; width: 24px; height: 24px;
+    border-radius: 50%; border: 1px solid var(--card-border); background: #fff; color: var(--muted-2);
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; opacity: 0; transition: opacity .1s, color .15s, background .15s;
+  }
+  .section-comment-btn:hover { background: var(--paper); color: #888; }
+  .section-comment-btn.has-comment { color: var(--accent); opacity: 1; }
+  .box:hover .section-comment-btn { opacity: 1; }
+
   .notes-box .notes-area { padding: 14px 16px; min-height: 130px; font-size: 0.85rem; line-height: 1.6; color: #222; white-space: pre-wrap; }
 
   /* ---- komentaro mygtukas prie atskiro lauko (pvz. Laiptų tipas, Tvorelės
@@ -412,7 +471,7 @@
        instead of fading to plain black-on-white. */
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
 
-    .toolbar, .add-line, .del-line, .del-section, .add-section-bar, .blanks-toggle, .blanks-popover, .chip .rm, .spec-picker, .spec-chip .rm, .row-comment-btn { display: none !important; }
+    .toolbar, .add-line, .del-line, .del-section, .add-section-bar, .blanks-toggle, .blanks-popover, .chip .rm, .spec-picker, .spec-chip .rm, .row-comment-btn, .section-comment-btn { display: none !important; }
     body { background: #fff; }
     .sheet-wrap { padding: 0; }
     .sheet { max-width: 100%; }
@@ -420,22 +479,27 @@
     [data-ph]:empty:before { content: '' !important; }
     #projectListView { display: none !important; }
 
-    /* Stronger, unmistakable section boundaries. */
-    .box { border: 1.2px solid #999; border-radius: 8px; break-inside: avoid; }
+    /* Stronger, unmistakable section boundaries. Printed popovers are
+       always closed (hidden above), so it's safe to clip overflow here —
+       that's also what makes the title banner's corners follow the box's
+       own rounded corner instead of poking past it with a mismatched radius. */
+    .box { border: 1.2px solid #999; border-radius: 8px; overflow: hidden; break-inside: avoid; }
     .header-row, .pairs-grid { break-inside: avoid; }
 
     /* Section headers (LAIPTAI / BALKONAS / RUOŠINIAI / DAŽYMAS / ...) as a
        solid dark banner with white text — reads instantly, even in
        black-and-white, and separates one "grafa" from the next at a glance. */
     .box-title-row {
-      background: var(--ink) !important; color: #fff !important;
-      border-bottom: none; font-size: 0.82rem;
+      background: #e3f1ea !important; color: #146b4f !important;
+      border-bottom: 2px solid var(--accent); font-size: 0.82rem;
     }
 
     /* Darker row/field dividers — the faint on-screen tint reads as nearly
        invisible on paper. */
     .line-row, .type-picker-row, .row-comment-row { border-bottom-color: #ccc !important; }
     .popover-add-row, .stair-type-opt.add-new { border-top-color: #ccc !important; }
+    .ideti-finish-wrap, .ideti-qty-wrap, .ideti-initials, .ideti-dim-wrap { border-left-color: #ccc !important; }
+    .ideti-dim-input { border-bottom-color: #999 !important; }
 
     /* Selected values (wood type, color, ruošinys, etc.) stay bold and
        colored instead of flattening to plain body text, so they stand out
@@ -496,11 +560,17 @@
   <div class="sheet-wrap">
     <div class="sheet" id="sheet">
       <div class="header-row">
-        <div class="box header-box" id="titleBox" contenteditable="true" data-ph="Projekto pavadinimas"></div>
-        <div class="box header-box spec-box">
-          <div class="spec-chips-wrap" id="specChips"></div>
-          <div class="spec-picker">
-            <button class="blanks-toggle" type="button" id="specAddBtn">+ pasirinkti medžiagą</button>
+        <div class="field-with-label">
+          <div class="field-label">Projekto pavadinimas</div>
+          <div class="box header-box" id="titleBox" contenteditable="true" data-ph="Projekto pavadinimas"></div>
+        </div>
+        <div class="field-with-label">
+          <div class="field-label">Mediena</div>
+          <div class="box header-box spec-box">
+            <div class="spec-chips-wrap" id="specChips"></div>
+            <div class="spec-picker">
+              <button class="blanks-toggle" type="button" id="specAddBtn">+ pasirinkti medžiagą</button>
+            </div>
           </div>
         </div>
       </div>
@@ -658,9 +728,58 @@
   saveTypeList(RUOSINYS_KEY, RUOSINYS_OPTIONS);
   RUOSINYS_OPTIONS = ensureNoneFirst(RUOSINYS_KEY, RUOSINYS_OPTIONS);
 
+  // Įdėti box: each line can also have its own "apdaila" (finish) choice —
+  // e.g. a Kamštukai line may need to say whether the plugs are painted,
+  // stained, etc. Shared/editable list, same as the other type dropdowns;
+  // "-" default means no finish needed for that item.
+  var IDETI_FINISH_KEY = 'gamybos-ideti-apdaila-tipai';
+  var DEFAULT_IDETI_FINISH = [ NONE_OPTION, 'Dažyta', 'Beicuota', 'Lakuota', 'Vaškuota' ];
+  var IDETI_FINISH_OPTIONS = ensureNoneFirst(IDETI_FINISH_KEY, loadTypeList(IDETI_FINISH_KEY, DEFAULT_IDETI_FINISH));
+
+  // "Pap. detalė" also needs a wood-type choice — but just the species, no
+  // thickness (thickness varies per custom part, so it isn't baked into the
+  // name here like it is in MATERIAL_OPTIONS above). Kept short ("Dyg."
+  // instead of "Dygiuotas") so the whole Įdėti line fits on one row.
+  var IDETI_MATERIAL_KEY = 'gamybos-ideti-medziagos';
+  var DEFAULT_IDETI_MATERIAL = [ NONE_OPTION, 'Dyg. ąžuolas', 'Dyg. uosis', 'Ąžuolo masyvas', 'Uosio masyvas' ];
+  var IDETI_MATERIAL_OPTIONS = loadTypeList(IDETI_MATERIAL_KEY, DEFAULT_IDETI_MATERIAL)
+    // shorten a label saved before the abbreviation, without losing anything else already added
+    .map(function(v){
+      if(v === 'Dygiuotas ąžuolas') return 'Dyg. ąžuolas';
+      if(v === 'Dygiuotas uosis') return 'Dyg. uosis';
+      return v;
+    });
+  saveTypeList(IDETI_MATERIAL_KEY, IDETI_MATERIAL_OPTIONS);
+  IDETI_MATERIAL_OPTIONS = ensureNoneFirst(IDETI_MATERIAL_KEY, IDETI_MATERIAL_OPTIONS);
+
+  // "Pap. detalė" has its own, shorter apdaila list — just these three —
+  // separate from the general Įdėti apdaila list above (Kamštukai, Apvalūs).
+  var IDETI_DETAIL_FINISH_KEY = 'gamybos-ideti-detale-apdaila';
+  var DEFAULT_IDETI_DETAIL_FINISH = [ NONE_OPTION, 'Beicuota', 'Dažyta', 'Be apdailos' ];
+  var IDETI_DETAIL_FINISH_OPTIONS = ensureNoneFirst(IDETI_DETAIL_FINISH_KEY, loadTypeList(IDETI_DETAIL_FINISH_KEY, DEFAULT_IDETI_DETAIL_FINISH));
+
+  // ...and its own diameter choice — e.g. an "Apvalūs" (round) line needs to
+  // say Ø30 or Ø40. Same shared/editable-list pattern as apdaila above.
+  var IDETI_DIAMETER_KEY = 'gamybos-ideti-diametrai';
+  var DEFAULT_IDETI_DIAMETER = [ NONE_OPTION, 'Ø30', 'Ø40' ];
+  var IDETI_DIAMETER_OPTIONS = ensureNoneFirst(IDETI_DIAMETER_KEY, loadTypeList(IDETI_DIAMETER_KEY, DEFAULT_IDETI_DIAMETER));
+
   function newPairLine(text){ return { text: text || '', blanks: [] }; }
   function newPaintLine(){ return { color: '', details: [] }; }
   function newMaterialLine(){ return { material: '', details: [] }; }
+  // simple=true marks a plain needed/not-needed item (e.g. "Dažai",
+  // "Beicas", "Apvalūs 300 mm"): no quantity, finish, diameter or other
+  // info — just a name and initials. It's either on the list (needed) or
+  // removed with the × (not needed).
+  // detailed=true marks a fully-specified custom part (e.g. "Pap. detalė"):
+  // wood type, L×W×H, quantity, finish and initials.
+  function newIdetiLine(item, simple, detailed){
+    return {
+      item: item || '', qty: '', initials: '', finish: '', diameter: '',
+      material: '', length: '', width: '', height: '',
+      simple: !!simple, detailed: !!detailed
+    };
+  }
 
   function blankProjectState(){
     return {
@@ -672,7 +791,13 @@
       ],
       lists: [
         { title: 'Ruošiniai', lines: [ newMaterialLine() ] },
-        { title: 'Dažymas', lines: [ newPaintLine() ], bothSides: false }
+        { title: 'Dažymas', lines: [ newPaintLine() ], bothSides: false },
+        { title: 'Įdėti', lines: [
+            newIdetiLine('Silikonas'), newIdetiLine('Kamštukai'), newIdetiLine('Apvalūs'),
+            newIdetiLine('Dažai', true), newIdetiLine('Beicas', true), newIdetiLine('Apvalūs 300 mm', true),
+            newIdetiLine('Atspausdinti brėžiniai', true), newIdetiLine('Pap. detalė', false, true)
+          ] },
+        { title: 'Apdaila', lines: [''] }
       ],
       notes: ''
     };
@@ -769,9 +894,51 @@
       });
       if(p.lines.length === 0) p.lines.push(newPairLine(''));
     });
+    if(!Array.isArray(s.lists)) s.lists = [];
+    var hasIdeti = s.lists.some(function(l){ return /dėti|deti/i.test(l.title || ''); });
+    if(!hasIdeti){
+      s.lists.push({ title: 'Įdėti', lines: [
+          newIdetiLine('Silikonas'), newIdetiLine('Kamštukai'), newIdetiLine('Apvalūs'),
+          newIdetiLine('Dažai', true), newIdetiLine('Beicas', true), newIdetiLine('Apvalūs 300 mm', true),
+          newIdetiLine('Atspausdinti brėžiniai', true), newIdetiLine('Pap. detalė', false, true)
+        ] });
+    } else {
+      s.lists.forEach(function(l){
+        if(!/dėti|deti/i.test(l.title || '')) return;
+        if(!Array.isArray(l.lines)) return;
+        // A box created before "Silikonas" became the standard first item:
+        // fill it in only if the line is still untouched (no item, no qty).
+        if(l.lines.length === 1){
+          var only = l.lines[0];
+          if(only && typeof only === 'object' && !only.item && !only.qty) only.item = 'Silikonas';
+        }
+        // Make sure each standard item is present, without duplicating any of them.
+        // Third element: 0 = normal row, 1 = simple (needed/not-needed only), 2 = detailed (full spec).
+        [
+          ['Kamštukai', /kamštuk|kamstuk/i, 0],
+          ['Apvalūs', /^apval(ū|u)s$/i, 0],
+          ['Dažai', /^dažai$|^dazai$/i, 1],
+          ['Beicas', /^beicas$/i, 1],
+          ['Apvalūs 300 mm', /apval.*300/i, 1],
+          ['Atspausdinti brėžiniai', /br(ė|e)žin/i, 1],
+          ['Pap. detalė', /pap\.?\s*detal/i, 2]
+        ].forEach(function(pair){
+          var has = l.lines.some(function(it){
+            return it && typeof it === 'object' && pair[1].test((it.item || '').trim());
+          });
+          if(!has){
+            if(pair[2] === 2) l.lines.push(newIdetiLine(pair[0], false, true));
+            else l.lines.push(newIdetiLine(pair[0], pair[2] === 1));
+          }
+        });
+      });
+    }
+    var hasApdaila = s.lists.some(function(l){ return /apdail/i.test(l.title || ''); });
+    if(!hasApdaila) s.lists.push({ title: 'Apdaila', lines: [''] });
     (s.lists || []).forEach(function(l){
       var isDazymas = /dažym|dazym/i.test(l.title || '');
       var isRuosiniai = /ruoš|ruos/i.test(l.title || '');
+      var isIdeti = /dėti|deti/i.test(l.title || '');
       if(isDazymas){
         l.lines = (l.lines || []).map(function(item){
           if(item && typeof item === 'object'){
@@ -803,6 +970,26 @@
           return newMaterialLine();
         });
         if(l.lines.length === 0) l.lines.push(newMaterialLine());
+      } else if(isIdeti){
+        l.lines = (l.lines || []).map(function(item){
+          if(item && typeof item === 'object'){
+            if(typeof item.item !== 'string') item.item = '';
+            if(typeof item.qty !== 'string') item.qty = '';
+            if(typeof item.initials !== 'string') item.initials = '';
+            if(typeof item.finish !== 'string') item.finish = '';
+            if(typeof item.diameter !== 'string') item.diameter = '';
+            if(typeof item.material !== 'string') item.material = '';
+            if(typeof item.length !== 'string') item.length = '';
+            if(typeof item.width !== 'string') item.width = '';
+            if(typeof item.height !== 'string') item.height = '';
+            if(typeof item.simple !== 'boolean') item.simple = false;
+            if(typeof item.detailed !== 'boolean') item.detailed = false;
+            return item;
+          }
+          if(typeof item === 'string' && item.trim()) return newIdetiLine(item.trim());
+          return newIdetiLine();
+        });
+        if(l.lines.length === 0) l.lines.push(newIdetiLine());
       } else {
         if(l.lines.length === 0) l.lines.push('');
       }
@@ -935,7 +1122,7 @@
   // Groups of selectable raw-material options, one group per "list" section.
   function getBlankGroups(){
     var groups = (state.lists || [])
-      .filter(function(l){ return !/dažym|dazym/i.test(l.title || ''); })
+      .filter(function(l){ return !/dažym|dazym/i.test(l.title || '') && !/dėti|deti/i.test(l.title || ''); })
       .map(function(l){
         var isRuosiniai = /ruoš|ruos/i.test(l.title || '');
         var options;
@@ -1260,6 +1447,48 @@
     });
   }
 
+  // Same icon-toggle comment pattern as appendFieldComment, but for a whole
+  // section/box (Laiptai, Dažymas, a user-added block, etc.) rather than one
+  // field inside it. The button can't live inside the contenteditable title
+  // itself (that would get mangled while editing the title text), so it's a
+  // separate, absolutely-positioned icon on the box, to the left of the ×
+  // that deletes the section. The comment field, when open, is inserted
+  // right after the title row.
+  function appendSectionComment(box, titleRow, sectionData){
+    var fieldKey = 'section';
+    var commentKey = fieldKey + 'Comment';
+    if(typeof sectionData[commentKey] !== 'string') sectionData[commentKey] = '';
+
+    var btn = el('button', {type:'button', class:'section-comment-btn', title:'Komentaras'});
+    if(sectionData[commentKey].trim()) btn.classList.add('has-comment');
+    btn.appendChild(makeCommentIcon());
+    box.appendChild(btn);
+
+    if(isCommentRowOpen(sectionData, fieldKey)){
+      var crow = el('div', {class:'row-comment-row'});
+      var area = el('div', {
+        class: 'row-comment-area',
+        contenteditable: 'true',
+        'data-ph': 'Komentaras...'
+      });
+      area.textContent = sectionData[commentKey];
+      area.addEventListener('input', function(){
+        sectionData[commentKey] = area.textContent;
+        if(area.textContent.trim()) btn.classList.add('has-comment');
+        else btn.classList.remove('has-comment');
+        save();
+      });
+      crow.appendChild(area);
+      titleRow.insertAdjacentElement('afterend', crow);
+    }
+
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      setCommentRowOpen(sectionData, fieldKey, !isCommentRowOpen(sectionData, fieldKey));
+      renderAll();
+    });
+  }
+
   function appendTypePickerRow(box, sectionData, fieldKey, label, placeholder, optionsArray, storageKey){
     if(typeof sectionData[fieldKey] !== 'string') sectionData[fieldKey] = '';
     var row = el('div', {class:'type-picker-row'});
@@ -1514,6 +1743,194 @@
     return row;
   }
 
+  // ---- Įdėti "simple" rows (e.g. "Dažai", "Beicas"): just a name and an
+  // initials field — no quantity, finish or diameter, since it's either
+  // needed (stays on the list) or not (the filler just removes it with ×).
+  function makeIdetiSimpleRow(lines, idx){
+    var lineObj = lines[idx];
+    var row = el('div', {class:'line-row ideti-line-row ideti-simple-row'});
+    var item = el('div', {class:'line-text', contenteditable:'true', 'data-ph':'pavadinimas...'});
+    item.textContent = lineObj.item;
+    item.addEventListener('input', function(){ lineObj.item = item.textContent; save(); });
+    row.appendChild(item);
+
+    var initials = el('div', {
+      class: 'ideti-initials', contenteditable: 'true', 'data-ph': 'Inicialai',
+      title: 'Pakrovusio darbuotojo inicialai'
+    });
+    initials.textContent = lineObj.initials;
+    initials.addEventListener('input', function(){ lineObj.initials = initials.textContent; save(); });
+    row.appendChild(initials);
+
+    var del = el('button', {class:'del-line', type:'button', title:'Pašalinti — nereikia', text:'×'});
+    del.addEventListener('click', function(){
+      lines.splice(idx, 1);
+      renderAll();
+    });
+    row.appendChild(del);
+    return row;
+  }
+
+  // ---- Įdėti rows: additional/extra items to bundle with the delivery —
+  // item name on the left, an optional "apdaila" (finish) dropdown, quantity
+  // (+ "vnt.") in the middle, and an initials field on the right for
+  // whoever packed it to sign off ----
+  function makeIdetiLineRow(lines, idx){
+    var lineObj = lines[idx];
+    var row = el('div', {class:'line-row ideti-line-row'});
+    var item = el('div', {class:'line-text', contenteditable:'true', 'data-ph':'elemento pavadinimas...'});
+    item.textContent = lineObj.item;
+    item.addEventListener('input', function(){ lineObj.item = item.textContent; save(); });
+    row.appendChild(item);
+
+    var itemName = (lineObj.item || '').trim();
+    var isApvalus = /^apval(ū|u)s$/i.test(itemName);
+    var isKamstukai = /kamštuk|kamstuk/i.test(itemName);
+
+    function makeDropdown(fieldKey, optionsArray, storageKey, placeholder){
+      var wrap = el('div', {class:'type-picker-wrap ideti-finish-wrap'});
+      function swap(addMode){
+        var fresh = buildTypeOptionsPopover(lineObj, fieldKey, optionsArray, storageKey, swap, addMode);
+        pop.replaceWith(fresh);
+        pop = fresh;
+        pop.classList.add('open');
+      }
+      var pop = buildTypeOptionsPopover(lineObj, fieldKey, optionsArray, storageKey, swap, false);
+      var toggle = el('button', {
+        class: 'type-select-btn' + (lineObj[fieldKey] ? '' : ' placeholder'),
+        type: 'button'
+      });
+      toggle.appendChild(el('span', {text: lineObj[fieldKey] ? typeDisplayLabel(lineObj[fieldKey]) : placeholder}));
+      toggle.appendChild(el('span', {class:'caret', text:'▾'}));
+      toggle.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        var isOpen = pop.classList.contains('open');
+        closeAllPopovers();
+        if(!isOpen){ swap(false); toggle.classList.add('open'); }
+      });
+      wrap.appendChild(pop);
+      wrap.appendChild(toggle);
+      return wrap;
+    }
+
+    // "Apvalūs" has no use for a finish choice — skip it entirely.
+    // "Kamštukai" uses the same short apdaila list as "Pap. detalė".
+    if(!isApvalus){
+      var finishOptions = isKamstukai ? IDETI_DETAIL_FINISH_OPTIONS : IDETI_FINISH_OPTIONS;
+      var finishKey = isKamstukai ? IDETI_DETAIL_FINISH_KEY : IDETI_FINISH_KEY;
+      row.appendChild(makeDropdown('finish', finishOptions, finishKey, 'Apdaila'));
+    }
+
+    row.appendChild(makeDropdown('diameter', IDETI_DIAMETER_OPTIONS, IDETI_DIAMETER_KEY, 'Diametras'));
+
+    var qtyWrap = el('div', {class:'ideti-qty-wrap'});
+    var qty = el('div', {class:'ideti-qty-input', contenteditable:'true', 'data-ph':'0'});
+    qty.textContent = lineObj.qty;
+    qty.addEventListener('input', function(){ lineObj.qty = qty.textContent; save(); });
+    qtyWrap.appendChild(qty);
+    qtyWrap.appendChild(el('span', {class:'ideti-unit', text:'vnt.'}));
+    row.appendChild(qtyWrap);
+
+    var initials = el('div', {
+      class: 'ideti-initials', contenteditable: 'true', 'data-ph': 'Inicialai',
+      title: 'Pakrovusio darbuotojo inicialai'
+    });
+    initials.textContent = lineObj.initials;
+    initials.addEventListener('input', function(){ lineObj.initials = initials.textContent; save(); });
+    row.appendChild(initials);
+
+    var del = el('button', {class:'del-line', type:'button', title:'Šalinti eilutę', text:'×'});
+    del.addEventListener('click', function(){
+      lines.splice(idx, 1);
+      if(lines.length === 0) lines.push(newIdetiLine());
+      renderAll();
+    });
+    row.appendChild(del);
+    return row;
+  }
+
+  // ---- Įdėti "detailed" rows (e.g. "Pap. detalė"): a one-off custom part
+  // with its own wood type, L×W×H, quantity, finish and initials ----
+  function makeIdetiDetailRow(lines, idx){
+    var lineObj = lines[idx];
+    var row = el('div', {class:'line-row ideti-line-row ideti-detail-row'});
+
+    var item = el('div', {class:'line-text', contenteditable:'true', 'data-ph':'detalės pavadinimas...'});
+    item.textContent = lineObj.item;
+    item.addEventListener('input', function(){ lineObj.item = item.textContent; save(); });
+    row.appendChild(item);
+
+    function makeDropdown(fieldKey, optionsArray, storageKey, placeholder){
+      var wrap = el('div', {class:'type-picker-wrap ideti-finish-wrap'});
+      function swap(addMode){
+        var fresh = buildTypeOptionsPopover(lineObj, fieldKey, optionsArray, storageKey, swap, addMode);
+        pop.replaceWith(fresh);
+        pop = fresh;
+        pop.classList.add('open');
+      }
+      var pop = buildTypeOptionsPopover(lineObj, fieldKey, optionsArray, storageKey, swap, false);
+      var toggle = el('button', {
+        class: 'type-select-btn' + (lineObj[fieldKey] ? '' : ' placeholder'),
+        type: 'button'
+      });
+      toggle.appendChild(el('span', {text: lineObj[fieldKey] ? typeDisplayLabel(lineObj[fieldKey]) : placeholder}));
+      toggle.appendChild(el('span', {class:'caret', text:'▾'}));
+      toggle.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        var isOpen = pop.classList.contains('open');
+        closeAllPopovers();
+        if(!isOpen){ swap(false); toggle.classList.add('open'); }
+      });
+      wrap.appendChild(pop);
+      wrap.appendChild(toggle);
+      return wrap;
+    }
+
+    row.appendChild(makeDropdown('material', IDETI_MATERIAL_OPTIONS, IDETI_MATERIAL_KEY, 'Medžiaga'));
+
+    var dimWrap = el('div', {class:'ideti-dim-wrap'});
+    function makeDimInput(fieldKey, ph){
+      var d = el('div', {class:'ideti-dim-input', contenteditable:'true', 'data-ph':ph});
+      d.textContent = lineObj[fieldKey];
+      d.addEventListener('input', function(){ lineObj[fieldKey] = d.textContent; save(); });
+      return d;
+    }
+    dimWrap.appendChild(makeDimInput('length', 'I'));
+    dimWrap.appendChild(el('span', {class:'ideti-dim-x', text:'×'}));
+    dimWrap.appendChild(makeDimInput('width', 'P'));
+    dimWrap.appendChild(el('span', {class:'ideti-dim-x', text:'×'}));
+    dimWrap.appendChild(makeDimInput('height', 'A'));
+    dimWrap.appendChild(el('span', {class:'ideti-unit', text:'mm'}));
+    row.appendChild(dimWrap);
+
+    var qtyWrap = el('div', {class:'ideti-qty-wrap'});
+    var qty = el('div', {class:'ideti-qty-input', contenteditable:'true', 'data-ph':'0'});
+    qty.textContent = lineObj.qty;
+    qty.addEventListener('input', function(){ lineObj.qty = qty.textContent; save(); });
+    qtyWrap.appendChild(qty);
+    qtyWrap.appendChild(el('span', {class:'ideti-unit', text:'vnt.'}));
+    row.appendChild(qtyWrap);
+
+    row.appendChild(makeDropdown('finish', IDETI_DETAIL_FINISH_OPTIONS, IDETI_DETAIL_FINISH_KEY, 'Apdaila'));
+
+    var initials = el('div', {
+      class: 'ideti-initials', contenteditable: 'true', 'data-ph': 'Inicialai',
+      title: 'Pakrovusio darbuotojo inicialai'
+    });
+    initials.textContent = lineObj.initials;
+    initials.addEventListener('input', function(){ lineObj.initials = initials.textContent; save(); });
+    row.appendChild(initials);
+
+    var del = el('button', {class:'del-line', type:'button', title:'Šalinti eilutę', text:'×'});
+    del.addEventListener('click', function(){
+      lines.splice(idx, 1);
+      if(lines.length === 0) lines.push(newIdetiLine());
+      renderAll();
+    });
+    row.appendChild(del);
+    return row;
+  }
+
   function makeListLineRow(lines, idx){
     var row = el('div', {class:'line-row'});
     var text = el('div', {class:'line-text', contenteditable:'true', 'data-ph':'įrašykite...'});
@@ -1541,6 +1958,7 @@
     titleRow.textContent = sectionData.title || '';
     titleRow.addEventListener('input', function(){ sectionData.title = titleRow.textContent; save(); });
     box.appendChild(titleRow);
+    appendSectionComment(box, titleRow, sectionData);
 
     var isLaiptaiBox = isPair && /laiptai/i.test(sectionData.title || '');
     var isBalkonasBox = isPair && /balkon/i.test(sectionData.title || '');
@@ -1558,6 +1976,7 @@
 
     var isDazymasBox = !isPair && /dažym|dazym/i.test(sectionData.title || '');
     var isRuosiniaiBox = !isPair && /ruoš|ruos/i.test(sectionData.title || '');
+    var isIdetiBox = !isPair && /dėti|deti/i.test(sectionData.title || '');
     if(isDazymasBox){
       appendYesNoRow(box, sectionData, 'bothSides', 'Ar yra detalių, kurios matosi iš abiejų pusių?');
     }
@@ -1567,16 +1986,22 @@
       var rowEl;
       if(isDazymasBox) rowEl = makePaintLineRow(sectionData.lines, idx);
       else if(isRuosiniaiBox) rowEl = makeMaterialLineRow(sectionData.lines, idx);
+      else if(isIdetiBox){
+        var idetiLineObj = sectionData.lines[idx];
+        if(idetiLineObj && idetiLineObj.detailed) rowEl = makeIdetiDetailRow(sectionData.lines, idx);
+        else if(idetiLineObj && idetiLineObj.simple) rowEl = makeIdetiSimpleRow(sectionData.lines, idx);
+        else rowEl = makeIdetiLineRow(sectionData.lines, idx);
+      }
       else if(isPair) rowEl = makePairLineRow(sectionData.lines, idx);
       else rowEl = makeListLineRow(sectionData.lines, idx);
       linesWrap.appendChild(rowEl);
     });
     box.appendChild(linesWrap);
 
-    var addLineText = isDazymasBox ? '+ spalva' : (isRuosiniaiBox ? '+ ruošinys' : '+ eilutė');
+    var addLineText = isDazymasBox ? '+ spalva' : (isRuosiniaiBox ? '+ ruošinys' : (isIdetiBox ? '+ elementas' : '+ eilutė'));
     var addLine = el('button', {class:'add-line', type:'button', text: addLineText});
     addLine.addEventListener('click', function(){
-      var newItem = isDazymasBox ? newPaintLine() : (isRuosiniaiBox ? newMaterialLine() : (isPair ? newPairLine('') : ''));
+      var newItem = isDazymasBox ? newPaintLine() : (isRuosiniaiBox ? newMaterialLine() : (isIdetiBox ? newIdetiLine() : (isPair ? newPairLine('') : '')));
       sectionData.lines.push(newItem);
       renderAll();
       focusLastLine(box);
