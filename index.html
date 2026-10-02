@@ -2080,16 +2080,26 @@
     state = blankProjectState();
     renderAll(); save();
   });
-  document.getElementById('printBtn').addEventListener('click', function(){ window.print(); });
+  document.getElementById('printBtn').addEventListener('click', function(){
+    fitSheetToPage();
+    window.print();
+  });
 
   // ---- Auto-fit the printed sheet to exactly one page -------------------
-  // Scales the whole sheet up or down (via CSS transform) so it always
-  // fills exactly one printed page: text grows as large as it can when
-  // there's little content, and shrinks when there's a lot. Only if it
-  // still wouldn't fit even at the smallest readable size does it start
-  // dropping rows nobody ever filled in (and then empty list boxes), so a
-  // genuinely overflowing sheet still comes out as one page instead of
-  // spilling onto a second.
+  // Scales the whole sheet up or down so it always fills exactly one
+  // printed page: text grows as large as it can when there's little
+  // content, and shrinks when there's a lot. Only if it still wouldn't fit
+  // even at the smallest readable size does it start dropping rows nobody
+  // ever filled in (and then empty list boxes), so a genuinely overflowing
+  // sheet still comes out as one page instead of spilling onto a second.
+  //
+  // This uses the CSS `zoom` property rather than `transform: scale()`.
+  // transform is a paint-only effect — it does not change the box's size
+  // in the page's normal flow, so the print engine still paginates using
+  // the UNscaled height and happily breaks it across two pages even
+  // though it then *looks* shrunk. `zoom` genuinely resizes the box (as
+  // if the page were redrawn at a different pixel density), so the
+  // print engine's own page-break math sees the real, scaled height.
   var PRINT_PAGE_W = 718, PRINT_PAGE_H = 1047; // A4 printable area in px @96dpi, minus the 10mm @page margin on every side
   var PRINT_SCALE_MIN = 0.6, PRINT_SCALE_MAX = 2;
   var printHiddenEls = [];
@@ -2112,7 +2122,7 @@
     if(!sheet || sheetView.style.display === 'none') return;
 
     clearPrintHidden();
-    sheet.style.transform = 'none';
+    sheet.style.zoom = 1;
     sheet.style.width = PRINT_PAGE_W + 'px';
 
     var scale = PRINT_PAGE_H / sheet.scrollHeight;
@@ -2145,14 +2155,13 @@
     }
     if(scale > PRINT_SCALE_MAX) scale = PRINT_SCALE_MAX;
 
-    sheet.style.transformOrigin = 'top left';
-    sheet.style.transform = 'scale(' + scale + ')';
+    sheet.style.zoom = scale;
     sheet.style.width = (PRINT_PAGE_W / scale) + 'px';
   }
 
   function resetSheetPrintStyles(){
     var sheet = document.getElementById('sheet');
-    if(sheet){ sheet.style.transform = ''; sheet.style.width = ''; sheet.style.transformOrigin = ''; }
+    if(sheet){ sheet.style.zoom = ''; sheet.style.width = ''; }
     clearPrintHidden();
   }
 
