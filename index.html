@@ -126,7 +126,7 @@
   .toolbar .save-hint { font-size: 0.72rem; color: var(--muted); width: 100%; order: 99; margin-top: 2px; }
 
   /* ================= SHEET ================= */
-  .sheet-wrap { display: flex; justify-content: center; padding: 2rem 1rem 140px; }
+  .sheet-wrap { display: flex; justify-content: center; align-items: flex-start; padding: 2rem 1rem 140px; }
   .sheet { width: 100%; max-width: 900px; }
 
   .box {
@@ -563,7 +563,7 @@
     <div class="save-hint">Duomenys saugomi automatiškai šioje naršyklėje. Kiekvienai detalės eilutei dešinėje galite pažymėti, kokie ruošiniai jai naudojami (galima kelis).</div>
   </div>
 
-  <div class="sheet-wrap">
+  <div class="sheet-wrap" id="sheetWrap">
     <div class="sheet" id="sheet">
       <div class="header-row">
         <div class="field-with-label">
@@ -1009,7 +1009,23 @@
   function countFilled(st){
     var n = 0;
     (st.pairs || []).forEach(function(p){ (p.lines||[]).forEach(function(l){ if((l.text||'').trim()) n++; }); });
-    (st.lists || []).forEach(function(l){ (l.lines||[]).forEach(function(t){ if((t||'').trim()) n++; }); });
+    // List lines are plain strings in generic blocks but objects in
+    // Ruošiniai / Dažymas / Įdėti — `.trim()` on an object threw and
+    // blanked the whole project list after a reload.
+    (st.lists || []).forEach(function(l){
+      (l.lines || []).forEach(function(t){
+        if(typeof t === 'string'){ if(t.trim()) n++; return; }
+        if(!t || typeof t !== 'object') return;
+        var filled = Object.keys(t).some(function(k){
+          if(k === 'item') return false; // pre-filled names (Silikonas, Dažai...) don't count as "filled in"
+          var v = t[k];
+          if(typeof v === 'string') return v.trim() !== '' && v.trim() !== '-';
+          if(Array.isArray(v)) return v.length > 0;
+          return false;
+        });
+        if(filled) n++;
+      });
+    });
     return n;
   }
 
@@ -2086,22 +2102,34 @@
   });
 
   // ---- Auto-fit the printed sheet to exactly one page -------------------
-  // Scales the whole sheet up or down so it always fills exactly one
-  // printed page: text grows as large as it can when there's little
-  // content, and shrinks when there's a lot. Only if it still wouldn't fit
-  // even at the smallest readable size does it start dropping rows nobody
-  // ever filled in (and then empty list boxes), so a genuinely overflowing
-  // sheet still comes out as one page instead of spilling onto a second.
+  // Finds the LARGEST scale at which the whole sheet still fits on one A4
+  // page: short sheets are enlarged (up to PRINT_SCALE_MAX), long ones are
+  // shrunk. If it still can't reach a comfortable size (PRINT_SCALE_MIN),
+  // rows nobody filled in (and then list boxes left completely empty) are
+  // dropped first, so real content isn't squeezed smaller than necessary.
+  // Fitting on one page always wins in the end — if even that isn't
+  // enough, the sheet just keeps shrinking until it fits.
   //
-  // This uses the CSS `zoom` property rather than `transform: scale()`.
-  // transform is a paint-only effect — it does not change the box's size
-  // in the page's normal flow, so the print engine still paginates using
-  // the UNscaled height and happily breaks it across two pages even
-  // though it then *looks* shrunk. `zoom` genuinely resizes the box (as
-  // if the page were redrawn at a different pixel density), so the
-  // print engine's own page-break math sees the real, scaled height.
+  // How the scale is applied, and why (each of these was a real bug):
+  //  1) `transform: scale()` is paint-only: it doesn't change the box's
+  //     height in the page flow, so the print engine would still paginate
+  //     by the UNscaled height. Fix: the wrapper gets an explicit pixel
+  //     height equal to the scaled height.
+  //  2) To make the scaled sheet span the full page width, #sheet is laid
+  //     out at (page width / scale) px. Rows reflow differently at
+  //     different widths, so the height at that width can't be predicted
+  //     from one measurement — the scale is found by bisection, measuring
+  //     the real height at every candidate width.
+  //  3) The 900px screen cap (max-width), flex shrinking and flex centering
+  //     would all silently change that width/position, so they are
+  //     overridden inline while printing. A width where rows would overflow
+  //     sideways is treated as "doesn't fit" and rejected.
+  //  4) The title font is fitted to its box width, so it is re-fitted at
+  //     every candidate width.
   var PRINT_PAGE_W = 718, PRINT_PAGE_H = 1047; // A4 printable area in px @96dpi, minus the 10mm @page margin on every side
-  var PRINT_SCALE_MIN = 0.6, PRINT_SCALE_MAX = 2;
+  var PRINT_SCALE_MIN = 0.6;   // below this, drop blank rows/boxes before shrinking further
+  var PRINT_SCALE_MAX = 1.5;   // never enlarge beyond this
+  var PRINT_SCALE_FLOOR = 0.12; // absolute lower bound of the search
   var printHiddenEls = [];
 
   function hideForPrint(node){
@@ -2113,56 +2141,87 @@
     printHiddenEls = [];
   }
   function rowIsBlank(row){
-    return row.textContent.replace(/\s+/g, '').length === 0;
+    // textContent on the row includes its own "×" delete button, so a row
+    // would never look blank without stripping that one piece of chrome
+    // out first.
+    var clone = row.cloneNode(true);
+    var delBtns = clone.querySelectorAll('.del-line');
+    for(var i = 0; i < delBtns.length; i++) delBtns[i].parentNode.removeChild(delBtns[i]);
+    return clone.textContent.replace(/\s+/g, '').length === 0;
+  }
+
+  // Real height the sheet would take on the page if scaled by `scale`
+  // (Infinity if rows overflow sideways at that width).
+  function printHeightAt(sheet, scale){
+    sheet.style.width = (PRINT_PAGE_W / scale) + 'px';
+    fitTitleFont();
+    if(sheet.scrollWidth > sheet.clientWidth + 1) return Infinity;
+    return sheet.scrollHeight * scale;
+  }
+  function solvePrintScale(sheet, targetH){
+    if(printHeightAt(sheet, PRINT_SCALE_MAX) <= targetH) return PRINT_SCALE_MAX;
+    var lo = PRINT_SCALE_FLOOR, hi = PRINT_SCALE_MAX;
+    for(var i = 0; i < 14; i++){
+      var mid = (lo + hi) / 2;
+      if(printHeightAt(sheet, mid) <= targetH) lo = mid; else hi = mid;
+    }
+    return lo;
   }
 
   function fitSheetToPage(){
     var sheetView = document.getElementById('sheetView');
+    var sheetWrap = document.getElementById('sheetWrap');
     var sheet = document.getElementById('sheet');
     if(!sheet || sheetView.style.display === 'none') return;
 
     clearPrintHidden();
-    sheet.style.zoom = 1;
-    sheet.style.width = PRINT_PAGE_W + 'px';
+    sheet.style.transform = 'none';
+    sheet.style.maxWidth = 'none';
+    sheet.style.flex = 'none';
+    sheetWrap.style.justifyContent = 'flex-start';
+    sheetWrap.style.height = '';
 
-    var scale = PRINT_PAGE_H / sheet.scrollHeight;
+    // A small safety margin against rounding/font-metric differences between
+    // this measurement and the actual print render.
+    var targetH = PRINT_PAGE_H * 0.98;
+    var scale = solvePrintScale(sheet, targetH);
 
     if(scale < PRINT_SCALE_MIN){
       var rows = Array.prototype.slice.call(sheet.querySelectorAll('.lines > .line-row'));
-      for(var i = 0; i < rows.length && scale < PRINT_SCALE_MIN; i++){
-        if(rowIsBlank(rows[i])){
-          hideForPrint(rows[i]);
-          scale = PRINT_PAGE_H / sheet.scrollHeight;
-        }
-      }
+      var hid = false;
+      rows.forEach(function(row){ if(rowIsBlank(row)){ hideForPrint(row); hid = true; } });
+      if(hid) scale = solvePrintScale(sheet, targetH);
       if(scale < PRINT_SCALE_MIN){
-        var listBoxes = Array.prototype.slice.call(document.querySelectorAll('#fullStack .box'));
-        for(var j = 0; j < listBoxes.length && scale < PRINT_SCALE_MIN; j++){
-          var box = listBoxes[j];
+        var hidBox = false;
+        Array.prototype.slice.call(document.querySelectorAll('#fullStack .box')).forEach(function(box){
           var titleRow = box.querySelector('.box-title-row');
-          if(titleRow && /dažym|dazym/i.test(titleRow.textContent || '')) continue; // keeps its yes/no field, never just rows
+          if(titleRow && /dažym|dazym/i.test(titleRow.textContent || '')) return; // keeps its yes/no field
           var lines = box.querySelector('.lines');
-          if(!lines || !lines.children.length) continue;
-          var allRowsHidden = Array.prototype.every.call(lines.children, function(row){
-            return printHiddenEls.indexOf(row) !== -1;
-          });
-          if(!allRowsHidden) continue;
-          hideForPrint(box);
-          scale = PRINT_PAGE_H / sheet.scrollHeight;
-        }
+          if(!lines || !lines.children.length) return;
+          var allHidden = Array.prototype.every.call(lines.children, function(r){ return printHiddenEls.indexOf(r) !== -1; });
+          if(allHidden){ hideForPrint(box); hidBox = true; }
+        });
+        if(hidBox) scale = solvePrintScale(sheet, targetH);
       }
-      if(scale < PRINT_SCALE_MIN) scale = PRINT_SCALE_MIN;
     }
-    if(scale > PRINT_SCALE_MAX) scale = PRINT_SCALE_MAX;
 
-    sheet.style.zoom = scale;
-    sheet.style.width = (PRINT_PAGE_W / scale) + 'px';
+    // Apply the chosen scale and pin the wrapper to its real scaled height.
+    var h = printHeightAt(sheet, scale);
+    sheet.style.transformOrigin = 'top left';
+    sheet.style.transform = 'scale(' + scale + ')';
+    sheetWrap.style.height = (isFinite(h) ? h : PRINT_PAGE_H) + 'px';
   }
 
   function resetSheetPrintStyles(){
+    var sheetWrap = document.getElementById('sheetWrap');
     var sheet = document.getElementById('sheet');
-    if(sheet){ sheet.style.zoom = ''; sheet.style.width = ''; }
+    if(sheet){
+      sheet.style.transform = ''; sheet.style.transformOrigin = ''; sheet.style.width = '';
+      sheet.style.maxWidth = ''; sheet.style.flex = '';
+    }
+    if(sheetWrap){ sheetWrap.style.height = ''; sheetWrap.style.justifyContent = ''; }
     clearPrintHidden();
+    fitTitleFont(); // back to fitting the normal, full-width screen box
   }
 
   window.addEventListener('beforeprint', fitSheetToPage);
