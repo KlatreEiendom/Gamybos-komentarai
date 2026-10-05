@@ -166,6 +166,7 @@
   .stamp-ver { background: var(--ink); color: #fff; border-radius: 10px; padding: 1px 9px; min-width: 0; font-weight: 700; line-height: 1.3; }
 
   /* ---- trūkstamų laukų žymėjimas ekrane (nespausdinama) ---- */
+  .stamp-item.missing-field { padding: 0 6px; border-radius: 4px; }
   .missing-field { background: #fff1d6 !important; box-shadow: inset 3px 0 0 #e08a00; }
   .missing-badge { border-color: #e08a00 !important; background: #fff1d6 !important; color: #8a5200 !important; font-weight: 700; }
   .missing-dialog-overlay {
@@ -653,7 +654,8 @@
     <div class="sheet" id="sheet">
       <div class="stamp-row" id="stampRow">
         <span class="stamp-item" id="stampNrItem"><span class="stamp-label">Užsakymo Nr.</span><span class="stamp-val" id="stampNr" contenteditable="true" data-ph="įrašyti"></span></span>
-        <span class="stamp-item" id="stampAuthorItem"><span class="stamp-label">Užpildė</span><span class="stamp-val" id="stampAuthor" contenteditable="true" data-ph="vardas"></span></span>
+        <span class="stamp-item" id="stampDesignerItem"><span class="stamp-label">Projektą darė</span><span class="stamp-val" id="stampDesigner" contenteditable="true" data-ph="vardas, pavardė"></span></span>
+        <span class="stamp-item" id="stampAuthorItem"><span class="stamp-label">Lapą pildė</span><span class="stamp-val" id="stampAuthor" contenteditable="true" data-ph="vardas, pavardė"></span></span>
         <span class="stamp-item stamp-auto" id="stampDateItem"><span class="stamp-label">Data</span><span class="stamp-val" id="stampDate"></span></span>
         <span class="stamp-item stamp-auto"><span class="stamp-label">Versija</span><span class="stamp-val stamp-ver" id="stampVer">v1</span></span>
       </div>
@@ -766,8 +768,19 @@
     'Uždaros pakopos be noselės': 'Uždaros be noselės',
     'Atviros pakopos L-formos': 'Atviros L-formos'
   };
-  var STEP_TYPE_OPTIONS = loadTypeList(STEP_TYPES_KEY, DEFAULT_STEP_TYPES).map(function(v){
-    return STEP_TYPE_RENAME.hasOwnProperty(v) ? STEP_TYPE_RENAME[v] : v;
+  // Bendra taisyklė: iš pakopų tipo išmetamas bet kuris žodis „pakopos / pakopų / pakopa…“
+  // (ir senuose išsaugotuose sąrašuose, ir pačių įrašytuose variantuose).
+  function stripStepWord(v){
+    if(typeof v !== 'string') return v;
+    if(STEP_TYPE_RENAME.hasOwnProperty(v)) return STEP_TYPE_RENAME[v];
+    var out = v.replace(/(^|\s)pakop[\p{L}]*(?=\s|$)/giu, ' ').replace(/\s+/g, ' ').trim();
+    if(!out) return v;
+    return out.charAt(0).toUpperCase() + out.slice(1);
+  }
+  var STEP_TYPE_OPTIONS = [];
+  loadTypeList(STEP_TYPES_KEY, DEFAULT_STEP_TYPES).forEach(function(v){
+    var n = stripStepWord(v);
+    if(STEP_TYPE_OPTIONS.indexOf(n) === -1) STEP_TYPE_OPTIONS.push(n);
   });
   saveTypeList(STEP_TYPES_KEY, STEP_TYPE_OPTIONS);
   STEP_TYPE_OPTIONS = ensureNoneFirst(STEP_TYPES_KEY, STEP_TYPE_OPTIONS);
@@ -905,7 +918,7 @@
 
   function blankProjectState(){
     return {
-      meta: { number: '', author: lastAuthor(), created: todayStr(), printed: null },
+      meta: { number: '', designer: '', author: lastAuthor(), created: todayStr(), printed: null },
       title: '',
       specMaterials: [],
       pairs: [
@@ -995,6 +1008,7 @@
     if(!s.meta || typeof s.meta !== 'object') s.meta = {};
     if(typeof s.meta.number !== 'string') s.meta.number = '';
     if(typeof s.meta.author !== 'string') s.meta.author = '';
+    if(typeof s.meta.designer !== 'string') s.meta.designer = '';
     if(!s.meta.created) s.meta.created = todayStr();
     if(!s.meta.printed || typeof s.meta.printed !== 'object') s.meta.printed = null;
     (s.pairs || []).forEach(function(p){
@@ -1002,7 +1016,7 @@
         if(typeof p.stairType !== 'string') p.stairType = '';
         if(typeof p.baseType !== 'string') p.baseType = '';
         if(typeof p.stepType !== 'string') p.stepType = '';
-        if(STEP_TYPE_RENAME.hasOwnProperty(p.stepType)) p.stepType = STEP_TYPE_RENAME[p.stepType];
+        p.stepType = stripStepWord(p.stepType);
         if(typeof p.handrailType !== 'string') p.handrailType = '';
         if(typeof p.postType !== 'string') p.postType = '';
       }
@@ -1538,6 +1552,7 @@
       var addBtn = el('button', {type:'button', class:'popover-add-btn', text:'+'});
       function confirmAdd(){
         var val = input.value.trim();
+        if(fieldKey === 'stepType') val = stripStepWord(val);
         if(!val) return;
         if(optionsArray.indexOf(val) === -1){
           optionsArray.push(val);
@@ -2334,6 +2349,8 @@
     if(!state) return out;
     var tb = document.getElementById('titleBox');
     if(!tb.textContent.trim()) out.push({ label: 'Projekto pavadinimas', el: tb });
+    if(!state.meta.designer) out.push({ label: 'Kas darė projektą (lapo viršuje)', el: document.getElementById('stampDesignerItem') });
+    if(!state.meta.author) out.push({ label: 'Kas pildė lapą (lapo viršuje)', el: document.getElementById('stampAuthorItem') });
     var spec = document.querySelector('.spec-box');
     if(!state.specMaterials.length) out.push({ label: 'Mediena (pagrindinė medžiaga)', el: spec });
 
@@ -2453,6 +2470,8 @@
     var nr = document.getElementById('stampNr'), au = document.getElementById('stampAuthor');
     if(document.activeElement !== nr && nr.textContent !== state.meta.number) nr.textContent = state.meta.number;
     if(document.activeElement !== au && au.textContent !== state.meta.author) au.textContent = state.meta.author;
+    var de = document.getElementById('stampDesigner');
+    if(document.activeElement !== de && de.textContent !== state.meta.designer) de.textContent = state.meta.designer;
     var info = currentVersionInfo();
     document.getElementById('stampDate').textContent = info.date;
     var ver = document.getElementById('stampVer');
@@ -2462,6 +2481,11 @@
   document.getElementById('stampNr').addEventListener('input', function(){
     if(!state) return;
     state.meta.number = this.textContent.trim();
+    save();
+  });
+  document.getElementById('stampDesigner').addEventListener('input', function(){
+    if(!state) return;
+    state.meta.designer = this.textContent.trim();
     save();
   });
   document.getElementById('stampAuthor').addEventListener('input', function(){
@@ -2729,7 +2753,7 @@
     if(pairs && pairs.children.length && Array.prototype.every.call(pairs.children, isHiddenForPrint)) hideForPrint(pairs);
 
     // 5b) užsakymo žyma: tušti Nr. / užpildė laukai nespausdinami
-    [['stampNr', 'stampNrItem'], ['stampAuthor', 'stampAuthorItem']].forEach(function(p){
+    [['stampNr', 'stampNrItem'], ['stampDesigner', 'stampDesignerItem'], ['stampAuthor', 'stampAuthorItem']].forEach(function(p){
       var v = document.getElementById(p[0]);
       if(v && !v.textContent.trim()) hideForPrint(document.getElementById(p[1]));
     });
