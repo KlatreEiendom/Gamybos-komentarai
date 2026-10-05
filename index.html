@@ -152,6 +152,48 @@
     white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
   }
   [contenteditable]:focus { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  /* ---- užsakymo žyma: Nr., užpildė, data, versija ---- */
+  .stamp-row {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 18px;
+    margin-bottom: 10px; padding: 0 2px; font-size: 0.74rem; color: var(--muted);
+  }
+  .stamp-item { display: inline-flex; align-items: baseline; gap: 5px; }
+  .stamp-label { color: var(--muted); }
+  .stamp-val { color: #222; font-weight: 600; min-width: 40px; border-bottom: 1px dashed transparent; }
+  .stamp-val[contenteditable]:hover, .stamp-val[contenteditable]:focus { border-bottom-color: #bbb; outline: none; }
+  .stamp-val[data-ph]:empty:before { font-size: 0.74rem; }
+  #stampDateItem { margin-left: auto; }
+  .stamp-ver { background: var(--ink); color: #fff; border-radius: 10px; padding: 1px 9px; min-width: 0; font-weight: 700; line-height: 1.3; }
+
+  /* ---- trūkstamų laukų žymėjimas ekrane (nespausdinama) ---- */
+  .missing-field { background: #fff1d6 !important; box-shadow: inset 3px 0 0 #e08a00; }
+  .missing-badge { border-color: #e08a00 !important; background: #fff1d6 !important; color: #8a5200 !important; font-weight: 700; }
+  .missing-dialog-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000;
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .missing-dialog {
+    background: #fff; border-radius: 12px; max-width: 460px; width: 100%; padding: 20px 22px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.25); font-size: 0.86rem; color: #222;
+  }
+  .missing-dialog h3 { margin: 0 0 6px; font-size: 1rem; }
+  .missing-dialog p { margin: 0 0 8px; color: var(--muted); font-size: 0.8rem; line-height: 1.4; }
+  .missing-dialog ul { margin: 0 0 14px; padding-left: 18px; max-height: 40vh; overflow: auto; }
+  .missing-dialog li { margin: 2px 0; }
+  .missing-dialog .md-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .missing-dialog button {
+    font-family: inherit; font-size: 0.82rem; font-weight: 600; padding: 9px 14px; border-radius: 8px;
+    border: 1px solid #ccc; background: #fff; cursor: pointer;
+  }
+  .missing-dialog button.primary { background: var(--ink); border-color: var(--ink); color: #fff; }
+
+  /* pakeistos eilutės versijos lape (naudojama tik spausdinant) */
+  .print-changed { background: #fff3a3 !important; box-shadow: inset 3px 0 0 #e0a800; }
+  .change-banner {
+    margin: 0 0 8px; padding: 4px 10px; font-size: 0.74rem; line-height: 1.4; color: #5c4400;
+    background: #fff3a3; border: 1px solid #e0c200; border-radius: 6px;
+  }
+
   [data-ph]:empty:before { content: attr(data-ph); color: #b9b4a8; font-weight: 400; font-size: 0.9rem; letter-spacing: normal; }
 
   /* ---- pagrindinė medžiaga (multi-select) ---- */
@@ -485,6 +527,11 @@
        instead of fading to plain black-on-white. */
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
 
+    .missing-dialog-overlay, .missing-badge { display: none !important; }
+    .missing-field { background: none !important; box-shadow: none !important; }
+    .paint-details .chip { background: none !important; border: none !important; padding: 0 !important; color: #222 !important; }
+    .stamp-row { margin-bottom: 4px; font-size: 0.78rem; }
+    .stamp-val[contenteditable]:hover { border-bottom-color: transparent; }
     .toolbar, .add-line, .del-line, .del-section, .add-section-bar, .blanks-toggle, .blanks-popover, .chip .rm, .spec-picker, .spec-chip .rm, .row-comment-btn, .section-comment-btn { display: none !important; }
     body { background: #fff; }
     .sheet-wrap { padding: 0; overflow: hidden; }
@@ -547,12 +594,15 @@
        also applied during measurement (addPrintPreviewStyle), so the height
        it measures is the height that really prints. */
     .header-row, .pairs-grid { gap: 8px; margin-bottom: 8px; }
+    .change-banner { margin-bottom: 6px; padding: 3px 8px; }
     .full-stack .box { margin-bottom: 8px; }
     .field-with-label { gap: 3px; }
     .header-box { min-height: 0; padding: 6px 12px; }
     .spec-box { padding: 6px 12px; gap: 4px; }
     .box-title-row { padding: 5px 12px; }
-    .type-picker-row { padding: 3px 12px; gap: 6px; }
+    .type-picker-row { padding: 3px 12px; gap: 6px; flex-wrap: nowrap; }
+    .type-picker-row .type-select-btn, .type-picker-row .type-select-btn span { white-space: nowrap; }
+    .type-picker-label { white-space: nowrap; }
     .type-select-btn { padding: 2px 6px !important; }
     .line-text { padding: 4px 12px; }
     .paint-color-wrap { padding: 4px 4px 4px 12px; }
@@ -594,12 +644,19 @@
     <button id="addPairBtn" type="button">+ Skiltis (2 stulp.)</button>
     <button id="addListBtn" type="button">+ Eilučių blokas</button>
     <button id="clearBtn" type="button">Išvalyti lapą</button>
+    <button id="missingBadge" class="missing-badge" type="button" style="display:none;" title="Spustelėkite, kad pamatytumėte pirmą neužpildytą lauką"></button>
     <button id="printBtn" class="primary" type="button">Spausdinti</button>
     <div class="save-hint">Duomenys saugomi automatiškai šioje naršyklėje. Kiekvienai detalės eilutei dešinėje galite pažymėti, kokie ruošiniai jai naudojami (galima kelis).</div>
   </div>
 
   <div class="sheet-wrap" id="sheetWrap">
     <div class="sheet" id="sheet">
+      <div class="stamp-row" id="stampRow">
+        <span class="stamp-item" id="stampNrItem"><span class="stamp-label">Užsakymo Nr.</span><span class="stamp-val" id="stampNr" contenteditable="true" data-ph="įrašyti"></span></span>
+        <span class="stamp-item" id="stampAuthorItem"><span class="stamp-label">Užpildė</span><span class="stamp-val" id="stampAuthor" contenteditable="true" data-ph="vardas"></span></span>
+        <span class="stamp-item stamp-auto" id="stampDateItem"><span class="stamp-label">Data</span><span class="stamp-val" id="stampDate"></span></span>
+        <span class="stamp-item stamp-auto"><span class="stamp-label">Versija</span><span class="stamp-val stamp-ver" id="stampVer">v1</span></span>
+      </div>
       <div class="header-row">
         <div class="field-with-label">
           <div class="field-label">Projekto pavadinimas</div>
@@ -699,11 +756,21 @@
   var STEP_TYPES_KEY = 'gamybos-pakopu-tipai';
   var DEFAULT_STEP_TYPES = [
     NONE_OPTION,
-    'Uždaros pakopos su nosele',
-    'Uždaros pakopos be noselės',
-    'Atviros pakopos L-formos'
+    'Uždaros su nosele',
+    'Uždaros be noselės',
+    'Atviros L-formos'
   ];
-  var STEP_TYPE_OPTIONS = ensureNoneFirst(STEP_TYPES_KEY, loadTypeList(STEP_TYPES_KEY, DEFAULT_STEP_TYPES));
+  // Žodis „pakopos“ tipuose nekartojamas (jau yra lauko pavadinime).
+  var STEP_TYPE_RENAME = {
+    'Uždaros pakopos su nosele': 'Uždaros su nosele',
+    'Uždaros pakopos be noselės': 'Uždaros be noselės',
+    'Atviros pakopos L-formos': 'Atviros L-formos'
+  };
+  var STEP_TYPE_OPTIONS = loadTypeList(STEP_TYPES_KEY, DEFAULT_STEP_TYPES).map(function(v){
+    return STEP_TYPE_RENAME.hasOwnProperty(v) ? STEP_TYPE_RENAME[v] : v;
+  });
+  saveTypeList(STEP_TYPES_KEY, STEP_TYPE_OPTIONS);
+  STEP_TYPE_OPTIONS = ensureNoneFirst(STEP_TYPES_KEY, STEP_TYPE_OPTIONS);
 
   var HANDRAIL_TYPES_KEY = 'gamybos-porankiu-tipai';
   var DEFAULT_HANDRAIL_TYPES = [
@@ -822,8 +889,23 @@
     };
   }
 
+  // ---- užsakymo žyma (Nr., užpildė, versija) ----
+  var AUTHOR_KEY = 'gamybos-uzpildytojas';
+  function todayStr(){
+    var d = new Date();
+    function p(n){ return (n < 10 ? '0' : '') + n; }
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+  function lastAuthor(){
+    try { return localStorage.getItem(AUTHOR_KEY) || ''; } catch(e){ return ''; }
+  }
+  function rememberAuthor(v){
+    try { localStorage.setItem(AUTHOR_KEY, v); } catch(e){ /* ignore */ }
+  }
+
   function blankProjectState(){
     return {
+      meta: { number: '', author: lastAuthor(), created: todayStr(), printed: null },
       title: '',
       specMaterials: [],
       pairs: [
@@ -910,11 +992,17 @@
   // Upgrade older saved project states where pair lines were plain strings.
   function migrate(s){
     if(!Array.isArray(s.specMaterials)) s.specMaterials = [];
+    if(!s.meta || typeof s.meta !== 'object') s.meta = {};
+    if(typeof s.meta.number !== 'string') s.meta.number = '';
+    if(typeof s.meta.author !== 'string') s.meta.author = '';
+    if(!s.meta.created) s.meta.created = todayStr();
+    if(!s.meta.printed || typeof s.meta.printed !== 'object') s.meta.printed = null;
     (s.pairs || []).forEach(function(p){
       if(/laiptai/i.test(p.title || '')){
         if(typeof p.stairType !== 'string') p.stairType = '';
         if(typeof p.baseType !== 'string') p.baseType = '';
         if(typeof p.stepType !== 'string') p.stepType = '';
+        if(STEP_TYPE_RENAME.hasOwnProperty(p.stepType)) p.stepType = STEP_TYPE_RENAME[p.stepType];
         if(typeof p.handrailType !== 'string') p.handrailType = '';
         if(typeof p.postType !== 'string') p.postType = '';
       }
@@ -1151,6 +1239,7 @@
     if(!currentProjectId) return;
     saveProjectState(currentProjectId, state);
     touchIndexEntry();
+    scheduleChecks();
   }
 
   function showListView(){
@@ -1240,12 +1329,38 @@
     });
   }
 
+  // Bendras „įrašyti savo variantą“ laukelis daugiau pasirinkimų langų apačioje.
+  // onAdd(tekstas) pridedamas tik prie konkrečios eilutės / projekto,
+  // standartinio sąrašo jis nekeičia.
+  function appendCustomAddRow(pop, placeholder, onAdd){
+    var addRow = el('div', {class:'popover-add-row'});
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'popover-add-input';
+    input.placeholder = placeholder;
+    var addBtn = el('button', {type:'button', class:'popover-add-btn', title:'Pridėti', text:'+'});
+    function go(){
+      var val = input.value.trim();
+      if(!val) return;
+      onAdd(val);
+      input.value = '';
+      input.focus();
+    }
+    addBtn.addEventListener('click', function(ev){ ev.stopPropagation(); go(); });
+    input.addEventListener('click', function(ev){ ev.stopPropagation(); });
+    input.addEventListener('keydown', function(ev){
+      if(ev.key === 'Enter'){ ev.preventDefault(); go(); }
+    });
+    addRow.appendChild(input);
+    addRow.appendChild(addBtn);
+    pop.appendChild(addRow);
+  }
+
   function buildPopover(lineObj, area){
     var pop = el('div', {class:'blanks-popover'});
     var groups = getBlankGroups();
     if(groups.length === 0){
       pop.appendChild(el('div', {class:'empty-msg', text:'Pasirinkite ruošinį "Ruošiniai" bloke, kad galėtumėte jį čia pažymėti.'}));
-      return pop;
     }
     groups.forEach(function(g){
       pop.appendChild(el('div', {class:'grp-title', text: g.title}));
@@ -1266,6 +1381,11 @@
         label.appendChild(document.createTextNode(opt));
         pop.appendChild(label);
       });
+    });
+    appendCustomAddRow(pop, 'Kitas ruošinys (įrašykite)...', function(val){
+      if(lineObj.blanks.indexOf(val) === -1) lineObj.blanks.push(val);
+      renderChips(area, lineObj);
+      save();
     });
     return pop;
   }
@@ -1343,6 +1463,35 @@
       label.appendChild(cb);
       label.appendChild(document.createTextNode(opt));
       pop.appendChild(label);
+    });
+    // Jau pridėtos savos (nestandartinės) medžiagos – kad jas galėtų išjungti
+    materials.forEach(function(opt){
+      if(MATERIAL_OPTIONS.indexOf(opt) !== -1) return;
+      var label = el('label');
+      var cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.value = opt; cb.checked = true;
+      cb.addEventListener('change', function(){
+        var idx = state.specMaterials.indexOf(opt);
+        if(!cb.checked && idx !== -1) state.specMaterials.splice(idx, 1);
+        if(cb.checked && idx === -1) state.specMaterials.push(opt);
+        renderSpecChips();
+        save();
+      });
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(opt));
+      pop.appendChild(label);
+    });
+    appendCustomAddRow(pop, 'Kita mediena / medžiaga (įrašykite)...', function(val){
+      if(state.specMaterials.indexOf(val) === -1){
+        state.specMaterials.push(val);
+        var fresh = buildSpecPopover();
+        pop.replaceWith(fresh);
+        specPopoverEl = fresh;
+        fresh.classList.add('open');
+        var inp = fresh.querySelector('.popover-add-input'); if(inp) inp.focus();
+      }
+      renderSpecChips();
+      save();
     });
     return pop;
   }
@@ -2138,6 +2287,7 @@
 
     var notesArea = document.getElementById('notesArea');
     if(notesArea.textContent !== state.notes) notesArea.textContent = state.notes;
+    runChecks();
   }
 
   document.getElementById('titleBox').addEventListener('input', function(){ state.title = this.textContent; fitTitleFont(); save(); });
@@ -2153,13 +2303,279 @@
   });
   document.getElementById('clearBtn').addEventListener('click', function(){
     if(!confirm('Išvalyti šio projekto lapą? Duomenys šiame projekte bus pakeisti tuščiais.')) return;
+    var oldMeta = state.meta;
     state = blankProjectState();
+    state.meta = oldMeta;
     renderAll(); save();
   });
   document.getElementById('printBtn').addEventListener('click', function(){
+    var miss = missingFields();
+    if(miss.length) showMissingDialog(miss, doPrint);
+    else doPrint();
+  });
+  function doPrint(){
     fitSheetToPage();
     window.print();
+  }
+
+
+  // ===================================================================
+  //  Klaidų mažinimas: (1) trūkstamų laukų patikra, (2) užsakymo žyma
+  //  su versija, (3) pakeistų eilučių paryškinimas perspausdinant.
+  // ===================================================================
+
+  // ---- (1) trūkstami laukai ------------------------------------------
+  function boxTitleOf(box){
+    var t = box.querySelector(':scope > .box-title-row');
+    return t ? t.textContent.trim() : '';
+  }
+  function missingFields(){
+    var out = [];
+    if(!state) return out;
+    var tb = document.getElementById('titleBox');
+    if(!tb.textContent.trim()) out.push({ label: 'Projekto pavadinimas', el: tb });
+    var spec = document.querySelector('.spec-box');
+    if(!state.specMaterials.length) out.push({ label: 'Mediena (pagrindinė medžiaga)', el: spec });
+
+    var pairBoxes = document.querySelectorAll('#pairsGrid > .box');
+    var anyActive = false;
+    Array.prototype.forEach.call(pairBoxes, function(box){
+      var title = boxTitleOf(box) || 'Skiltis';
+      var pickers = Array.prototype.filter.call(box.querySelectorAll(':scope > .type-picker-row'), function(r){
+        return !r.querySelector('.yesno-select-btn');
+      });
+      var anySel = pickers.some(function(r){
+        var b = r.querySelector('.type-select-btn');
+        return b && !b.classList.contains('placeholder');
+      });
+      var anyLine = Array.prototype.some.call(box.querySelectorAll('.lines > .line-row'), function(r){ return !rowIsBlank(r); });
+      if(!(anySel || anyLine)) return; // skiltis nenaudojama (pvz. Balkonas, kai jo nėra)
+      anyActive = true;
+      pickers.forEach(function(r){
+        var b = r.querySelector('.type-select-btn');
+        if(b && b.classList.contains('placeholder')){
+          var lab = r.querySelector('.type-picker-label');
+          out.push({ label: title + ': ' + (lab ? lab.textContent.replace(/:\s*$/, '') : 'laukas'), el: r });
+        }
+      });
+    });
+    if(pairBoxes.length && !anyActive){
+      out.push({ label: 'Laiptai / Balkonas: nieko nenurodyta', el: document.getElementById('pairsGrid') });
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll('#fullStack > .box'), function(box){
+      var title = boxTitleOf(box);
+      var isPaint = /dažym|dazym/i.test(title), isMat = /ruoš|ruos/i.test(title);
+      if(!isPaint && !isMat) return;
+      Array.prototype.forEach.call(box.querySelectorAll('.paint-line-row'), function(row){
+        var btn = row.querySelector('.type-select-btn');
+        var hasValue = btn && !btn.classList.contains('placeholder');
+        var isNone = hasValue && isNoneLabel(btn.textContent);
+        var hasDetails = row.querySelectorAll('.chip').length > 0;
+        if(!hasValue && hasDetails){
+          out.push({ label: title + ': detalės be ' + (isPaint ? 'spalvos' : 'ruošinio'), el: row });
+        } else if(isPaint && hasValue && !isNone && !hasDetails){
+          out.push({ label: title + ': spalvai nepasirinktos detalės', el: row });
+        }
+      });
+    });
+    return out;
+  }
+
+  var lastMissing = [];
+  function markMissing(){
+    Array.prototype.forEach.call(document.querySelectorAll('.missing-field'), function(e){ e.classList.remove('missing-field'); });
+    lastMissing = missingFields();
+    lastMissing.forEach(function(m){ if(m.el) m.el.classList.add('missing-field'); });
+    var badge = document.getElementById('missingBadge');
+    if(lastMissing.length){
+      badge.style.display = '';
+      badge.textContent = '⚠ Trūksta: ' + lastMissing.length;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+  function scrollToMissing(m){
+    if(m && m.el && m.el.scrollIntoView) m.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  document.getElementById('missingBadge').addEventListener('click', function(){
+    scrollToMissing(lastMissing[0]);
   });
+
+  function showMissingDialog(miss, onPrintAnyway){
+    var old = document.querySelector('.missing-dialog-overlay');
+    if(old) old.parentNode.removeChild(old);
+    var overlay = el('div', {class:'missing-dialog-overlay'});
+    var dlg = el('div', {class:'missing-dialog', role:'dialog'});
+    dlg.appendChild(el('h3', {text:'Prieš spausdinant patikrinkite'}));
+    dlg.appendChild(el('p', {text:'Šie laukai nenurodyti. Jei detalės projekte tikrai nėra, pasirinkite „– nėra –“, kad gamyboje būtų aišku, jog tai ne praleidimas.'}));
+    var ul = el('ul');
+    miss.forEach(function(m){ ul.appendChild(el('li', {text: m.label})); });
+    dlg.appendChild(ul);
+    var actions = el('div', {class:'md-actions'});
+    function close(){ if(overlay.parentNode) overlay.parentNode.removeChild(overlay); document.removeEventListener('keydown', onKey); }
+    function onKey(ev){ if(ev.key === 'Escape') close(); }
+    var back = el('button', {type:'button', class:'primary', text:'Grįžti ir užpildyti'});
+    back.addEventListener('click', function(){ close(); scrollToMissing(miss[0]); });
+    var anyway = el('button', {type:'button', text:'Vis tiek spausdinti'});
+    anyway.addEventListener('click', function(){ close(); onPrintAnyway(); });
+    actions.appendChild(anyway);
+    actions.appendChild(back);
+    dlg.appendChild(actions);
+    overlay.appendChild(dlg);
+    overlay.addEventListener('click', function(ev){ if(ev.target === overlay) close(); });
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(overlay);
+    back.focus();
+  }
+
+  // ---- (2) užsakymo žyma ir versija ----------------------------------
+  function hashStr(str){
+    var h = 5381;
+    for(var i = 0; i < str.length; i++){ h = ((h << 5) + h + str.charCodeAt(i)) | 0; }
+    return String(h);
+  }
+  // Turinio parašas: viskas, ką pakeitus gamyba turi gauti naują versiją
+  // (be paties Nr. / užpildžiusiojo / versijų istorijos).
+  function contentSig(){
+    var c = JSON.parse(JSON.stringify(state));
+    delete c.meta;
+    return hashStr(JSON.stringify(c));
+  }
+  function currentVersionInfo(){
+    var pr = state.meta.printed;
+    if(!pr) return { version: 1, date: todayStr(), dirty: false };
+    var dirty = pr.sig !== contentSig();
+    return { version: dirty ? pr.version + 1 : pr.version, date: dirty ? todayStr() : pr.date, dirty: dirty };
+  }
+  function stampRefresh(){
+    if(!state) return;
+    var nr = document.getElementById('stampNr'), au = document.getElementById('stampAuthor');
+    if(document.activeElement !== nr && nr.textContent !== state.meta.number) nr.textContent = state.meta.number;
+    if(document.activeElement !== au && au.textContent !== state.meta.author) au.textContent = state.meta.author;
+    var info = currentVersionInfo();
+    document.getElementById('stampDate').textContent = info.date;
+    var ver = document.getElementById('stampVer');
+    ver.textContent = 'v' + info.version;
+    ver.title = info.dirty ? 'Yra pakeitimų po paskutinio spausdinimo – spausdinant bus v' + info.version : 'Paskutinė išspausdinta versija';
+  }
+  document.getElementById('stampNr').addEventListener('input', function(){
+    if(!state) return;
+    state.meta.number = this.textContent.trim();
+    save();
+  });
+  document.getElementById('stampAuthor').addEventListener('input', function(){
+    if(!state) return;
+    state.meta.author = this.textContent.trim();
+    rememberAuthor(state.meta.author);
+    save();
+  });
+
+  var checksTimer = null;
+  function runChecks(){
+    if(!state) return;
+    markMissing();
+    stampRefresh();
+  }
+  function scheduleChecks(){
+    clearTimeout(checksTimer);
+    checksTimer = setTimeout(runChecks, 150);
+  }
+
+  // ---- (3) pakeitimų paryškinimas ------------------------------------
+  // Kiekviena turiminga eilutė gauna „raktą“ (skiltis | tekstas). Lyginant su
+  // praeita išspausdinta versija, naujos arba pakeistos eilutės žymimos
+  // geltonai, o dingusios išvardijamos juostoje lapo viršuje.
+  function cleanRowText(row){
+    var c = row.cloneNode(true);
+    stripAll(c, '.del-line, .blanks-popover, .blanks-toggle, .row-comment-btn, .type-select-btn.placeholder, .ideti-unit, .ideti-dim-x, .caret, .rm, .section-comment-btn');
+    return c.textContent.replace(/\s+/g, ' ').trim();
+  }
+  function rowEntries(){
+    var entries = [];
+    function add(elm, key){ if(key) entries.push({ el: elm, key: key }); }
+    var tb = document.getElementById('titleBox');
+    if(tb.textContent.trim()) add(tb, 'Pavadinimas | ' + tb.textContent.trim());
+    var chips = Array.prototype.map.call(document.querySelectorAll('#specChips .spec-chip'), function(c){
+      return c.firstChild ? c.firstChild.textContent.trim() : '';
+    }).filter(Boolean);
+    if(chips.length) add(document.querySelector('.spec-box'), 'Mediena | ' + chips.join(', '));
+    Array.prototype.forEach.call(document.querySelectorAll('#pairsGrid > .box, #fullStack > .box'), function(box){
+      var bt = boxTitleOf(box) || 'Skiltis';
+      Array.prototype.forEach.call(box.children, function(kid){
+        var rows = [];
+        if(kid.classList.contains('type-picker-row')){
+          if(!pickerIsEmpty(kid)) rows.push(kid);
+        } else if(kid.classList.contains('row-comment-row')){
+          if(kid.textContent.trim()) rows.push(kid);
+        } else if(kid.classList.contains('lines')){
+          Array.prototype.forEach.call(kid.children, function(r){
+            if(!rowIsBlank(r)) rows.push(r);
+          });
+        }
+        rows.forEach(function(r){ add(r, bt + ' | ' + cleanRowText(r)); });
+      });
+    });
+    var nt = document.getElementById('notesArea');
+    if(nt.textContent.trim()) add(nt, 'Papildoma informacija | ' + nt.textContent.replace(/\s+/g, ' ').trim());
+    return entries;
+  }
+
+  var changedEls = [];
+  var changeBannerEl = null;
+  function clearChangeMarks(){
+    changedEls.forEach(function(e){ e.classList.remove('print-changed'); });
+    changedEls = [];
+    if(changeBannerEl && changeBannerEl.parentNode) changeBannerEl.parentNode.removeChild(changeBannerEl);
+    changeBannerEl = null;
+  }
+  // Atnaujina versiją (jei turinys pasikeitė) ir pažymi pakeitimus.
+  function prepareVersionAndChanges(){
+    clearChangeMarks();
+    if(!state) return;
+    var entries = rowEntries();
+    var keys = entries.map(function(e){ return e.key; });
+    var sig = contentSig();
+    var pr = state.meta.printed;
+    if(!pr){
+      pr = state.meta.printed = { sig: sig, rows: keys, version: 1, date: todayStr(), prevRows: null, prevVersion: 0 };
+    } else if(pr.sig !== sig){
+      pr = state.meta.printed = { sig: sig, rows: keys, version: pr.version + 1, date: todayStr(), prevRows: pr.rows, prevVersion: pr.version };
+    }
+    save();
+    stampRefresh();
+    if(!pr.prevRows) return;
+
+    var prevCount = {};
+    pr.prevRows.forEach(function(k){ prevCount[k] = (prevCount[k] || 0) + 1; });
+    var changed = 0;
+    entries.forEach(function(e){
+      if(prevCount[e.key] > 0){ prevCount[e.key]--; return; }
+      e.el.classList.add('print-changed');
+      changedEls.push(e.el);
+      changed++;
+    });
+    var removed = [];
+    Object.keys(prevCount).forEach(function(k){
+      for(var i = 0; i < prevCount[k]; i++) removed.push(k.replace(' | ', ': '));
+    });
+    if(!changed && !removed.length) return;
+
+    var parts = [];
+    if(changed) parts.push('naujos / pakeistos eilutės (' + changed + ') pažymėtos geltonai');
+    if(removed.length){
+      var shown = removed.slice(0, 5).join('; ');
+      if(removed.length > 5) shown += '; ir dar ' + (removed.length - 5);
+      parts.push('pašalinta: ' + shown);
+    }
+    changeBannerEl = el('div', {class:'change-banner'});
+    var strong = el('strong', {text:'Pakeitimai nuo v' + pr.prevVersion + ': '});
+    changeBannerEl.appendChild(strong);
+    changeBannerEl.appendChild(document.createTextNode(parts.join('; ') + '.'));
+    var sheet = document.getElementById('sheet');
+    var stamp = document.getElementById('stampRow');
+    sheet.insertBefore(changeBannerEl, stamp.nextSibling);
+  }
 
   // ---- Auto-fit the printed sheet to exactly one page -------------------
   // Goal: text as large as possible, everything on ONE A4 page.
@@ -2312,6 +2728,12 @@
     var pairs = document.getElementById('pairsGrid');
     if(pairs && pairs.children.length && Array.prototype.every.call(pairs.children, isHiddenForPrint)) hideForPrint(pairs);
 
+    // 5b) užsakymo žyma: tušti Nr. / užpildė laukai nespausdinami
+    [['stampNr', 'stampNrItem'], ['stampAuthor', 'stampAuthorItem']].forEach(function(p){
+      var v = document.getElementById(p[0]);
+      if(v && !v.textContent.trim()) hideForPrint(document.getElementById(p[1]));
+    });
+
     // 6) no main material chosen: drop that box and let the title use the full width
     var chips = document.querySelectorAll('#specChips .spec-chip');
     var specField = document.getElementById('specChips') && document.getElementById('specChips').closest('.field-with-label');
@@ -2369,6 +2791,7 @@
     sheet.style.flex = 'none';
     sheetWrap.style.justifyContent = 'flex-start';
     sheetWrap.style.height = '';
+    prepareVersionAndChanges();
     markPrintEmpty();
 
     // A small safety margin against rounding/font-metric differences between
@@ -2395,6 +2818,7 @@
     }
     if(sheetWrap){ sheetWrap.style.height = ''; sheetWrap.style.justifyContent = ''; }
     clearPrintHidden();
+    clearChangeMarks();
     removePrintPreviewStyle();
     var wasActive = printActive;
     printActive = false;
