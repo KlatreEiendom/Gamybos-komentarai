@@ -531,6 +531,33 @@
 
     /* Per-field comments: a light tinted note box instead of plain inline text. */
     .row-comment-area { background: #f3f2ee !important; border: 1px solid #ddd; }
+
+    /* ---- Compact print layout ----
+       The on-screen paddings are generous for clicking/typing; on paper they
+       are mostly wasted space, and every pixel of height saved here lets
+       fitSheetToPage pick a larger scale (= bigger text). These rules are
+       also applied during measurement (addPrintPreviewStyle), so the height
+       it measures is the height that really prints. */
+    .header-row, .pairs-grid { gap: 8px; margin-bottom: 8px; }
+    .full-stack .box { margin-bottom: 8px; }
+    .field-with-label { gap: 3px; }
+    .header-box { min-height: 0; padding: 6px 12px; }
+    .spec-box { padding: 6px 12px; gap: 4px; }
+    .box-title-row { padding: 5px 12px; }
+    .type-picker-row { padding: 3px 12px; gap: 6px; }
+    .type-select-btn { padding: 2px 6px !important; }
+    .line-text { padding: 4px 12px; }
+    .paint-color-wrap { padding: 4px 4px 4px 12px; }
+    .ideti-finish-wrap { padding: 4px 4px 4px 8px; }
+    .ideti-qty-wrap, .ideti-dim-wrap { padding: 4px 8px; }
+    .ideti-initials { padding: 4px 8px; }
+    .blanks-area { padding: 3px 8px 3px 4px; }
+    .row-comment-row { padding: 0 12px 4px; }
+    .row-comment-area { padding: 3px 8px; }
+    .notes-box .notes-area { padding: 6px 12px; min-height: 0; }
+    /* Unselected dropdowns in Įdėti rows keep their column (so the columns
+       line up) but don't print the grey placeholder word. */
+    .ideti-line-row .type-select-btn.placeholder { visibility: hidden; }
   }
 </style>
 </head>
@@ -2102,13 +2129,19 @@
   });
 
   // ---- Auto-fit the printed sheet to exactly one page -------------------
-  // Finds the LARGEST scale at which the whole sheet still fits on one A4
-  // page: short sheets are enlarged (up to PRINT_SCALE_MAX), long ones are
-  // shrunk. If it still can't reach a comfortable size (PRINT_SCALE_MIN),
-  // rows nobody filled in (and then list boxes left completely empty) are
-  // dropped first, so real content isn't squeezed smaller than necessary.
-  // Fitting on one page always wins in the end — if even that isn't
-  // enough, the sheet just keeps shrinking until it fits.
+  // Goal: text as large as possible, everything on ONE A4 page.
+  //
+  // What makes the text big is a short sheet, so three things work together:
+  //  a) The sheet is measured exactly as it will print: the @media print
+  //     rules are mirrored onto the screen while measuring
+  //     (addPrintPreviewStyle). Without that, screen-only chrome ("+ eilutė"
+  //     buttons, big paddings) was counted and the scale came out too small.
+  //  b) Nothing that carries no information is printed: unselected pickers,
+  //     blank rows, empty comment fields, empty boxes, an empty notes box and
+  //     an empty "Mediena" box (markPrintEmpty). Standard Įdėti checklist rows
+  //     always stay — their initials cell is filled in by hand on paper.
+  //  c) The largest scale that still fits is found by bisection, with the
+  //     real height measured at every candidate width.
   //
   // How the scale is applied, and why (each of these was a real bug):
   //  1) `transform: scale()` is paint-only: it doesn't change the box's
@@ -2118,50 +2151,172 @@
   //  2) To make the scaled sheet span the full page width, #sheet is laid
   //     out at (page width / scale) px. Rows reflow differently at
   //     different widths, so the height at that width can't be predicted
-  //     from one measurement — the scale is found by bisection, measuring
-  //     the real height at every candidate width.
+  //     from one measurement — hence the bisection.
   //  3) The 900px screen cap (max-width), flex shrinking and flex centering
   //     would all silently change that width/position, so they are
   //     overridden inline while printing. A width where rows would overflow
-  //     sideways is treated as "doesn't fit" and rejected.
+  //     sideways counts as "doesn't fit".
   //  4) The title font is fitted to its box width, so it is re-fitted at
   //     every candidate width.
   var PRINT_PAGE_W = 718, PRINT_PAGE_H = 1047; // A4 printable area in px @96dpi, minus the 10mm @page margin on every side
-  var PRINT_SCALE_MIN = 0.6;   // below this, drop blank rows/boxes before shrinking further
-  var PRINT_SCALE_MAX = 1.5;   // never enlarge beyond this
+  var PRINT_SCALE_MAX = 2;      // never enlarge beyond this
   var PRINT_SCALE_FLOOR = 0.12; // absolute lower bound of the search
   var printHiddenEls = [];
+  var printPreviewStyle = null;
+  var printActive = false, printActiveSince = 0;
 
   function hideForPrint(node){
+    if(!node || node.style.display === 'none') return;
     node.style.display = 'none';
     printHiddenEls.push(node);
   }
+  function isHiddenForPrint(node){ return node.style.display === 'none'; }
   function clearPrintHidden(){
     printHiddenEls.forEach(function(node){ node.style.display = ''; });
     printHiddenEls = [];
-  }
-  function rowIsBlank(row){
-    // textContent on the row includes its own "×" delete button, so a row
-    // would never look blank without stripping that one piece of chrome
-    // out first.
-    var clone = row.cloneNode(true);
-    var delBtns = clone.querySelectorAll('.del-line');
-    for(var i = 0; i < delBtns.length; i++) delBtns[i].parentNode.removeChild(delBtns[i]);
-    return clone.textContent.replace(/\s+/g, '').length === 0;
+    var hr = document.querySelector('.header-row');
+    if(hr) hr.style.gridTemplateColumns = '';
   }
 
+  // Mirror every @media print rule onto the screen (media "all") so heights
+  // can be measured with the print look.
+  function addPrintPreviewStyle(){
+    removePrintPreviewStyle();
+    var css = '';
+    Array.prototype.forEach.call(document.styleSheets, function(ss){
+      var rules;
+      try { rules = ss.cssRules; } catch(e){ return; } // cross-origin sheet (fonts)
+      Array.prototype.forEach.call(rules, function(r){
+        if(r.type === 4 && /print/.test(r.media.mediaText)){
+          Array.prototype.forEach.call(r.cssRules, function(inner){ css += inner.cssText + '\n'; });
+        }
+      });
+    });
+    printPreviewStyle = document.createElement('style');
+    printPreviewStyle.textContent = css;
+    document.head.appendChild(printPreviewStyle);
+  }
+  function removePrintPreviewStyle(){
+    if(printPreviewStyle && printPreviewStyle.parentNode) printPreviewStyle.parentNode.removeChild(printPreviewStyle);
+    printPreviewStyle = null;
+  }
+
+  function stripAll(root, selector){
+    var found = root.querySelectorAll(selector);
+    for(var i = 0; i < found.length; i++) found[i].parentNode.removeChild(found[i]);
+  }
+  function isNoneLabel(text){
+    return /^[–-]?nėra[–-]?$/.test(text.replace(/[\s▾]/g, '')) || text.replace(/[\s▾]/g, '') === '-';
+  }
+  // A picker row ("Laiptų tipas: …") with nothing chosen.
+  function pickerIsEmpty(row){
+    if(row.querySelector('.yesno-select-btn')) return false; // Taip/Ne always has an answer
+    var btn = row.querySelector('.type-select-btn');
+    if(!btn) return false;
+    if(btn.classList.contains('placeholder')) return true;
+    return isNoneLabel(btn.textContent);
+  }
+  // A list row with nothing filled in. textContent would also pick up the
+  // "×" delete button, placeholder words on dropdowns, hidden popovers and
+  // fixed unit labels, so all of that chrome is stripped first.
+  function rowIsBlank(row){
+    var clone = row.cloneNode(true);
+    stripAll(clone, '.del-line, .blanks-popover, .blanks-toggle, .row-comment-btn, .type-select-btn.placeholder, .ideti-unit, .ideti-dim-x');
+    var btns = clone.querySelectorAll('.type-select-btn');
+    for(var i = 0; i < btns.length; i++){
+      if(isNoneLabel(btns[i].textContent)) btns[i].parentNode.removeChild(btns[i]);
+    }
+    if(row.classList.contains('ideti-detail-row')) stripAll(clone, '.line-text'); // the name alone isn't content
+    return clone.textContent.replace(/\s+/g, '') === '';
+  }
+  function boxHasContent(box){
+    var kids = Array.prototype.slice.call(box.children).filter(function(c){
+      return !c.matches('.box-title-row, .del-section, .section-comment-btn, .add-line');
+    });
+    return kids.some(function(c){
+      if(isHiddenForPrint(c)) return false;
+      if(c.classList.contains('lines')){
+        return Array.prototype.some.call(c.children, function(r){ return !isHiddenForPrint(r); });
+      }
+      return true;
+    });
+  }
+
+  function markPrintEmpty(){
+    var sheet = document.getElementById('sheet');
+
+    // 1) unselected pickers (and their empty comment field)
+    Array.prototype.forEach.call(sheet.querySelectorAll('.type-picker-row'), function(row){
+      if(!pickerIsEmpty(row)) return;
+      var next = row.nextElementSibling;
+      var comment = (next && next.classList.contains('row-comment-row')) ? next : null;
+      if(comment && comment.textContent.trim() !== '') return; // has a note: keep the field it belongs to
+      hideForPrint(row);
+      if(comment) hideForPrint(comment);
+    });
+
+    // 2) blank list rows — but the standard Įdėti checklist rows always stay
+    Array.prototype.forEach.call(sheet.querySelectorAll('.lines > .line-row'), function(row){
+      if(row.classList.contains('ideti-line-row') && !row.classList.contains('ideti-detail-row')) return;
+      if(rowIsBlank(row)) hideForPrint(row);
+    });
+
+    // 3) comment fields that were opened but left empty
+    Array.prototype.forEach.call(sheet.querySelectorAll('.row-comment-row'), function(c){
+      if(c.textContent.trim() === '') hideForPrint(c);
+    });
+
+    // 4) notes box, when there are no notes
+    var notesBox = sheet.querySelector('.notes-box');
+    var notes = document.getElementById('notesArea');
+    if(notesBox && notes && notes.textContent.trim() === '') hideForPrint(notesBox);
+
+    // 5) boxes left with nothing but their title
+    Array.prototype.forEach.call(sheet.querySelectorAll('.box'), function(box){
+      if(box.classList.contains('notes-box') || !box.querySelector(':scope > .box-title-row')) return;
+      if(!boxHasContent(box)) hideForPrint(box);
+    });
+    var pairs = document.getElementById('pairsGrid');
+    if(pairs && pairs.children.length && Array.prototype.every.call(pairs.children, isHiddenForPrint)) hideForPrint(pairs);
+
+    // 6) no main material chosen: drop that box and let the title use the full width
+    var chips = document.querySelectorAll('#specChips .spec-chip');
+    var specField = document.getElementById('specChips') && document.getElementById('specChips').closest('.field-with-label');
+    if(!chips.length && specField){
+      hideForPrint(specField);
+      var hr = document.querySelector('.header-row');
+      if(hr) hr.style.gridTemplateColumns = '1fr';
+    }
+  }
+
+  // Does any row spill sideways at the current width?
+  function layoutOverflows(sheet){
+    if(sheet.scrollWidth > sheet.clientWidth + 1) return true;
+    var els = sheet.querySelectorAll('.box, .line-row, .type-picker-row, .box-title-row');
+    for(var i = 0; i < els.length; i++){
+      if(els[i].scrollWidth > els[i].clientWidth + 1) return true;
+    }
+    // A name column squeezed so narrow that words break letter by letter
+    // is as bad as overflow (the fixed-width cells next to it win the space).
+    var names = sheet.querySelectorAll('.line-text');
+    for(var j = 0; j < names.length; j++){
+      var w = names[j].clientWidth;
+      if(w > 0 && w < 110) return true;
+    }
+    return false;
+  }
   // Real height the sheet would take on the page if scaled by `scale`
   // (Infinity if rows overflow sideways at that width).
   function printHeightAt(sheet, scale){
     sheet.style.width = (PRINT_PAGE_W / scale) + 'px';
     fitTitleFont();
-    if(sheet.scrollWidth > sheet.clientWidth + 1) return Infinity;
+    if(layoutOverflows(sheet)) return Infinity;
     return sheet.scrollHeight * scale;
   }
   function solvePrintScale(sheet, targetH){
     if(printHeightAt(sheet, PRINT_SCALE_MAX) <= targetH) return PRINT_SCALE_MAX;
     var lo = PRINT_SCALE_FLOOR, hi = PRINT_SCALE_MAX;
-    for(var i = 0; i < 14; i++){
+    for(var i = 0; i < 16; i++){
       var mid = (lo + hi) / 2;
       if(printHeightAt(sheet, mid) <= targetH) lo = mid; else hi = mid;
     }
@@ -2174,42 +2329,28 @@
     var sheet = document.getElementById('sheet');
     if(!sheet || sheetView.style.display === 'none') return;
 
-    clearPrintHidden();
+    resetSheetPrintStyles();
+    addPrintPreviewStyle();
     sheet.style.transform = 'none';
     sheet.style.maxWidth = 'none';
     sheet.style.flex = 'none';
     sheetWrap.style.justifyContent = 'flex-start';
     sheetWrap.style.height = '';
+    markPrintEmpty();
 
     // A small safety margin against rounding/font-metric differences between
     // this measurement and the actual print render.
     var targetH = PRINT_PAGE_H * 0.98;
     var scale = solvePrintScale(sheet, targetH);
 
-    if(scale < PRINT_SCALE_MIN){
-      var rows = Array.prototype.slice.call(sheet.querySelectorAll('.lines > .line-row'));
-      var hid = false;
-      rows.forEach(function(row){ if(rowIsBlank(row)){ hideForPrint(row); hid = true; } });
-      if(hid) scale = solvePrintScale(sheet, targetH);
-      if(scale < PRINT_SCALE_MIN){
-        var hidBox = false;
-        Array.prototype.slice.call(document.querySelectorAll('#fullStack .box')).forEach(function(box){
-          var titleRow = box.querySelector('.box-title-row');
-          if(titleRow && /dažym|dazym/i.test(titleRow.textContent || '')) return; // keeps its yes/no field
-          var lines = box.querySelector('.lines');
-          if(!lines || !lines.children.length) return;
-          var allHidden = Array.prototype.every.call(lines.children, function(r){ return printHiddenEls.indexOf(r) !== -1; });
-          if(allHidden){ hideForPrint(box); hidBox = true; }
-        });
-        if(hidBox) scale = solvePrintScale(sheet, targetH);
-      }
-    }
-
     // Apply the chosen scale and pin the wrapper to its real scaled height.
     var h = printHeightAt(sheet, scale);
     sheet.style.transformOrigin = 'top left';
     sheet.style.transform = 'scale(' + scale + ')';
     sheetWrap.style.height = (isFinite(h) ? h : PRINT_PAGE_H) + 'px';
+
+    printActive = true;
+    printActiveSince = Date.now();
   }
 
   function resetSheetPrintStyles(){
@@ -2221,8 +2362,21 @@
     }
     if(sheetWrap){ sheetWrap.style.height = ''; sheetWrap.style.justifyContent = ''; }
     clearPrintHidden();
-    fitTitleFont(); // back to fitting the normal, full-width screen box
+    removePrintPreviewStyle();
+    var wasActive = printActive;
+    printActive = false;
+    if(wasActive) fitTitleFont(); // back to fitting the normal, full-width screen box
   }
+
+  // Safety net: if a browser never fires `afterprint`, put the screen back
+  // the first time the user touches the page again (events don't reach the
+  // page while the print dialog is open; the delay ignores the click that
+  // started printing).
+  ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(function(evt){
+    window.addEventListener(evt, function(){
+      if(printActive && Date.now() - printActiveSince > 1500) resetSheetPrintStyles();
+    }, true);
+  });
 
   window.addEventListener('beforeprint', fitSheetToPage);
   window.addEventListener('afterprint', resetSheetPrintStyles);
