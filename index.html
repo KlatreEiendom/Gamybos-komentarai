@@ -166,6 +166,37 @@
   .stamp-ver { background: var(--ink); color: #fff; border-radius: 10px; padding: 1px 9px; min-width: 0; font-weight: 700; line-height: 1.3; }
 
   /* ---- Atgal / Pirmyn ir pranešimas apie pašalinimą ---- */
+  /* ---- atsarginė kopija ---- */
+  .backup-panel {
+    margin: 0 0 18px; padding: 14px 16px; background: #fff; border: 1px solid #e3e0d6; border-radius: 12px;
+    font-size: 0.82rem; color: #333;
+  }
+  .backup-panel h2 { margin: 0 0 4px; font-size: 0.92rem; }
+  .backup-panel .backup-info { color: var(--muted); font-size: 0.78rem; line-height: 1.45; margin: 0 0 10px; }
+  .backup-panel .backup-info.warn { color: #8a5200; }
+  .backup-panel .backup-info.err { color: var(--danger); }
+  .backup-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .backup-actions button {
+    font-family: inherit; font-size: 0.78rem; font-weight: 600; padding: 7px 12px; border-radius: 8px;
+    border: 1px solid #ccc; background: #fff; cursor: pointer;
+  }
+  .backup-actions button:hover { background: var(--paper); }
+  .backup-actions button.primary { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .sync-bar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 24px;
+    background: #e8f1fb; border-bottom: 1px solid #b9d3ee; font-size: 0.82rem; color: #1c3d63;
+  }
+  .sync-bar.conflict { background: #fff1d6; border-bottom-color: #e0b060; color: #6b4300; }
+  .sync-bar button {
+    font-family: inherit; font-size: 0.78rem; font-weight: 600; padding: 6px 12px; border-radius: 8px;
+    border: 1px solid #aaa; background: #fff; cursor: pointer;
+  }
+  .sync-bar button.primary { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .backup-status {
+    font-family: inherit; font-size: 0.74rem; border: 1px solid transparent; background: transparent;
+    border-radius: 8px; padding: 6px 8px; color: var(--muted); cursor: pointer;
+  }
+  .backup-status.warn { color: #8a5200; border-color: #e08a00; background: #fff1d6; }
   .del-field {
     border: none; background: transparent; color: #aaa; font-size: 0.95rem; width: 26px; flex: none;
     cursor: pointer; opacity: .6; align-self: stretch; font-family: inherit;
@@ -561,7 +592,7 @@
        instead of fading to plain black-on-white. */
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
 
-    .missing-dialog-overlay, .missing-badge, .undo-toast, .del-field, .removed-fields-row, .stamp-x, .stamp-restore { display: none !important; }
+    .sync-bar, .backup-status, .missing-dialog-overlay, .missing-badge, .undo-toast, .del-field, .removed-fields-row, .stamp-x, .stamp-restore { display: none !important; }
     .missing-field { background: none !important; box-shadow: none !important; }
     .paint-details .chip { background: none !important; border: none !important; padding: 0 !important; color: #222 !important; }
     .stamp-row { margin-bottom: 4px; font-size: 0.78rem; }
@@ -665,6 +696,17 @@
       </div>
       <button class="new-project-btn" type="button" id="newProjectBtn">+ Naujas projektas</button>
     </div>
+    <div class="backup-panel" id="backupPanel">
+      <h2>💾 Bendras aplankas ir atsarginė kopija</h2>
+      <p class="backup-info" id="backupInfo"></p>
+      <div class="backup-actions">
+        <button type="button" class="primary" id="backupPickBtn">📁 Prijungti bendrą aplanką</button>
+        <button type="button" id="backupNowBtn">⟳ Sinchronizuoti dabar</button>
+        <button type="button" id="backupDownloadBtn">⤓ Atsisiųsti failą</button>
+        <button type="button" id="backupUploadBtn">⤒ Atkurti iš failo</button>
+        <input type="file" id="backupFileInput" accept=".json,application/json" style="display:none;">
+      </div>
+    </div>
     <div id="projectsContainer"></div>
   </div>
 </div>
@@ -680,10 +722,13 @@
     <button id="addPairBtn" type="button">+ Skiltis (2 stulp.)</button>
     <button id="addListBtn" type="button">+ Eilučių blokas</button>
     <button id="clearBtn" type="button">Išvalyti lapą</button>
+    <button id="backupStatus" class="backup-status" type="button" title="Atsarginė kopija"></button>
     <button id="missingBadge" class="missing-badge" type="button" style="display:none;" title="Spustelėkite, kad pamatytumėte pirmą neužpildytą lauką"></button>
     <button id="printBtn" class="primary" type="button">Spausdinti</button>
     <div class="save-hint">Duomenys saugomi automatiškai šioje naršyklėje. Kiekvienai detalės eilutei dešinėje galite pažymėti, kokie ruošiniai jai naudojami (galima kelis).</div>
   </div>
+
+  <div class="sync-bar" id="syncBar" style="display:none;"></div>
 
   <div class="sheet-wrap" id="sheetWrap">
     <div class="sheet" id="sheet">
@@ -746,6 +791,7 @@
   function saveTypeList(key, arr){
     try { localStorage.setItem(key, JSON.stringify(arr)); }
     catch(e) { /* storage unavailable — continue without persistence */ }
+    scheduleBackup();
   }
 
   // Every dropdown always offers this as its first option, so a detail
@@ -993,6 +1039,7 @@
   function saveIndex(idx){
     try { localStorage.setItem(INDEX_KEY, JSON.stringify(idx)); }
     catch(e) { /* storage unavailable — continue without persistence */ }
+    scheduleBackup();
   }
   function loadProjectState(id){
     try {
@@ -1003,10 +1050,12 @@
   function saveProjectState(id, st){
     try { localStorage.setItem(PROJECT_KEY_PREFIX + id, JSON.stringify(st)); }
     catch(e) { /* storage unavailable — continue without persistence */ }
+    scheduleBackup();
   }
   function deleteProjectState(id){
     try { localStorage.removeItem(PROJECT_KEY_PREFIX + id); }
     catch(e) { /* ignore */ }
+    scheduleBackup();
   }
 
   // One-time migration: an earlier version of this page stored a single
@@ -1224,6 +1273,8 @@
 
       var meta = el('div', {class:'pc-meta'});
       meta.appendChild(el('span', {text: 'Atnaujinta ' + fmtDate(entry.updatedAt)}));
+      if(backupDir && entry.editor) meta.appendChild(el('span', {class:'pc-chip', text: '👤 ' + entry.editor}));
+      if(backupDir && entry.dirty) meta.appendChild(el('span', {class:'pc-chip', text: '⟳ laukia sinchronizavimo'}));
       var st = loadProjectState(entry.id);
       if(st){
         var filled = countFilled(st);
@@ -1238,7 +1289,9 @@
       var del = el('button', {class:'pc-del', type:'button', title:'Šalinti projektą', text:'×'});
       del.addEventListener('click', function(ev){
         ev.stopPropagation();
-        if(!confirm('Ištrinti projektą' + (titleText ? ' „' + titleText + '“' : '') + '? Šio veiksmo atšaukti negalima.')) return;
+        if(!confirm('Ištrinti projektą' + (titleText ? ' „' + titleText + '“' : '') + '? Šio veiksmo atšaukti negalima.' +
+          (backupDir ? '\n\nProjektas dings ir bendrame aplanke – kolegos jo nebematys.' : ''))) return;
+        recordTombstone(entry.id);
         deleteProjectState(entry.id);
         var idx2 = loadIndex().filter(function(e){ return e.id !== entry.id; });
         saveIndex(idx2);
@@ -1256,7 +1309,7 @@
     var st = blankProjectState();
     saveProjectState(id, st);
     var idx = loadIndex();
-    idx.push({ id: id, title: '', updatedAt: Date.now() });
+    idx.push({ id: id, title: '', updatedAt: Date.now(), dirty: true, v: 1 });
     saveIndex(idx);
     openProject(id);
   }
@@ -1276,10 +1329,12 @@
       if(e.id === currentProjectId){
         e.title = state.title || '';
         e.updatedAt = Date.now();
+        e.dirty = true;                 // yra nesinchronizuotų pakeitimų
+        e.v = (e.v | 0) + 1;
         found = true;
       }
     });
-    if(!found) idx.push({ id: currentProjectId, title: state.title || '', updatedAt: Date.now() });
+    if(!found) idx.push({ id: currentProjectId, title: state.title || '', updatedAt: Date.now(), dirty: true, v: 1 });
     saveIndex(idx);
   }
 
@@ -1383,6 +1438,8 @@
     currentProjectId = null;
     hideUndoToast();
     renderProjectList();
+    refreshSyncBar();
+    scheduleBackup();
   }
 
   function openProject(id){
@@ -1397,6 +1454,7 @@
     document.getElementById('sheetView').style.display = '';
     window.scrollTo(0, 0);
     renderAll();
+    refreshSyncBar();
   }
 
   document.getElementById('backBtn').addEventListener('click', showListView);
@@ -3029,8 +3087,555 @@
   window.addEventListener('beforeprint', fitSheetToPage);
   window.addEventListener('afterprint', resetSheetPrintStyles);
 
+
+  // ===================================================================
+  //  BENDRAS APLANKAS (pvz. „Dropbox“) + atsarginė kopija
+  //  Kiekvienas projektas saugomas atskiru failu  <aplankas>/projektai/<id>.json,
+  //  bendri pasirinkimų sąrašai – <aplankas>/sarasai.json. Visi kolegos prijungia
+  //  tą patį aplanką ir mato vienas kito lapus. Veikia Chrome / Edge
+  //  (File System Access API); kitose naršyklėse – atsisiuntimas / įkėlimas failu.
+  //
+  //  Sinchronizavimas (kiekvienas projektas turi „rev“ numerį):
+  //   • tik kolegos pakeistas  → atnaujinamas pas jus (atidarytam lapui – pranešimas);
+  //   • tik jūsų pakeistas     → įrašomas į aplanką (rev + 1);
+  //   • pakeistas abiejų       → niekas neprarandama: jūsų versija išsaugoma kaip
+  //                              atskiras projektas „… (mano versija)“.
+  //   • ištrynimas             → paliekamas žymuo (ne fizinis failo šalinimas).
+  // ===================================================================
+  var BACKUP_APP = 'gamybos-uzsakymo-lapas';
+  var PROJ_DIR = 'projektai';
+  var LISTS_FILE = 'sarasai.json';
+  var TOMB_KEY = 'gbk-deleted';
+  var SYNC_EVERY_MS = 30000;
+  var backupDir;            // FileSystemDirectoryHandle (arba undefined)
+  var backupTimer;
+  var syncBusy;
+  var syncAgain;
+  var syncLastAt;           // Date
+  var backupMsg;            // { text, kind }
+  var backupNeedsPerm;
+  var syncNotices = {};     // projekto id -> { kind: 'remote'|'conflict', remote: obj }
+  var remoteCache = {};     // projekto id -> { lm, size, obj }
+  var backupSupported = (typeof window.showDirectoryPicker === 'function');
+
+  // ---- IndexedDB: prisimena pasirinktą aplanką tarp apsilankymų ----
+  function idbOpen(){
+    return new Promise(function(res, rej){
+      var r = indexedDB.open('gamybos-kopija-db', 1);
+      r.onupgradeneeded = function(){ r.result.createObjectStore('h'); };
+      r.onsuccess = function(){ res(r.result); };
+      r.onerror = function(){ rej(r.error); };
+    });
+  }
+  function idbGet(key){
+    return idbOpen().then(function(db){
+      return new Promise(function(res, rej){
+        var q = db.transaction('h').objectStore('h').get(key);
+        q.onsuccess = function(){ res(q.result); };
+        q.onerror = function(){ rej(q.error); };
+      });
+    });
+  }
+  function idbSet(key, val){
+    return idbOpen().then(function(db){
+      return new Promise(function(res, rej){
+        var tx = db.transaction('h', 'readwrite');
+        tx.objectStore('h').put(val, key);
+        tx.oncomplete = function(){ res(); };
+        tx.onerror = function(){ rej(tx.error); };
+      });
+    });
+  }
+
+  function myName(){ return lastAuthor(); }
+  function fmtTime(d){
+    function p2(n){ return (n < 10 ? '0' : '') + n; }
+    return p2(d.getHours()) + ':' + p2(d.getMinutes()) + ':' + p2(d.getSeconds());
+  }
+
+  // ---- vietinis projektų indeksas: saugūs, atominiai pakeitimai ----
+  function writeIndexRaw(idx){ try { localStorage.setItem(INDEX_KEY, JSON.stringify(idx)); } catch(e){ /* ignore */ } }
+  function writeProjectRaw(id, st){ try { localStorage.setItem(PROJECT_KEY_PREFIX + id, JSON.stringify(st)); } catch(e){ /* ignore */ } }
+  function findEntry(id){
+    var idx = loadIndex();
+    for(var i = 0; i < idx.length; i++) if(idx[i].id === id) return idx[i];
+    return null;
+  }
+  function mutateEntry(id, fn){
+    var idx = loadIndex();
+    for(var i = 0; i < idx.length; i++){
+      if(idx[i].id === id){ fn(idx[i]); writeIndexRaw(idx); return idx[i]; }
+    }
+    return null;
+  }
+  function addEntry(entry){ var idx = loadIndex(); idx.push(entry); writeIndexRaw(idx); }
+  function removeLocal(id){
+    try { localStorage.removeItem(PROJECT_KEY_PREFIX + id); } catch(e){ /* ignore */ }
+    writeIndexRaw(loadIndex().filter(function(e){ return e.id !== id; }));
+    delete syncNotices[id];
+  }
+  function getTombs(){
+    try { var a = JSON.parse(localStorage.getItem(TOMB_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch(e){ return []; }
+  }
+  function recordTombstone(id){
+    var t = getTombs();
+    if(t.indexOf(id) === -1) t.push(id);
+    try { localStorage.setItem(TOMB_KEY, JSON.stringify(t)); } catch(e){ /* ignore */ }
+  }
+  function removeTomb(id){
+    try { localStorage.setItem(TOMB_KEY, JSON.stringify(getTombs().filter(function(x){ return x !== id; }))); } catch(e){ /* ignore */ }
+  }
+  // Visiškai tuščias (niekada nepildytas) projektas bendrame aplanke nereikalingas.
+  function isBlankProject(st){
+    if(!st) return true;
+    if((st.title || '').trim() || (st.notes || '').trim()) return false;
+    if(st.specMaterials && st.specMaterials.length) return false;
+    var typed = false;
+    (st.pairs || []).forEach(function(p){
+      ['stairType', 'baseType', 'stepType', 'handrailType', 'postType'].forEach(function(k){ if(p[k]) typed = true; });
+    });
+    return !typed && countFilled(st) === 0;
+  }
+
+  // ---- bendri pasirinkimų sąrašai (vardai → masyvai atmintyje) ----
+  function listRegistry(){
+    var r = {};
+    r[STAIR_TYPES_KEY] = STAIR_TYPE_OPTIONS;
+    r[BASE_TYPES_KEY] = BASE_TYPE_OPTIONS;
+    r[STEP_TYPES_KEY] = STEP_TYPE_OPTIONS;
+    r[HANDRAIL_TYPES_KEY] = HANDRAIL_TYPE_OPTIONS;
+    r[POST_TYPES_KEY] = POST_TYPE_OPTIONS;
+    r[PAINT_COLOR_KEY] = PAINT_COLOR_OPTIONS;
+    r[PAINT_DETAIL_KEY] = PAINT_DETAIL_OPTIONS;
+    r[RUOSINYS_KEY] = RUOSINYS_OPTIONS;
+    r[IDETI_FINISH_KEY] = IDETI_FINISH_OPTIONS;
+    r[IDETI_MATERIAL_KEY] = IDETI_MATERIAL_OPTIONS;
+    r[IDETI_DETAIL_FINISH_KEY] = IDETI_DETAIL_FINISH_OPTIONS;
+    r[IDETI_DIAMETER_KEY] = IDETI_DIAMETER_OPTIONS;
+    return r;
+  }
+
+  // ---- failų darbas aplanke ----
+  function ensureBackupPerm(handle, ask){
+    var opts = { mode: 'readwrite' };
+    if(!handle || !handle.queryPermission) return Promise.resolve(true);
+    return handle.queryPermission(opts).then(function(p){
+      if(p === 'granted') return true;
+      if(!ask) return false;
+      return handle.requestPermission(opts).then(function(r){ return r === 'granted'; });
+    });
+  }
+  async function readJsonFile(dir, name){
+    try {
+      var fh = await dir.getFileHandle(name);
+      var f = await fh.getFile();
+      return JSON.parse(await f.text());
+    } catch(e){ return null; }
+  }
+  async function writeJsonFile(dir, name, obj){
+    var fh = await dir.getFileHandle(name, { create: true });
+    var w = await fh.createWritable();
+    await w.write(JSON.stringify(obj));
+    await w.close();
+  }
+  async function listRemoteProjects(pdir){
+    var out = {};
+    for await (var ent of pdir.entries()){
+      var m = /^(p[a-z0-9]+)\.json$/.exec(ent[0]);   // „conflicted copy“ ir pan. failai ignoruojami
+      if(!m || ent[1].kind !== 'file') continue;
+      var f = await ent[1].getFile();
+      var c = remoteCache[m[1]];
+      if(c && c.lm === f.lastModified && c.size === f.size){ out[m[1]] = c.obj; continue; }
+      try {
+        var obj = JSON.parse(await f.text());
+        if(obj && obj.id === m[1] && obj.state){
+          remoteCache[m[1]] = { lm: f.lastModified, size: f.size, obj: obj };
+          out[m[1]] = obj;
+        }
+      } catch(e){ /* failas dar neatsisiuntė iki galo – bandysime kitą kartą */ }
+    }
+    return out;
+  }
+
+  async function pushProject(pdir, id, remoteRev, me){
+    var e = findEntry(id), st = loadProjectState(id);
+    if(!st) return;
+    var v0 = e ? (e.v | 0) : 0;
+    var obj = { format: 1, id: id, rev: (remoteRev | 0) + 1, title: st.title || '',
+      updatedAt: (e && e.updatedAt) || Date.now(), editor: me, deleted: false, state: st };
+    await writeJsonFile(pdir, id + '.json', obj);
+    delete remoteCache[id];
+    mutateEntry(id, function(x){ x.rev = obj.rev; x.editor = me; if((x.v | 0) === v0) x.dirty = false; });
+  }
+  function applyRemote(id, r){
+    writeProjectRaw(id, r.state);
+    mutateEntry(id, function(x){
+      x.title = r.title || ''; x.updatedAt = r.updatedAt || Date.now();
+      x.rev = r.rev | 0; x.dirty = false; x.editor = r.editor || '';
+    });
+    delete syncNotices[id];
+  }
+  function saveConflictCopy(id){
+    var st = loadProjectState(id);
+    if(!st) return null;
+    var copy = clone(st);
+    copy.title = ((copy.title || '').trim() || 'Be pavadinimo') + ' (mano versija)';
+    var nid = uid();
+    writeProjectRaw(nid, copy);
+    addEntry({ id: nid, title: copy.title, updatedAt: Date.now(), dirty: true, v: 1 });
+    return copy.title;
+  }
+
+  async function syncProjects(){
+    var pdir = await backupDir.getDirectoryHandle(PROJ_DIR, { create: true });
+    var remote = await listRemoteProjects(pdir);
+    var me = myName() || 'nežinomas';
+    var tombs = getTombs();
+    var conflictCopies = [];
+    var ids = Object.keys(remote);
+
+    for(var i = 0; i < ids.length; i++){
+      var id = ids[i], r = remote[id];
+      var e = findEntry(id);
+
+      if(tombs.indexOf(id) !== -1){           // ištrinta pas mus → paliekame žymenį bendrame aplanke
+        if(!r.deleted){
+          await writeJsonFile(pdir, id + '.json', { format: 1, id: id, rev: (r.rev | 0) + 1, title: r.title || '',
+            updatedAt: Date.now(), editor: me, deleted: true, state: r.state });
+          delete remoteCache[id];
+        }
+        removeTomb(id);
+        continue;
+      }
+      if(!e){                                  // naujas projektas iš kolegos
+        if(!r.deleted){
+          writeProjectRaw(id, r.state);
+          addEntry({ id: id, title: r.title || '', updatedAt: r.updatedAt || Date.now(), rev: r.rev | 0, dirty: false, editor: r.editor || '', v: 0 });
+        }
+        continue;
+      }
+      var neverSynced = (e.rev === undefined || e.rev === null);
+      var base = neverSynced ? -1 : e.rev;
+      var dirty = !!e.dirty || neverSynced;
+
+      if(r.deleted){
+        if(r.rev > base){
+          if(!dirty && id !== currentProjectId) removeLocal(id);
+          else if(dirty) await pushProject(pdir, id, r.rev, me);   // jūs pakeitėte po ištrynimo – atgaivinama
+        }
+        continue;
+      }
+      if(r.rev > base){
+        if(!dirty){
+          if(id === currentProjectId) syncNotices[id] = { kind: 'remote', remote: r };
+          else applyRemote(id, r);
+        } else {
+          if(id === currentProjectId) syncNotices[id] = { kind: 'conflict', remote: r };
+          else { var t = saveConflictCopy(id); if(t) conflictCopies.push(t); applyRemote(id, r); }
+        }
+      } else if(dirty){
+        if(neverSynced && isBlankProject(loadProjectState(id))) continue;
+        await pushProject(pdir, id, r.rev, me);
+      } else if(r.rev < base){
+        mutateEntry(id, function(x){ x.rev = r.rev; });
+      }
+    }
+
+    // projektai, kurių dar nėra aplanke
+    var idx = loadIndex();
+    for(var j = 0; j < idx.length; j++){
+      var le = idx[j];
+      if(remote[le.id] || tombs.indexOf(le.id) !== -1) continue;
+      var st = loadProjectState(le.id);
+      if(!st) continue;
+      var never = (le.rev === undefined || le.rev === null);
+      if(never && isBlankProject(st)) continue;
+      if(!never && !le.dirty && !remote[le.id]) { /* failą kažkas pašalino – grąžiname */ }
+      await pushProject(pdir, le.id, le.rev | 0, me);
+    }
+    if(conflictCopies.length){
+      backupMsg = { text: 'Kolega pakeitė tą patį lapą kaip ir jūs, todėl jūsų versija išsaugota atskirai: ' + conflictCopies.join('; ') + '.', kind: 'warn' };
+    }
+  }
+
+  // Bendri pasirinkimų sąrašai: sąjunga (niekas neišmetama)
+  async function syncLists(){
+    var me = myName() || 'nežinomas';
+    var rf = await readJsonFile(backupDir, LISTS_FILE);
+    var remote = (rf && rf.lists) || {};
+    var reg = listRegistry();
+    var remoteChanged = false;
+    var merged = {};
+    Object.keys(reg).forEach(function(key){
+      var loc = reg[key];
+      var rem = Array.isArray(remote[key]) ? remote[key] : null;
+      var out = [];
+      function add(v){
+        if(key === STEP_TYPES_KEY) v = stripStepWord(v);
+        if(typeof v === 'string' && out.indexOf(v) === -1) out.push(v);
+      }
+      (rem || []).forEach(add);
+      loc.forEach(add);
+      var ni = out.indexOf(NONE_OPTION);
+      if(ni > 0){ out.splice(ni, 1); out.unshift(NONE_OPTION); }
+      merged[key] = out;
+      if(!rem || JSON.stringify(rem) !== JSON.stringify(out)) remoteChanged = true;
+      if(JSON.stringify(loc) !== JSON.stringify(out)){
+        loc.length = 0;
+        out.forEach(function(v){ loc.push(v); });
+        try { localStorage.setItem(key, JSON.stringify(out)); } catch(e){ /* ignore */ }
+      }
+    });
+    if(remoteChanged) await writeJsonFile(backupDir, LISTS_FILE, { format: 1, updatedAt: Date.now(), editor: me, lists: merged });
+  }
+
+  function syncNow(){
+    if(!backupDir) return Promise.resolve();
+    if(syncBusy){ syncAgain = true; return Promise.resolve(); }
+    syncBusy = true;
+    return (async function(){
+      try {
+        var ok = await ensureBackupPerm(backupDir, false);
+        if(!ok){ backupNeedsPerm = true; }
+        else {
+          backupNeedsPerm = false;
+          await syncProjects();
+          await syncLists();
+          syncLastAt = new Date();
+          if(backupMsg && backupMsg.kind === 'err') backupMsg = null;
+        }
+      } catch(err){
+        backupMsg = { text: 'Sinchronizavimo klaida: ' + (err && err.message ? err.message : err), kind: 'err' };
+      }
+      syncBusy = false;
+      renderBackupUI();
+      refreshSyncBar();
+      if(document.getElementById('sheetView').style.display === 'none') renderProjectList();
+      if(syncAgain){ syncAgain = false; scheduleBackup(); }
+    })();
+  }
+  function scheduleBackup(){
+    clearTimeout(backupTimer);
+    backupTimer = setTimeout(function(){ if(backupDir) syncNow(); }, 2500);
+  }
+
+  // ---- pranešimų juosta atidarytam lapui ----
+  function refreshSyncBar(){
+    var bar = document.getElementById('syncBar');
+    if(!bar) return;
+    var n = currentProjectId ? syncNotices[currentProjectId] : null;
+    bar.innerHTML = '';
+    if(!n){ bar.style.display = 'none'; return; }
+    bar.style.display = '';
+    bar.className = 'sync-bar ' + (n.kind === 'conflict' ? 'conflict' : '');
+    var who = n.remote.editor || 'Kolega';
+    var id = currentProjectId;
+    function btn(text, fn, primary){
+      var b = el('button', { type: 'button', text: text, class: primary ? 'primary' : '' });
+      b.addEventListener('click', fn);
+      return b;
+    }
+    if(n.kind === 'remote'){
+      bar.appendChild(el('span', { text: '🔄 ' + who + ' atnaujino šį lapą bendrame aplanke.' }));
+      bar.appendChild(btn('Atnaujinti lapą', function(){ adoptRemote(id); }, true));
+    } else {
+      bar.appendChild(el('span', { text: '⚠ ' + who + ' pakeitė šį lapą, kol jį redagavote. Jūsų pakeitimai dar neįrašyti į bendrą aplanką.' }));
+      bar.appendChild(btn('Mano versiją palikti kaip kopiją ir atnaujinti', function(){ keepMineThenAdopt(id); }, true));
+      bar.appendChild(btn('Perrašyti kolegos versiją savąja', function(){ overwriteWithMine(id); }));
+    }
+  }
+  function adoptRemote(id){
+    var n = syncNotices[id];
+    if(!n) return;
+    applyRemote(id, n.remote);
+    if(id === currentProjectId){
+      var st = loadProjectState(id);
+      if(st){ migrate(st); state = st; resetHistory(); renderAll(); }
+    }
+    refreshSyncBar();
+  }
+  function keepMineThenAdopt(id){
+    var title = saveConflictCopy(id);
+    adoptRemote(id);
+    if(title) alert('Jūsų versija išsaugota kaip atskiras projektas „' + title + '“ – rasite jį projektų sąraše.');
+    scheduleBackup();
+  }
+  function overwriteWithMine(id){
+    var n = syncNotices[id];
+    if(!n) return;
+    delete syncNotices[id];
+    mutateEntry(id, function(x){ x.rev = n.remote.rev | 0; x.dirty = true; x.v = (x.v | 0) + 1; });
+    refreshSyncBar();
+    syncNow();
+  }
+
+  // ---- būsenos tekstas ----
+  function setBackupMsg(text, kind){ backupMsg = text ? { text: text, kind: kind || '' } : null; renderBackupUI(); }
+  function renderBackupUI(){
+    var info = document.getElementById('backupInfo');
+    var st = document.getElementById('backupStatus');
+    if(!info || !st) return;
+    var text = backupMsg ? backupMsg.text : '', kind = backupMsg ? backupMsg.kind : '', tb, tbWarn = false;
+    if(!backupSupported){
+      text = (text ? text + ' ' : '') + 'Ši naršyklė (ar langas) neleidžia pasirinkti aplanko – naudokite „Atsisiųsti failą“ (ir „Atkurti iš failo“). Bendras aplankas veikia Chrome ar Edge naršyklėje, atidarius index.html failą.';
+      kind = kind || 'warn';
+      tb = '⚠ Tik failu'; tbWarn = true;
+    } else if(!backupDir){
+      text = text || 'Bendras aplankas neprijungtas – duomenys saugomi tik šioje naršyklėje, ir jos išvalymas juos ištrintų. Prijunkite aplanką (pvz. bendrą „Dropbox“ aplanką): jei kolegos prijungs tą patį, visi matysite vienas kito lapus, o praradę duomenis galėsite juos atkurti prijungę aplanką iš naujo.';
+      kind = kind || 'warn';
+      tb = '⚠ Aplankas neprijungtas'; tbWarn = true;
+    } else if(backupNeedsPerm){
+      text = text || 'Aplankas „' + backupDir.name + '“ prijungtas, bet naršyklei reikia jūsų leidimo – spauskite „Sinchronizuoti dabar“.';
+      kind = kind || 'warn';
+      tb = '⚠ Reikia leidimo'; tbWarn = true;
+    } else {
+      var base = 'Prijungtas bendras aplankas „' + backupDir.name + '“. Lapai sinchronizuojami automatiškai po kiekvieno pakeitimo ir kas ~30 s' +
+        (syncLastAt ? ' (paskutinį kartą ' + fmtTime(syncLastAt) + ')' : '') +
+        '. Kolegos mato jūsų lapus, kai jų „Dropbox“ atsisiunčia failus.';
+      text = text ? text + ' ' + base : base;
+      tb = '💾 Sinchr.' + (syncLastAt ? ' ' + fmtTime(syncLastAt).slice(0, 5) : '');
+    }
+    info.textContent = text;
+    info.className = 'backup-info' + (kind ? ' ' + kind : '');
+    st.textContent = tb;
+    st.className = 'backup-status' + (tbWarn ? ' warn' : '');
+    st.title = text;
+  }
+
+  // ---- failų kopija (visoms naršyklėms) ----
+  function collectBackup(){
+    var data = {};
+    try {
+      for(var i = 0; i < localStorage.length; i++){
+        var k = localStorage.key(i);
+        if(k && k.indexOf('gamybos-') === 0) data[k] = localStorage.getItem(k);
+      }
+    } catch(e){ /* ignore */ }
+    var n = 0;
+    try { n = JSON.parse(data[INDEX_KEY] || '[]').length; } catch(e){ n = 0; }
+    return { app: BACKUP_APP, format: 1, savedAt: new Date().toISOString(), projectCount: n, data: data };
+  }
+  function backupProjectCount(p){
+    try { return JSON.parse((p.data || {})[INDEX_KEY] || '[]').length; } catch(e){ return 0; }
+  }
+  function validBackup(p){ return !!(p && p.app === BACKUP_APP && p.data && typeof p.data === 'object'); }
+  function fmtStamp(iso){
+    var d = new Date(iso);
+    if(isNaN(d.getTime())) return '?';
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2) + ' ' + fmtTime(d).slice(0, 5);
+  }
+  function restoreFromPayload(p){
+    if(!validBackup(p)){ alert('Tai nėra gamybos lapų atsarginės kopijos failas.'); return false; }
+    var n = backupProjectCount(p);
+    var cur = 0; try { cur = loadIndex().length; } catch(e){ cur = 0; }
+    var msg = 'Atkurti duomenis iš failo (' + n + ' proj., išsaugota ' + fmtStamp(p.savedAt) + ')?';
+    if(cur > 0) msg += '\n\nSvarbu: šiuo metu naršyklėje yra ' + cur + ' proj. – jie bus pakeisti failo duomenimis.';
+    if(!confirm(msg)) return false;
+    try {
+      var rm = [];
+      for(var i = 0; i < localStorage.length; i++){
+        var k = localStorage.key(i);
+        if(k && k.indexOf('gamybos-') === 0) rm.push(k);
+      }
+      rm.forEach(function(k){ localStorage.removeItem(k); });
+      Object.keys(p.data).forEach(function(k){
+        if(k.indexOf('gamybos-') === 0 && typeof p.data[k] === 'string') localStorage.setItem(k, p.data[k]);
+      });
+    } catch(e){
+      alert('Nepavyko atkurti duomenų: ' + e.message);
+      return false;
+    }
+    location.reload();
+    return true;
+  }
+
+  function pickBackupDir(){
+    if(!backupSupported){ renderBackupUI(); return Promise.resolve(null); }
+    return window.showDirectoryPicker({ mode: 'readwrite', id: 'gamybos-kopijos' }).then(function(h){ return h; }, function(err){
+      if(err && err.name === 'AbortError') return null;
+      setBackupMsg('Nepavyko atidaryti aplanko pasirinkimo: ' + (err && err.message ? err.message : err) + '. Naudokite „Atsisiųsti failą“.', 'err');
+      return null;
+    });
+  }
+  function onPickDir(){
+    pickBackupDir().then(function(h){
+      if(!h) return;
+      if(!myName()){
+        var nm = prompt('Įveskite savo vardą – jį matys kolegos (pvz. Jonas P.):', '');
+        if(nm && nm.trim()) rememberAuthor(nm.trim());
+      }
+      backupDir = h; backupNeedsPerm = false; backupMsg = null; remoteCache = {};
+      return idbSet('dir', h).catch(function(){ /* ignore */ }).then(function(){
+        renderBackupUI();
+        return syncNow();
+      });
+    });
+  }
+  function onSyncNow(){
+    if(!backupDir){ onPickDir(); return; }
+    ensureBackupPerm(backupDir, true).then(function(ok){
+      if(!ok){ setBackupMsg('Leidimas rašyti į aplanką nesuteiktas.', 'warn'); return; }
+      backupNeedsPerm = false;
+      return syncNow();
+    });
+  }
+  function onDownload(){
+    var p = collectBackup();
+    var blob = new Blob([JSON.stringify(p)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'gamybos-kopija-' + todayStr() + '.json';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.parentNode.removeChild(a); }, 500);
+  }
+  function onUploadFile(file){
+    if(!file) return;
+    var r = new FileReader();
+    r.onload = function(){
+      var p;
+      try { p = JSON.parse(r.result); } catch(e){ alert('Failas nėra tinkamas (neįmanoma perskaityti).'); return; }
+      restoreFromPayload(p);
+    };
+    r.readAsText(file);
+  }
+
+  document.getElementById('backupPickBtn').addEventListener('click', onPickDir);
+  document.getElementById('backupNowBtn').addEventListener('click', onSyncNow);
+  document.getElementById('backupDownloadBtn').addEventListener('click', onDownload);
+  document.getElementById('backupUploadBtn').addEventListener('click', function(){
+    document.getElementById('backupFileInput').click();
+  });
+  document.getElementById('backupFileInput').addEventListener('change', function(){
+    onUploadFile(this.files && this.files[0]);
+    this.value = '';
+  });
+  document.getElementById('backupStatus').addEventListener('click', function(){
+    if(!backupSupported || !backupDir){ showListView(); window.scrollTo(0, 0); }
+    else onSyncNow();
+  });
+
+  function initBackup(){
+    renderBackupUI();
+    if(!backupSupported || !window.indexedDB) return;
+    idbGet('dir').then(function(h){
+      if(!h) return;
+      backupDir = h;
+      return ensureBackupPerm(h, false).then(function(ok){
+        backupNeedsPerm = !ok;
+        renderBackupUI();
+        if(ok) syncNow();
+        else if(loadIndex().length === 0){
+          setBackupMsg('Naršyklėje projektų nėra, bet prijungtas aplankas „' + h.name + '“. Spauskite „Sinchronizuoti dabar“, kad grąžintumėte visus lapus.', 'warn');
+        }
+      });
+    }).catch(function(){ /* ignore */ });
+    setInterval(function(){ if(backupDir && !document.hidden && !syncBusy) syncNow(); }, SYNC_EVERY_MS);
+    document.addEventListener('visibilitychange', function(){ if(!document.hidden && backupDir) syncNow(); });
+  }
+
   // Start on the project list.
   renderProjectList();
+  initBackup();
 })();
 </script>
 
