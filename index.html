@@ -255,7 +255,15 @@
 
   /* ---- dažymo eilutė: spalva kairėje, detalės dešinėje ---- */
   .paint-color-wrap { position: relative; flex: 0 0 auto; padding: 9px 4px 9px 16px; }
-  .blanks-area.paint-details { flex: 1 1 auto; max-width: none; }
+  .blanks-area.paint-details { flex: 1 1 auto; max-width: none; justify-content: flex-start; align-items: baseline; gap: 2px 6px; padding: 9px 10px 9px 4px; }
+  /* detalės — paprastas tekstas (kaip kitur), ne burbuliukai */
+  .paint-details .chip {
+    background: none; border: none; border-radius: 0; padding: 0;
+    font-size: 0.82rem; line-height: 1.45; font-weight: 400; color: #222;
+    max-width: none; overflow: visible; white-space: normal; gap: 3px;
+  }
+  .paint-details .chip:not(:last-of-type) > span:first-child:after { content: ','; }
+  .paint-details .blanks-toggle { font-size: 0.72rem; }
 
   .line-row { display: flex; align-items: flex-start; border-bottom: 1px solid var(--divider); transition: background .1s; }
   .line-row:last-child { border-bottom: none; }
@@ -1660,7 +1668,6 @@
     var pop = el('div', {class:'blanks-popover'});
     if(PAINT_DETAIL_OPTIONS.length === 0){
       pop.appendChild(el('div', {class:'empty-msg', text:'Nėra apibrėžtų detalių.'}));
-      return pop;
     }
     PAINT_DETAIL_OPTIONS.forEach(function(opt){
       var label = el('label');
@@ -1679,6 +1686,32 @@
       label.appendChild(document.createTextNode(opt));
       pop.appendChild(label);
     });
+
+    // Non-standard part: type its name and it is added to THIS line only
+    // (not to the shared standard list, so one-offs don't clutter it).
+    var addRow = el('div', {class:'popover-add-row'});
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'popover-add-input';
+    input.placeholder = 'Kita detalė (įrašykite pavadinimą)...';
+    var addBtn = el('button', {type:'button', class:'popover-add-btn', title:'Pridėti detalę', text:'+'});
+    function addCustom(){
+      var val = input.value.trim();
+      if(!val) return;
+      if(lineObj.details.indexOf(val) === -1) lineObj.details.push(val);
+      input.value = '';
+      renderPaintDetailChips(area, lineObj);
+      save();
+      input.focus();
+    }
+    addBtn.addEventListener('click', function(ev){ ev.stopPropagation(); addCustom(); });
+    input.addEventListener('click', function(ev){ ev.stopPropagation(); });
+    input.addEventListener('keydown', function(ev){
+      if(ev.key === 'Enter'){ ev.preventDefault(); addCustom(); }
+    });
+    addRow.appendChild(input);
+    addRow.appendChild(addBtn);
+    pop.appendChild(addRow);
     return pop;
   }
 
