@@ -688,12 +688,9 @@
   <div class="sheet-wrap" id="sheetWrap">
     <div class="sheet" id="sheet">
       <div class="stamp-row" id="stampRow">
-        <span class="stamp-item" id="stampNrItem"><span class="stamp-label">Užsakymo Nr.</span><span class="stamp-val" id="stampNr" contenteditable="true" data-ph="įrašyti"></span><span class="stamp-x" id="stampNrX" title="Šio užsakymo numerio nereikia">×</span></span>
-        <button type="button" class="stamp-restore" id="stampNrRestore" style="display:none;">+ Užsakymo Nr.</button>
         <span class="stamp-item" id="stampDesignerItem"><span class="stamp-label">Projektą darė</span><span class="stamp-val" id="stampDesigner" contenteditable="true" data-ph="vardas, pavardė"></span></span>
         <span class="stamp-item" id="stampAuthorItem"><span class="stamp-label">Lapą pildė</span><span class="stamp-val" id="stampAuthor" contenteditable="true" data-ph="vardas, pavardė"></span></span>
         <span class="stamp-item stamp-auto" id="stampDateItem"><span class="stamp-label">Data</span><span class="stamp-val" id="stampDate"></span></span>
-        <span class="stamp-item stamp-auto"><span class="stamp-label">Versija</span><span class="stamp-val stamp-ver" id="stampVer">v1</span></span>
       </div>
       <div class="header-row">
         <div class="field-with-label">
@@ -2541,7 +2538,6 @@
     if(!state) return out;
     var tb = document.getElementById('titleBox');
     if(!tb.textContent.trim()) out.push({ label: 'Projekto pavadinimas', el: tb });
-    if(!state.meta.noNumber && !state.meta.number) out.push({ label: 'Užsakymo Nr. (lapo viršuje)', el: document.getElementById('stampNrItem') });
     if(!state.meta.designer) out.push({ label: 'Kas darė projektą (lapo viršuje)', el: document.getElementById('stampDesignerItem') });
     if(!state.meta.author) out.push({ label: 'Kas pildė lapą (lapo viršuje)', el: document.getElementById('stampAuthorItem') });
     var spec = document.querySelector('.spec-box');
@@ -2648,37 +2644,12 @@
   }
   function stampRefresh(){
     if(!state) return;
-    var nr = document.getElementById('stampNr'), au = document.getElementById('stampAuthor');
-    if(document.activeElement !== nr && nr.textContent !== state.meta.number) nr.textContent = state.meta.number;
+    var au = document.getElementById('stampAuthor');
     if(document.activeElement !== au && au.textContent !== state.meta.author) au.textContent = state.meta.author;
-    var nrItem = document.getElementById('stampNrItem'), nrRestore = document.getElementById('stampNrRestore');
-    nrItem.style.display = state.meta.noNumber ? 'none' : '';
-    nrRestore.style.display = state.meta.noNumber ? '' : 'none';
     var de = document.getElementById('stampDesigner');
     if(document.activeElement !== de && de.textContent !== state.meta.designer) de.textContent = state.meta.designer;
-    var info = currentVersionInfo();
-    document.getElementById('stampDate').textContent = info.date;
-    var ver = document.getElementById('stampVer');
-    ver.textContent = 'v' + info.version;
-    ver.title = info.dirty ? 'Yra pakeitimų po paskutinio spausdinimo – spausdinant bus v' + info.version : 'Paskutinė išspausdinta versija';
+    document.getElementById('stampDate').textContent = currentVersionInfo().date;
   }
-  document.getElementById('stampNr').addEventListener('input', function(){
-    if(!state) return;
-    state.meta.number = this.textContent.trim();
-    save();
-  });
-  document.getElementById('stampNrX').addEventListener('click', function(){
-    if(!state) return;
-    state.meta.noNumber = true; state.meta.number = '';
-    document.getElementById('stampNr').textContent = '';
-    save(); runChecks();
-  });
-  document.getElementById('stampNrRestore').addEventListener('click', function(){
-    if(!state) return;
-    state.meta.noNumber = false;
-    save(); runChecks();
-    document.getElementById('stampNr').focus();
-  });
   document.getElementById('stampDesigner').addEventListener('input', function(){
     if(!state) return;
     state.meta.designer = this.textContent.trim();
@@ -2789,7 +2760,7 @@
       parts.push('pašalinta: ' + shown);
     }
     changeBannerEl = el('div', {class:'change-banner'});
-    var strong = el('strong', {text:'Pakeitimai nuo v' + pr.prevVersion + ': '});
+    var strong = el('strong', {text:'Pakeitimai nuo ankstesnio spausdinimo: '});
     changeBannerEl.appendChild(strong);
     changeBannerEl.appendChild(document.createTextNode(parts.join('; ') + '.'));
     var sheet = document.getElementById('sheet');
@@ -2949,7 +2920,7 @@
     if(pairs && pairs.children.length && Array.prototype.every.call(pairs.children, isHiddenForPrint)) hideForPrint(pairs);
 
     // 5b) užsakymo žyma: tušti Nr. / užpildė laukai nespausdinami
-    [['stampNr', 'stampNrItem'], ['stampDesigner', 'stampDesignerItem'], ['stampAuthor', 'stampAuthorItem']].forEach(function(p){
+    [['stampDesigner', 'stampDesignerItem'], ['stampAuthor', 'stampAuthorItem']].forEach(function(p){
       var v = document.getElementById(p[0]);
       if(v && !v.textContent.trim()) hideForPrint(document.getElementById(p[1]));
     });
