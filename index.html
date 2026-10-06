@@ -3333,10 +3333,11 @@
   // Failo vardas = projekto pavadinimas + [id]; tikrasis id imamas iš failo turinio,
   // todėl tinka ir seni „p….json“ vardai, ir bet koks kitas pervadinimas.
   var remoteNames = {};   // id → failo vardas aplanke
+  var pushedThisSync = {};
   var remoteDupes = {};   // id → kiti (senesni / „conflicted copy“) to paties lapo failai
   function fnPart(v, max){
     var t = String(v || '').replace(/[\\\/:*?"<>|\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim();
-    return t.slice(0, max).replace(/[. ]+$/, '');
+    return t.slice(0, max).replace(/\s+$/, '');
   }
   // „Pavadinimas - Projektą darė - Lapą pildė [id].json“ (tuščios dalys praleidžiamos)
   function fileNameFor(id, st){
@@ -3386,6 +3387,7 @@
       delete remoteCache[on];
     }
     remoteNames[id] = fname; remoteDupes[id] = [];
+    pushedThisSync[id] = true;
     delete remoteCache[fname];
     mutateEntry(id, function(x){ x.rev = obj.rev; x.editor = me; if((x.v | 0) === v0) x.dirty = false; });
   }
@@ -3411,6 +3413,7 @@
   async function syncProjects(){
     var pdir = await backupDir.getDirectoryHandle(PROJ_DIR, { create: true });
     var remote = await listRemoteProjects(pdir);
+    pushedThisSync = {};
     var me = myName() || 'nežinomas';
     var tombs = getTombs();
     var conflictCopies = [];
@@ -3478,6 +3481,22 @@
       if(never && isBlankProject(st)) continue;
       if(!never && !le.dirty && le.id !== currentProjectId){ removeLocal(le.id); continue; }
       await pushProject(pdir, le.id, le.rev | 0, me);
+    }
+    // seni / neatitinkantys failų vardai → pervadiname pagal dabartinį pavadinimą ir vardus
+    // (turinys nekeičiamas, todėl ir keli naudotojai vienu metu daro tą patį)
+    var rids = Object.keys(remote);
+    for(var k = 0; k < rids.length; k++){
+      var rid = rids[k], rr = remote[rid];
+      if(pushedThisSync[rid] || tombs.indexOf(rid) !== -1 || !remoteNames[rid]) continue;
+      var want = fileNameFor(rid, rr.state);
+      if(remoteNames[rid] === want) continue;
+      try {
+        await writeJsonFile(pdir, want, rr);
+        var oldn = remoteNames[rid];
+        try { await pdir.removeEntry(oldn); } catch(e3){ /* jau nėra */ }
+        delete remoteCache[oldn]; delete remoteCache[want];
+        remoteNames[rid] = want;
+      } catch(err){ /* bandysime kitą kartą */ }
     }
     if(conflictCopies.length){
       backupMsg = { text: 'Kolega pakeitė tą patį lapą kaip ir jūs, todėl jūsų versija išsaugota atskirai: ' + conflictCopies.join('; ') + '.', kind: 'warn' };
