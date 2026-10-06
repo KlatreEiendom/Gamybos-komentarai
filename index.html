@@ -3330,22 +3330,43 @@
     await w.write(JSON.stringify(obj));
     await w.close();
   }
+  // Failo vardas = projekto pavadinimas + [id]; tikrasis id imamas iš failo turinio,
+  // todėl tinka ir seni „p….json“ vardai, ir bet koks kitas pervadinimas.
+  var remoteNames = {};   // id → failo vardas aplanke
+  var remoteDupes = {};   // id → kiti (senesni / „conflicted copy“) to paties lapo failai
+  function fnPart(v, max){
+    var t = String(v || '').replace(/[\\\/:*?"<>|\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim();
+    return t.slice(0, max).replace(/[. ]+$/, '');
+  }
+  // „Pavadinimas - Projektą darė - Lapą pildė [id].json“ (tuščios dalys praleidžiamos)
+  function fileNameFor(id, st){
+    var m = (st && st.meta) || {};
+    var parts = [fnPart(st && st.title, 70) || 'Be pavadinimo', fnPart(m.designer, 30), fnPart(m.author, 30)]
+      .filter(function(x){ return x; });
+    return parts.join(' - ') + ' [' + id + '].json';
+  }
   async function listRemoteProjects(pdir){
-    var out = {};
+    var out = {}, names = {}, dupes = {};
     for await (var ent of pdir.entries()){
-      var m = /^(p[a-z0-9]+)\.json$/.exec(ent[0]);   // „conflicted copy“ ir pan. failai ignoruojami
-      if(!m || ent[1].kind !== 'file') continue;
+      var name = ent[0];
+      if(ent[1].kind !== 'file' || !/\.json$/i.test(name)) continue;
       var f = await ent[1].getFile();
-      var c = remoteCache[m[1]];
-      if(c && c.lm === f.lastModified && c.size === f.size){ if(!c.obj.deleted) out[m[1]] = c.obj; continue; }
-      try {
-        var obj = JSON.parse(await f.text());
-        if(obj && obj.id === m[1] && obj.state){
-          remoteCache[m[1]] = { lm: f.lastModified, size: f.size, obj: obj };
-          if(!obj.deleted) out[m[1]] = obj;   // senos versijos „ištrinta“ žymenys – kaip ir nėra failo
-        }
-      } catch(e){ /* failas dar neatsisiuntė iki galo – bandysime kitą kartą */ }
+      var c = remoteCache[name], obj = null;
+      if(c && c.lm === f.lastModified && c.size === f.size) obj = c.obj;
+      else {
+        try {
+          obj = JSON.parse(await f.text());
+          remoteCache[name] = { lm: f.lastModified, size: f.size, obj: obj };
+        } catch(e){ continue; }   // failas dar neatsisiuntė iki galo – bandysime kitą kartą
+      }
+      if(!obj || typeof obj.id !== 'string' || !/^p[a-z0-9]+$/.test(obj.id) || !obj.state || obj.deleted) continue;
+      var id = obj.id;
+      if(out[id]){
+        if((obj.rev | 0) > (out[id].rev | 0)){ (dupes[id] = dupes[id] || []).push(names[id]); out[id] = obj; names[id] = name; }
+        else (dupes[id] = dupes[id] || []).push(name);
+      } else { out[id] = obj; names[id] = name; }
     }
+    remoteNames = names; remoteDupes = dupes;
     return out;
   }
 
@@ -3355,8 +3376,17 @@
     var v0 = e ? (e.v | 0) : 0;
     var obj = { format: 1, id: id, rev: (remoteRev | 0) + 1, title: st.title || '',
       updatedAt: (e && e.updatedAt) || Date.now(), editor: me, deleted: false, state: st };
-    await writeJsonFile(pdir, id + '.json', obj);
-    delete remoteCache[id];
+    var fname = fileNameFor(id, st);
+    await writeJsonFile(pdir, fname, obj);
+    var olds = [remoteNames[id]].concat(remoteDupes[id] || []);
+    for(var oi = 0; oi < olds.length; oi++){
+      var on = olds[oi];
+      if(!on || on === fname) continue;
+      try { await pdir.removeEntry(on); } catch(err){ /* gali būti jau pašalintas */ }
+      delete remoteCache[on];
+    }
+    remoteNames[id] = fname; remoteDupes[id] = [];
+    delete remoteCache[fname];
     mutateEntry(id, function(x){ x.rev = obj.rev; x.editor = me; if((x.v | 0) === v0) x.dirty = false; });
   }
   function applyRemote(id, r){
@@ -3391,8 +3421,15 @@
       var e = findEntry(id);
 
       if(tombs.indexOf(id) !== -1){           // ištrinta pas mus → pašaliname failą iš aplanko
-        try { await pdir.removeEntry(id + '.json'); delete remoteCache[id]; removeTomb(id); }
-        catch(err){ /* bandysime kitą kartą */ }
+        try {
+          var rn = [remoteNames[id]].concat(remoteDupes[id] || []);
+          for(var ri = 0; ri < rn.length; ri++){
+            if(!rn[ri]) continue;
+            try { await pdir.removeEntry(rn[ri]); } catch(e2){ /* jau nėra */ }
+            delete remoteCache[rn[ri]];
+          }
+          removeTomb(id);
+        } catch(err){ /* bandysime kitą kartą */ }
         continue;
       }
       if(!e){                                  // naujas projektas iš kolegos
