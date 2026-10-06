@@ -84,7 +84,40 @@
     width: 30px; height: 30px; border-radius: 50%; flex: none; transition: background .15s, color .15s;
   }
   .project-card .pc-del:hover { background: #f3ebe9; color: var(--danger); }
+  .project-card .pc-dup {
+    border: 1px solid var(--card-border); background: transparent; color: var(--muted); font-size: 0.74rem; cursor: pointer;
+    padding: 5px 10px; border-radius: 14px; flex: none; white-space: nowrap; transition: background .15s, color .15s;
+  }
+  .project-card .pc-dup:hover { background: var(--paper); color: var(--ink); }
 
+  .list-filters { margin: 0 0 12px; }
+  .list-filters input[type=search] {
+    width: 100%; box-sizing: border-box; font-family: inherit; font-size: 0.84rem; padding: 10px 14px;
+    border: 1px solid var(--card-border); border-radius: 10px; background: var(--card); color: var(--ink); outline: none;
+  }
+  .list-filters input[type=search]:focus { border-color: #b9b4a8; }
+  .filter-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .filter-chip {
+    font-family: inherit; font-size: 0.74rem; font-weight: 500; padding: 5px 12px; border-radius: 14px;
+    border: 1px solid var(--card-border); background: var(--card); color: var(--muted); cursor: pointer;
+  }
+  .filter-chip:hover { color: var(--ink); }
+  .filter-chip.active { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .filter-chip.sum-chip { margin-left: auto; }
+  .missing-dialog .sum-h { margin: 16px 0 6px; font-size: 0.82rem; color: var(--ink); }
+  .missing-dialog .sum-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .missing-dialog .sum-table th { text-align: left; font-weight: 600; color: #777; font-size: 0.72rem; padding: 4px 8px; border-bottom: 1px solid #e6e2d8; }
+  .missing-dialog .sum-table td { padding: 6px 8px; border-bottom: 1px solid #f0ede6; vertical-align: top; }
+  .missing-dialog .sum-table .num { text-align: right; white-space: nowrap; }
+  .missing-dialog .sum-table th.num { text-align: right; }
+  .project-card .pc-chip.warn { background: #fff1d6; border-color: #e6b866; color: #8a5200; }
+  .project-card .pc-chip.lock { background: #e3f1fb; border-color: #9cc7e8; color: #1c5a85; }
+  .project-card .pc-status {
+    font-family: inherit; font-size: 0.68rem; font-weight: 600; padding: 1px 6px; border-radius: 10px; cursor: pointer;
+    border: 1px solid #d8d4c8; background: #f4f2ec; color: #666; outline: none;
+  }
+  .project-card .pc-status.st-released { background: #e3f1fb; border-color: #9cc7e8; color: #1c5a85; }
+  .project-card .pc-status.st-done { background: #e2f3ea; border-color: #8fcaa9; color: #17694a; }
   .list-empty {
     text-align: center; padding: 48px 20px; color: var(--muted); font-size: 0.86rem;
     background: var(--card); border: 1px dashed var(--card-border); border-radius: 12px;
@@ -123,6 +156,24 @@
   .toolbar button.primary:hover { background: #333; }
   .toolbar button.back-btn { border-color: transparent; background: transparent; padding: 8px 10px 8px 4px; color: #555; }
   .toolbar button.back-btn:hover { color: var(--ink); background: transparent; }
+  .toolbar .menu-wrap { position: relative; }
+  .toolbar .menu-pop {
+    display: none; position: absolute; left: 0; top: calc(100% + 6px); min-width: 250px; z-index: 30;
+    background: #fff; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,.16); padding: 6px;
+  }
+  .toolbar .menu-pop.open { display: block; }
+  .toolbar .menu-pop button {
+    display: block; width: 100%; text-align: left; border: none; border-radius: 7px; background: transparent;
+    padding: 9px 12px; font-size: 0.8rem; color: #333;
+  }
+  .toolbar .menu-pop button:hover { background: var(--paper); }
+  .toolbar .menu-pop hr { border: none; border-top: 1px solid #eee; margin: 5px 0; }
+  .toolbar .status-select {
+    font-family: inherit; font-size: 0.76rem; font-weight: 600; padding: 7px 10px; border-radius: 8px; cursor: pointer;
+    border: 1px solid #d8d4c8; background: #f4f2ec; color: #555; outline: none;
+  }
+  .toolbar .status-select.st-released { background: #e3f1fb; border-color: #9cc7e8; color: #1c5a85; }
+  .toolbar .status-select.st-done { background: #e2f3ea; border-color: #8fcaa9; color: #17694a; }
   .toolbar .save-hint { font-size: 0.72rem; color: var(--muted); width: 100%; order: 99; margin-top: 2px; }
 
   /* ================= SHEET ================= */
@@ -191,6 +242,7 @@
     display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 24px;
     background: #e8f1fb; border-bottom: 1px solid #b9d3ee; font-size: 0.82rem; color: #1c3d63;
   }
+  .sync-bar.lock { background: #e3f1fb; border-bottom-color: #9cc7e8; color: #1c5a85; }
   .sync-bar.conflict { background: #fff1d6; border-bottom-color: #e0b060; color: #6b4300; }
   .sync-bar button {
     font-family: inherit; font-size: 0.78rem; font-weight: 600; padding: 6px 12px; border-radius: 8px;
@@ -261,6 +313,25 @@
     border: 1px solid #ccc; border-radius: 8px; margin: 0 0 14px;
   }
   .missing-dialog button.primary { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .missing-dialog.wide { max-width: 720px; }
+  .missing-dialog .md-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .missing-dialog .md-head h3 { margin: 0; }
+  .missing-dialog button.md-close { border: none; background: transparent; font-size: 1.3rem; line-height: 1; padding: 2px 8px; color: #888; }
+  .missing-dialog button.md-close:hover { color: var(--danger); }
+  .missing-dialog .md-body { max-height: 70vh; overflow: auto; }
+  .missing-dialog .md-tabs { display: flex; gap: 6px; margin: 0 0 12px; border-bottom: 1px solid #e6e2d8; }
+  .missing-dialog .md-tabs button { border: none; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: #777; padding: 8px 12px; }
+  .missing-dialog .md-tabs button.active { color: var(--ink); border-bottom-color: var(--ink); }
+  .missing-dialog .md-note { margin: 0 0 12px; color: var(--muted); font-size: 0.78rem; line-height: 1.45; }
+  .missing-dialog .md-empty { padding: 28px 10px; text-align: center; color: var(--muted); }
+  .missing-dialog .md-row { display: flex; align-items: center; gap: 12px; padding: 10px 2px; border-bottom: 1px solid #f0ede6; }
+  .missing-dialog .md-row .md-main { flex: 1; min-width: 0; }
+  .missing-dialog .md-row .md-t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .missing-dialog .md-row .md-m { font-size: 0.74rem; color: var(--muted); margin-top: 2px; }
+  .missing-dialog .md-row button { padding: 6px 12px; font-size: 0.76rem; white-space: nowrap; }
+  .missing-dialog .md-row button.danger { color: var(--danger); border-color: #e3c4c0; }
+  .missing-dialog .md-foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .missing-dialog .md-link { border: none; background: transparent; color: #555; padding: 4px 0; text-decoration: underline; font-weight: 500; }
 
   /* pakeistos eilutės versijos lape (naudojama tik spausdinant) */
   .print-changed { background: #fff3a3 !important; box-shadow: inset 3px 0 0 #e0a800; }
@@ -292,6 +363,9 @@
   @media (max-width: 640px) { .header-row, .pairs-grid { grid-template-columns: 1fr; } }
 
   .full-stack .box { margin-bottom: 16px; }
+  .image-box { margin-bottom: 16px; }
+  .image-box img { display: block; max-width: 100%; max-height: 340px; margin: 10px auto; object-fit: contain; }
+  .image-box .box-title-row { cursor: default; }
 
   .box-title-row {
     background: #faf9f6;
@@ -338,6 +412,8 @@
   }
   .stair-type-opt:before { content: ''; width: 6px; height: 6px; border-radius: 50%; border: 1px solid #ccc; flex: none; }
   .stair-type-opt:hover { background: var(--paper); }
+  .stair-type-opt .opt-del, .blanks-popover label .opt-del { margin-left: auto; padding: 0 6px; color: var(--danger); opacity: .3; cursor: pointer; font-weight: 400; }
+  .stair-type-opt:hover .opt-del, .blanks-popover label:hover .opt-del { opacity: 1; }
   .stair-type-opt.selected { font-weight: 600; color: var(--accent); }
   .stair-type-opt.selected:before { background: var(--accent); border-color: var(--accent); }
   .stair-type-opt.none-opt { color: var(--muted); font-style: italic; }
@@ -593,7 +669,7 @@
      script block) can compute an exact scale against a known printable
      area — without this, a different default paper size/margins on the
      user's printer would throw off the "always exactly 1 page" math. */
-  @page { size: A4; margin: 10mm; }
+  @page { size: A4; margin: 7mm; }
 
   @media print {
     /* Without this, most browsers silently drop background colors/fills
@@ -672,6 +748,8 @@
     .header-row, .pairs-grid { gap: 8px; margin-bottom: 8px; }
     .change-banner { margin-bottom: 6px; padding: 3px 8px; }
     .full-stack .box { margin-bottom: 8px; }
+    .image-box { margin-bottom: 8px; }
+    .image-box img { max-height: 62mm; margin: 5px auto; }
     .field-with-label { gap: 3px; }
     .header-box { min-height: 0; padding: 6px 12px; }
     .spec-box { padding: 6px 12px; gap: 4px; }
@@ -692,6 +770,52 @@
     /* Unselected dropdowns in Įdėti rows keep their column (so the columns
        line up) but don't print the grey placeholder word. */
     .ideti-line-row .type-select-btn.placeholder { visibility: hidden; }
+
+    /* ---- Skaitomumas silpnaregiams ir vyresniems žmonėms ----
+       Šviesiai pilkas smulkus tekstas ant popieriaus beveik nesimato, todėl
+       spausdinant: (1) visas tekstas juodas arba tamsus, (2) nėra smulkesnių
+       nei ~0,8 rem raštų (anksčiau iki 0,66), (3) rėmeliai ir linijos storesnės,
+       (4) pasirinktos reikšmės – tamsiai žalios (kontrastas ≈ 8:1, o ne 3:1)
+       ir riebios. Šios taisyklės taip pat naudojamos matuojant (žr. addPrintPreviewStyle),
+       todėl auto-sutalpinimas jas įskaito. */
+    .box { border: 1.6px solid #333; }
+    .box-title-row {
+      background: #cde6da !important; color: #06382a !important;
+      border-bottom: 2.2px solid #0b6b4d; font-size: 0.9rem; font-weight: 800; letter-spacing: 0.04em;
+    }
+    .stamp-row { font-size: 0.88rem; }
+    .stamp-label, .field-label, .type-picker-label, .ideti-unit, .ideti-dim-x { color: #1c1c1c !important; }
+    .stamp-val { color: #000; font-weight: 700; }
+    .field-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; }
+    .type-picker-label { font-size: 0.86rem; font-weight: 500; }
+    .ideti-unit { font-size: 0.82rem; font-weight: 500; }
+    .ideti-dim-x { font-size: 0.82rem; }
+    .type-select-btn { font-size: 0.95rem !important; font-weight: 800 !important; color: #0a5a42 !important; }
+    .type-select-btn.placeholder { color: #444 !important; }
+    .ideti-qty-input, .ideti-dim-input { color: #0a5a42; font-weight: 800; font-size: 0.92rem; }
+    .ideti-initials { font-size: 0.85rem; color: #000; }
+    .line-text { font-size: 0.92rem; line-height: 1.3; color: #000; }
+    .paint-details, .paint-details .chip { font-size: 0.92rem !important; color: #000 !important; }
+    .chip, .spec-chip { font-size: 0.82rem !important; font-weight: 600 !important; color: #000 !important; background: #ece9e1 !important; border: 1px solid #555 !important; }
+    .spec-chip { font-size: 0.9rem !important; }
+    .row-comment-area { font-size: 0.86rem; color: #000; background: #f1efe8 !important; border: 1px solid #888; line-height: 1.3; }
+    .notes-box .notes-area { font-size: 0.92rem; line-height: 1.4; color: #000; }
+    .line-row, .type-picker-row, .row-comment-row { border-bottom-color: #777 !important; }
+    .ideti-finish-wrap, .ideti-qty-wrap, .ideti-initials, .ideti-dim-wrap { border-left-color: #777 !important; }
+    .ideti-dim-input { border-bottom-color: #555 !important; }
+    .image-box img { max-height: 62mm; }
+
+    /* Pavadinimai neapkarpomi: ekrane ilgi ruošinių ženkliukai baigiasi „…“, o ant popieriaus
+       tai reikštų prarastą informaciją – spausdinant rodomas visas tekstas (jei reikia, laužomas). */
+    .chip, .spec-chip { max-width: none !important; overflow: visible !important; text-overflow: clip !important; white-space: normal !important; }
+    .blanks-area { max-width: 55%; }
+    .row-comment-row { padding: 0 12px 3px; }
+    .row-comment-area { padding: 1px 8px; border-radius: 4px; }
+
+    /* Paprastos „Įdėti“ eilutės (Dažai, Beicas…) – po dvi eilutėje: sutaupoma vietos, tekstas gali būti didesnis. */
+    .lines:has(.ideti-simple-row) { display: grid; grid-template-columns: 1fr 1fr; }
+    .lines:has(.ideti-simple-row) > .line-row:not(.ideti-simple-row) { grid-column: 1 / -1; }
+    .lines:has(.ideti-simple-row) > .ideti-simple-row:nth-child(odd of .ideti-simple-row) { border-right: 1px solid #777; }
   }
 </style>
 </head>
@@ -713,10 +837,15 @@
       <div class="backup-actions">
         <button type="button" class="primary" id="backupPickBtn">📁 Pasirinkti aplanką</button>
         <button type="button" id="backupNowBtn">⟳ Sinchronizuoti dabar</button>
+        <button type="button" id="toolsBtn" style="display:none;">🗂 Šiukšlinė ir atsargos</button>
         <button type="button" id="backupDownloadBtn">⤓ Atsisiųsti failą</button>
         <button type="button" id="backupUploadBtn">⤒ Atkurti iš failo</button>
         <input type="file" id="backupFileInput" accept=".json,application/json" multiple style="display:none;">
       </div>
+    </div>
+    <div class="list-filters" id="listFilters" style="display:none;">
+      <input type="search" id="listSearch" placeholder="Ieškoti: pavadinimas, projektuotojas, pildytojas, mediena…" autocomplete="off">
+      <div class="filter-chips" id="filterChips"></div>
     </div>
     <div id="projectsContainer"></div>
   </div>
@@ -728,15 +857,26 @@
   <div class="toolbar">
     <button class="back-btn" id="backBtn" type="button">← Projektai</button>
     <h1>Gamybos užsakymo lapas</h1>
+    <select id="statusSelect" class="status-select st-draft" title="Lapo būsena (nespausdinama)"></select>
     <button id="undoBtn" type="button" disabled title="Atšaukti paskutinį veiksmą (Ctrl+Z)">↶ Atgal</button>
     <button id="redoBtn" type="button" disabled title="Grąžinti atšauktą veiksmą (Ctrl+Y)">↷ Pirmyn</button>
     <button id="addPairBtn" type="button">+ Skiltis (2 stulp.)</button>
     <button id="addListBtn" type="button">+ Eilučių blokas</button>
-    <button id="clearBtn" type="button">Išvalyti lapą</button>
+    <input type="file" id="imageFileInput" accept="image/*" style="display:none;">
+    <div class="menu-wrap">
+      <button id="moreBtn" type="button" aria-haspopup="true" title="Kiti veiksmai su šiuo lapu">⋯ Daugiau</button>
+      <div class="menu-pop" id="morePop" role="menu">
+        <button id="templateBtn" type="button" role="menuitem" title="Išsaugoti šio lapo pasirinkimus kaip šabloną naujiems projektams">★ Išsaugoti kaip šabloną</button>
+        <button id="imageBtn" type="button" role="menuitem" title="Pridėti brėžinio ar vietos nuotrauką – ji spausdinama lape">🖼 Pridėti brėžinį / nuotrauką</button>
+        <button id="historyBtn" type="button" role="menuitem" title="Kas ir kada keitė, spausdino šį lapą">🕘 Lapo istorija</button>
+        <button id="dupBtn" type="button" role="menuitem" title="Sukurti šio lapo kopiją naujame projekte – belieka pakeisti skirtumus">⧉ Dubliuoti lapą</button>
+        <button id="clearBtn" type="button" role="menuitem">⌫ Išvalyti lapą</button>
+      </div>
+    </div>
     <button id="backupStatus" class="backup-status" type="button" title="Atsarginė kopija"></button>
     <button id="missingBadge" class="missing-badge" type="button" style="display:none;" title="Spustelėkite, kad pamatytumėte pirmą neužpildytą lauką"></button>
     <button id="printBtn" class="primary" type="button">Spausdinti</button>
-    <div class="save-hint">Duomenys saugomi automatiškai šioje naršyklėje. Kiekvienai detalės eilutei dešinėje galite pažymėti, kokie ruošiniai jai naudojami (galima kelis).</div>
+    <div class="save-hint"><span id="lastEditInfo"></span> Pakeitimai saugomi automatiškai. Kiekvienai detalės eilutei dešinėje galite pažymėti, kokie ruošiniai jai naudojami (galima kelis).</div>
   </div>
 
   <div class="sync-bar" id="syncBar" style="display:none;"></div>
@@ -767,6 +907,12 @@
       <div class="pairs-grid" id="pairsGrid"></div>
       <div class="full-stack" id="fullStack"></div>
 
+      <div class="box image-box" id="imageBox" style="display:none;">
+        <div class="box-title-row" id="imageTitle">Brėžinys / nuotrauka</div>
+        <button class="del-section" id="imageDel" type="button" title="Šalinti brėžinį">×</button>
+        <img id="imageEl" alt="Brėžinys / nuotrauka">
+      </div>
+
       <div class="box notes-box">
         <div class="box-title-row">Papildoma informacija</div>
         <div class="notes-area" id="notesArea" contenteditable="true" data-ph="Papildomos pastabos gamybai..."></div>
@@ -782,12 +928,63 @@
   var PROJECT_KEY_PREFIX = 'gamybos-projektas-';
   var LEGACY_KEY = 'gamybos-lapas-v4'; // single-sheet storage from an earlier version
 
-  var MATERIAL_OPTIONS = [
+  // ---- pasirinkimų vienodinimas: visi variantai iš mažosios raidės, rikiuojami abėcėlės tvarka ----
+  // Paprasti žodžiai (Ąžuolas, Panna Cotta) mažinami; kodai ir santrumpos (BTX 1473, D28x28, C5, L-formos) lieka.
+  function lcOpt(v){
+    if(typeof v !== 'string') return v;
+    return v.trim().replace(/(^|[\s(\-–\/])(\p{Lu})(\p{Ll}+)(?=$|[\s.,)\-–\/])/gu, function(m, pre, a, b){
+      return pre + a.toLowerCase() + b;
+    });
+  }
+  function cmpOpt(a, b){
+    return String(a).localeCompare(String(b), 'lt', { numeric: true, sensitivity: 'base' });
+  }
+  // Tvarko masyvą vietoje: mažosios raidės, be dublių, „-“ pirmas, kiti abėcėlės tvarka.
+  function orderList(arr){
+    var seen = {}, out = [], hasNone = false;
+    arr.forEach(function(v){
+      if(typeof v !== 'string') return;
+      var n = lcOpt(v);
+      if(n === '-'){ hasNone = true; return; }
+      if(!n || seen[n]) return;
+      seen[n] = true; out.push(n);
+    });
+    out.sort(cmpOpt);
+    if(hasNone) out.unshift('-');
+    arr.length = 0;
+    out.forEach(function(v){ arr.push(v); });
+    return arr;
+  }
+
+  // ---- pakeitimų žurnalas (saugomas lapo meta.log; nespausdinamas) ----
+  var LOG_MAX = 60, LOG_MERGE_MS = 10 * 60 * 1000;
+  function logWho(){ return (lastAuthor() || '').trim() || 'nežinomas'; }
+  function logPush(st, type, info){
+    if(!st.meta) st.meta = {};
+    if(!Array.isArray(st.meta.log)) st.meta.log = [];
+    var log = st.meta.log, now = Date.now(), who = logWho(), last = log[log.length - 1];
+    if(type === 'edit'){
+      if(last && last.t === 'edit' && last.by === who && now - (last.end || last.at) < LOG_MERGE_MS) { last.end = now; return; }
+      log.push({ t: 'edit', by: who, at: now, end: now });
+    } else if(type === 'print' && last && last.t === 'print' && last.by === who && now - last.at < 8000){
+      return;   // vienas spausdinimas gali iškviesti kelis įvykius
+    } else {
+      log.push({ t: type, by: who, at: now, info: info || '' });
+    }
+    while(log.length > LOG_MAX) log.shift();
+  }
+
+  var STATUS_ORDER = ['draft', 'released', 'done'];
+  var STATUS_LABELS = { draft: 'juodraštis', released: 'perduota gamybai', done: 'pagaminta' };
+
+  var MEDIENA_KEY = 'gamybos-mediena';
+  var DEFAULT_MATERIALS = [
     'Dygiuotas ąžuolas – 40/38/20 mm',
     'Dygiuotas uosis – 40/20 mm',
     'Ąžuolo masyvas – 40/20 mm',
     'Uosio masyvas – 40/20 mm'
   ];
+  var MATERIAL_OPTIONS;   // bendras sąrašas (užpildomas žemiau, kai paruoštos pagalbinės funkcijos)
 
   // Shared, editable option lists for the dropdown fields inside the
   // Laiptai box. Adding a new value while editing one project makes it
@@ -796,13 +993,41 @@
     try {
       var raw = localStorage.getItem(key);
       var arr = raw ? JSON.parse(raw) : null;
-      return Array.isArray(arr) && arr.length ? arr : defaults.slice();
-    } catch(e) { return defaults.slice(); }
+      return orderList(Array.isArray(arr) && arr.length ? arr : defaults.slice());
+    } catch(e) { return orderList(defaults.slice()); }
   }
   function saveTypeList(key, arr){
+    orderList(arr);
     try { localStorage.setItem(key, JSON.stringify(arr)); }
     catch(e) { /* storage unavailable — continue without persistence */ }
     scheduleBackup();
+  }
+
+  // ---- bendrų sąrašų pakeitimai, laukiantys sinchronizavimo (pridėta / pašalinta) ----
+  var LIST_OPS_KEY = 'gbk-list-ops';
+  function loadListOps(){
+    try {
+      var o = JSON.parse(localStorage.getItem(LIST_OPS_KEY) || '{}');
+      if(!o || typeof o !== 'object') o = {};
+      o.rm = o.rm || {}; o.add = o.add || {};
+      return o;
+    } catch(e){ return { rm: {}, add: {} }; }
+  }
+  function saveListOps(o){ try { localStorage.setItem(LIST_OPS_KEY, JSON.stringify(o)); } catch(e){ /* ignore */ } }
+  function noteListAdd(key, v){
+    var o = loadListOps();
+    o.add[key] = (o.add[key] || []).filter(function(x){ return x !== v; }).concat([v]);
+    o.rm[key] = (o.rm[key] || []).filter(function(x){ return x !== v; });
+    saveListOps(o);
+  }
+  function removeListOption(key, arr, v){
+    var i = arr.indexOf(v);
+    if(i !== -1) arr.splice(i, 1);
+    var o = loadListOps();
+    o.rm[key] = (o.rm[key] || []).filter(function(x){ return x !== v; }).concat([v]);
+    o.add[key] = (o.add[key] || []).filter(function(x){ return x !== v; });
+    saveListOps(o);
+    saveTypeList(key, arr);
   }
 
   // Every dropdown always offers this as its first option, so a detail
@@ -815,6 +1040,8 @@
     else if(idx !== 0){ arr.splice(idx, 1); arr.unshift(NONE_OPTION); saveTypeList(key, arr); }
     return arr;
   }
+
+  MATERIAL_OPTIONS = loadTypeList(MEDIENA_KEY, DEFAULT_MATERIALS);
 
   var STAIR_TYPES_KEY = 'gamybos-laiptu-tipai';
   var DEFAULT_STAIR_TYPES = [
@@ -839,9 +1066,6 @@
   var BASE_TYPE_OPTIONS = loadTypeList(BASE_TYPES_KEY, DEFAULT_BASE_TYPES);
   // Make sure the glass options are present even for a list saved before
   // they were added, so existing projects get them without losing anything.
-  ['4+4 stiklas', '5+5 stiklas', '6+6 stiklas', '8+8 stiklas'].forEach(function(v){
-    if(BASE_TYPE_OPTIONS.indexOf(v) === -1) BASE_TYPE_OPTIONS.push(v);
-  });
   saveTypeList(BASE_TYPES_KEY, BASE_TYPE_OPTIONS);
   BASE_TYPE_OPTIONS = ensureNoneFirst(BASE_TYPES_KEY, BASE_TYPE_OPTIONS);
 
@@ -854,9 +1078,9 @@
   ];
   // Žodis „pakopos“ tipuose nekartojamas (jau yra lauko pavadinime).
   var STEP_TYPE_RENAME = {
-    'Uždaros pakopos su nosele': 'Uždaros su nosele',
-    'Uždaros pakopos be noselės': 'Uždaros be noselės',
-    'Atviros pakopos L-formos': 'Atviros L-formos'
+    'Uždaros pakopos su nosele': 'uždaros su nosele',
+    'Uždaros pakopos be noselės': 'uždaros be noselės',
+    'Atviros pakopos L-formos': 'atviros L-formos'
   };
   // Bendra taisyklė: iš pakopų tipo išmetamas bet kuris žodis „pakopos / pakopų / pakopa…“
   // (ir senuose išsaugotuose sąrašuose, ir pačių įrašytuose variantuose).
@@ -865,7 +1089,7 @@
     if(STEP_TYPE_RENAME.hasOwnProperty(v)) return STEP_TYPE_RENAME[v];
     var out = v.replace(/(^|\s)pakop[\p{L}]*(?=\s|$)/giu, ' ').replace(/\s+/g, ' ').trim();
     if(!out) return v;
-    return out.charAt(0).toUpperCase() + out.slice(1);
+    return lcOpt(out);
   }
   var STEP_TYPE_OPTIONS = [];
   loadTypeList(STEP_TYPES_KEY, DEFAULT_STEP_TYPES).forEach(function(v){
@@ -907,7 +1131,6 @@
   ];
   var PAINT_COLOR_OPTIONS = loadTypeList(PAINT_COLOR_KEY, DEFAULT_PAINT_COLORS);
   // Make sure this option is present even for a list saved before it was added.
-  if(PAINT_COLOR_OPTIONS.indexOf('Be apdailos') === -1) PAINT_COLOR_OPTIONS.push('Be apdailos');
   saveTypeList(PAINT_COLOR_KEY, PAINT_COLOR_OPTIONS);
   PAINT_COLOR_OPTIONS = ensureNoneFirst(PAINT_COLOR_KEY, PAINT_COLOR_OPTIONS);
 
@@ -933,9 +1156,6 @@
   var DEFAULT_RUOSINIAI = [ NONE_OPTION ].concat(MATERIAL_OPTIONS);
   var RUOSINYS_OPTIONS = loadTypeList(RUOSINYS_KEY, DEFAULT_RUOSINIAI);
   // Make sure these are present even for a list saved before this was added.
-  MATERIAL_OPTIONS.forEach(function(v){
-    if(RUOSINYS_OPTIONS.indexOf(v) === -1) RUOSINYS_OPTIONS.push(v);
-  });
   saveTypeList(RUOSINYS_KEY, RUOSINYS_OPTIONS);
   RUOSINYS_OPTIONS = ensureNoneFirst(RUOSINYS_KEY, RUOSINYS_OPTIONS);
 
@@ -1008,7 +1228,7 @@
 
   function blankProjectState(){
     return {
-      meta: { number: '', noNumber: false, designer: '', author: lastAuthor(), created: todayStr(), printed: null },
+      meta: { number: '', noNumber: false, designer: '', author: lastAuthor(), created: todayStr(), printed: null, status: 'draft', log: [ { t: 'created', by: logWho(), at: Date.now(), info: '' } ] },
       title: '',
       specMaterials: [],
       pairs: [
@@ -1122,7 +1342,11 @@
     s.meta.noNumber = !!s.meta.noNumber;
     if(!s.meta.created) s.meta.created = todayStr();
     if(!s.meta.printed || typeof s.meta.printed !== 'object') s.meta.printed = null;
+    if(STATUS_ORDER.indexOf(s.meta.status) === -1) s.meta.status = 'draft';
+    if(!Array.isArray(s.meta.log)) s.meta.log = [];
+    s.specMaterials = s.specMaterials.map(lcOpt).filter(function(v, i, a){ return v && a.indexOf(v) === i; }).sort(cmpOpt);
     (s.pairs || []).forEach(function(p){
+      ['stairType', 'baseType', 'stepType', 'handrailType', 'postType'].forEach(function(k){ if(typeof p[k] === 'string') p[k] = lcOpt(p[k]); });
       if(/laiptai/i.test(p.title || '')){
         if(typeof p.stairType !== 'string') p.stairType = '';
         if(typeof p.baseType !== 'string') p.baseType = '';
@@ -1196,6 +1420,8 @@
           if(item && typeof item === 'object'){
             if(typeof item.color !== 'string') item.color = '';
             if(!Array.isArray(item.details)) item.details = [];
+            item.color = lcOpt(item.color);
+            item.details = item.details.map(lcOpt).filter(function(v, i, a){ return v && a.indexOf(v) === i; }).sort(cmpOpt);
             return item;
           }
           if(typeof item === 'string' && item.trim()) return { color: item.trim(), details: [] };
@@ -1208,13 +1434,16 @@
           if(item && typeof item === 'object'){
             if(typeof item.material !== 'string') item.material = '';
             if(!Array.isArray(item.details)) item.details = [];
+            item.material = lcOpt(item.material);
+            item.details = item.details.map(lcOpt).filter(function(v, i, a){ return v && a.indexOf(v) === i; }).sort(cmpOpt);
             return item;
           }
           if(typeof item === 'string' && item.trim()){
             // keep whatever was typed before as a selectable option too
-            var val = item.trim();
+            var val = lcOpt(item.trim());
             if(RUOSINYS_OPTIONS.indexOf(val) === -1){
               RUOSINYS_OPTIONS.push(val);
+              noteListAdd(RUOSINYS_KEY, val);
               saveTypeList(RUOSINYS_KEY, RUOSINYS_OPTIONS);
             }
             return { material: val, details: [] };
@@ -1236,6 +1465,7 @@
             if(typeof item.height !== 'string') item.height = '';
             if(typeof item.simple !== 'boolean') item.simple = false;
             if(typeof item.detailed !== 'boolean') item.detailed = false;
+            item.finish = lcOpt(item.finish); item.material = lcOpt(item.material); item.diameter = lcOpt(item.diameter);
             return item;
           }
           if(typeof item === 'string' && item.trim()) return newIdetiLine(item.trim());
@@ -1333,47 +1563,441 @@
       buttons: [{ text: 'Atšaukti', value: null }, { text: 'Gerai', value: '', primary: true }] });
   }
 
+  // Bendras langas (antraštė + uždarymo „×“ + turinio sritis) sudėtingesniems dialogams.
+  function openModal(title, wide){
+    var overlay = el('div', {class:'missing-dialog-overlay'});
+    var dlg = el('div', {class:'missing-dialog' + (wide ? ' wide' : ''), role:'dialog'});
+    var head = el('div', {class:'md-head'});
+    head.appendChild(el('h3', {text: title}));
+    var x = el('button', {type:'button', class:'md-close', title:'Uždaryti', text:'×'});
+    head.appendChild(x);
+    var body = el('div', {class:'md-body'});
+    dlg.appendChild(head); dlg.appendChild(body);
+    overlay.appendChild(dlg);
+    function close(){
+      document.removeEventListener('keydown', onKey, true);
+      if(overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    }
+    function onKey(ev){ if(ev.key === 'Escape'){ ev.stopPropagation(); close(); } }
+    x.addEventListener('click', close);
+    overlay.addEventListener('mousedown', function(ev){ if(ev.target === overlay) close(); });
+    document.addEventListener('keydown', onKey, true);
+    document.body.appendChild(overlay);
+    return { body: body, close: close };
+  }
+  function toolsRow(title, meta, buttons){
+    var row = el('div', {class:'md-row'});
+    var main = el('div', {class:'md-main'});
+    main.appendChild(el('div', {class:'md-t', text: title, title: title}));
+    if(meta) main.appendChild(el('div', {class:'md-m', text: meta}));
+    row.appendChild(main);
+    (buttons || []).forEach(function(b){
+      var btn = el('button', {type:'button', class: b.cls || '', text: b.text});
+      btn.addEventListener('click', function(){ btn.disabled = true; b.fn(); });
+      row.appendChild(btn);
+    });
+    return row;
+  }
+
+  // ---- šablonai: išsaugoti lapo pasirinkimai naujiems projektams ----
+  // Aplanko režimu – sablonai/<pavadinimas>.json (bendri su kolegomis); kitur – naršyklės atmintyje.
+  var TPL_LOCAL_KEY = 'gamybos-sablonai';
+  var templates = [];            // [{ name, savedBy, savedAt, state }]
+  var tplCache = {};             // failo vardas -> { lm, size, obj }
+  function loadLocalTemplates(){
+    if(FOLDER_MODE) return;
+    try { var a = JSON.parse(localStorage.getItem(TPL_LOCAL_KEY) || '[]'); templates = Array.isArray(a) ? a : []; } catch(e){ templates = []; }
+  }
+  function saveLocalTemplates(){
+    try { localStorage.setItem(TPL_LOCAL_KEY, JSON.stringify(templates)); return true; } catch(e){ return false; }
+  }
+  function sortTemplates(){ templates.sort(function(a, b){ return cmpOpt(a.name, b.name); }); }
+  function templateFileName(name){
+    var t = String(name || '').replace(/[\\\/:*?"<>|\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60).replace(/[. ]+$/, '');
+    return (t || 'Šablonas') + '.json';
+  }
+  function templateState(from){
+    var t = clone(from);
+    delete t.image;
+    t.title = '';
+    var m = t.meta || {};
+    t.meta = { number: '', noNumber: false, designer: '', author: '', created: todayStr(), printed: null, status: 'draft', log: [] };
+    return t;
+  }
+  function saveTemplate(name, fromState){
+    name = (name || '').trim();
+    if(!name) return Promise.resolve(false);
+    var obj = { format: 1, name: name, savedBy: myNameSafe(), savedAt: Date.now(), state: templateState(fromState) };
+    if(FOLDER_MODE){
+      if(!backupDir) return Promise.reject(new Error('Aplankas neprijungtas.'));
+      return backupDir.getDirectoryHandle(TPL_DIR, { create: true }).then(function(dir){
+        // vienodas pavadinimas (be didžiųjų/mažųjų raidžių skirtumo) – perrašomas tas pats failas
+        var existing = templates.filter(function(t){ return t.name.toLowerCase() === name.toLowerCase(); })[0];
+        var fname = existing && existing.file ? existing.file : templateFileName(name);
+        return writeJsonFile(dir, fname, obj).then(function(){
+          obj.file = fname;
+          templates = templates.filter(function(t){ return t.file !== fname; });
+          templates.push(obj); sortTemplates();
+          delete tplCache[fname];
+          return true;
+        });
+      });
+    }
+    templates = templates.filter(function(t){ return t.name.toLowerCase() !== name.toLowerCase(); });
+    templates.push(obj); sortTemplates();
+    if(!saveLocalTemplates()) return Promise.reject(new Error('Naršyklės atmintis pilna.'));
+    return Promise.resolve(true);
+  }
+  function deleteTemplate(tpl){
+    if(FOLDER_MODE){
+      if(!backupDir || !tpl.file) return Promise.resolve();
+      return backupDir.getDirectoryHandle(TPL_DIR).then(function(dir){ return dir.removeEntry(tpl.file); }).then(function(){
+        templates = templates.filter(function(t){ return t.file !== tpl.file; });
+        delete tplCache[tpl.file];
+      });
+    }
+    templates = templates.filter(function(t){ return t !== tpl; });
+    saveLocalTemplates();
+    return Promise.resolve();
+  }
+  function myNameSafe(){ return (lastAuthor() || '').trim() || 'nežinomas'; }
+  loadLocalTemplates();
+
+  function createFromTemplate(tpl){
+    var id = uid();
+    var st = clone(tpl.state);
+    var blank = blankProjectState();
+    st.meta = blank.meta;
+    st.title = '';
+    try { migrate(st); } catch(e){ /* ignore */ }
+    saveProjectState(id, st);
+    var idx = loadIndex();
+    idx.push({ id: id, title: '', updatedAt: Date.now(), dirty: true, v: 1 });
+    saveIndex(idx);
+    openProject(id);
+    var tb = document.getElementById('titleBox');
+    if(tb) tb.focus();
+  }
+  function showNewProjectDialog(){
+    var m = openModal('Naujas projektas', false);
+    m.body.appendChild(el('p', {class:'md-note', text:'Pradėkite nuo tuščio lapo arba nuo šablono – jame jau būna išsaugoti dažniausi pasirinkimai.'}));
+    m.body.appendChild(toolsRow('Tuščias lapas', 'Visi laukai neužpildyti', [ { text: 'Sukurti', fn: function(){ m.close(); createNewProject(); } } ]));
+    templates.forEach(function(t){
+      var meta = 'Šablonas' + (t.savedBy ? ' · ' + t.savedBy : '') + (t.savedAt ? ' · ' + fmtDateTime(t.savedAt) : '');
+      m.body.appendChild(toolsRow('★ ' + t.name, meta, [
+        { text: 'Naudoti', fn: function(){ m.close(); createFromTemplate(t); } },
+        { text: 'Šalinti', cls: 'danger', fn: function(){
+          m.close();
+          uiConfirm('Pašalinti šabloną „' + t.name + '“? Jau sukurti lapai nesikeičia.' + (FOLDER_MODE ? '\n\nŠablonas dings ir kolegoms.' : ''), 'Pašalinti').then(function(ok){
+            if(!ok) return;
+            deleteTemplate(t).then(function(){ showNewProjectDialog(); }, function(e){ uiAlert('Nepavyko pašalinti: ' + (e && e.message ? e.message : e)); });
+          });
+        } }
+      ]));
+    });
+  }
+  function onNewProjectClick(){
+    if(templates.length === 0) createNewProject(); else showNewProjectDialog();
+  }
+  function onSaveTemplateClick(){
+    if(!state) return;
+    uiPrompt('Šablono pavadinimas (pvz. „ąžuolo laiptai su sijomis iš šonų“):', (state.title || '').trim(), 'Šablono pavadinimas').then(function(name){
+      if(name === null || !String(name).trim()) return;
+      name = String(name).trim();
+      var exists = templates.some(function(t){ return t.name.toLowerCase() === name.toLowerCase(); });
+      var go = exists ? uiConfirm('Šablonas „' + name + '“ jau yra. Perrašyti jį šio lapo pasirinkimais?', 'Perrašyti') : Promise.resolve(true);
+      go.then(function(ok){
+        if(!ok) return;
+        saveTemplate(name, state).then(function(){
+          showToastMsg('Šablonas „' + name + '“ išsaugotas' + (FOLDER_MODE ? ' – jį mato ir kolegos.' : '.'));
+        }, function(e){ uiAlert('Nepavyko išsaugoti šablono: ' + (e && e.message ? e.message : e)); });
+      });
+    });
+  }
+  // trumpas pranešimas apačioje (be „Atgal“ mygtuko)
+  var msgToastTimer = null;
+  function showToastMsg(text){
+    var old = document.getElementById('msgToast');
+    if(old) old.parentNode.removeChild(old);
+    var t = el('div', {class:'undo-toast', id:'msgToast', role:'status'});
+    t.appendChild(el('span', {text: text}));
+    document.body.appendChild(t);
+    clearTimeout(msgToastTimer);
+    msgToastTimer = setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, 4500);
+  }
+
+  // ---- lapo būsena, paieška ir filtrai ----
+  var listQuery = '', listFilter = 'all';
+  var remoteLocks = {};      // projekto id -> { editor, ts } (kolega šiuo metu redaguoja)
+
+  function foldText(t){
+    var x = String(t || '').toLowerCase();
+    try { x = x.normalize('NFD').replace(/[̀-ͯ]/g, ''); } catch(e){ /* senesnė naršyklė */ }
+    return x;
+  }
+  // Trūkstamų laukų skaičius pagal lapo duomenis (tos pačios taisyklės kaip lape: missingFields).
+  function missingCountFromState(st){
+    var n = 0, m = st.meta || {};
+    if(!(st.title || '').trim()) n++;
+    if(!m.designer) n++;
+    if(!m.author) n++;
+    if(!(st.specMaterials || []).length) n++;
+    (st.pairs || []).forEach(function(p){
+      var keys = /laiptai/i.test(p.title || '') ? ['stairType', 'baseType', 'stepType', 'handrailType', 'postType']
+               : (/balkon/i.test(p.title || '') ? ['baseType', 'handrailType', 'postType'] : []);
+      var removed = Array.isArray(p.removedFields) ? p.removedFields : [];
+      keys.forEach(function(k){ if(removed.indexOf(k) === -1 && !(typeof p[k] === 'string' && p[k])) n++; });
+    });
+    (st.lists || []).forEach(function(l){
+      var isPaint = /dažym|dazym/i.test(l.title || ''), isMat = /ruoš|ruos/i.test(l.title || '');
+      if(!isPaint && !isMat) return;
+      (l.lines || []).forEach(function(line){
+        if(!line || typeof line !== 'object') return;
+        var val = isPaint ? line.color : line.material;
+        var details = Array.isArray(line.details) ? line.details : [];
+        if(!val) n++;
+        else if(isPaint && val !== NONE_OPTION && !details.length) n++;
+      });
+    });
+    return n;
+  }
+  function projInfo(entry){
+    var st = loadProjectState(entry.id) || {};
+    var m = st.meta || {};
+    var status = STATUS_ORDER.indexOf(m.status) !== -1 ? m.status : 'draft';
+    var printed = m.printed && typeof m.printed === 'object' ? m.printed : null;
+    var changedAfterPrint = false;
+    if(printed && printed.sig){ try { changedAfterPrint = (printed.sig !== contentSigOf(st)); } catch(e){ changedAfterPrint = false; } }
+    var hay = [entry.title, m.designer, m.author, entry.editor, (st.specMaterials || []).join(' '), STATUS_LABELS[status]].join(' ');
+    return {
+      st: st, status: status, missing: missingCountFromState(st),
+      printed: printed, changedAfterPrint: changedAfterPrint, hay: foldText(hay)
+    };
+  }
+  function matchesFilter(info){
+    if(listFilter === 'draft' || listFilter === 'released' || listFilter === 'done') return info.status === listFilter;
+    if(listFilter === 'missing') return info.status !== 'done' && info.missing !== null && info.missing > 0;
+    return true;
+  }
+  function setProjectStatus(id, status){
+    var st = loadProjectState(id);
+    if(!st || STATUS_ORDER.indexOf(status) === -1) return;
+    if(!st.meta) st.meta = {};
+    st.meta.status = status;
+    logPush(st, 'status', STATUS_LABELS[status]);
+    saveProjectState(id, st);
+    mutateEntry(id, function(x){ x.updatedAt = Date.now(); x.dirty = true; x.v = (x.v | 0) + 1; });
+    if(id === currentProjectId && state){ state.meta.status = status; }
+  }
+  // ---- medžiagų suvestinė pagal rodomus lapus (+ eksportas į CSV) ----
+  var lastVisibleIds = [];
+  var FIELD_LABELS = { stairType: 'laiptų tipas', baseType: 'tvorelės tipas', stepType: 'pakopų tipas', handrailType: 'porankių tipas', postType: 'stulpų tipas' };
+  function isRealValue(v){ return typeof v === 'string' && v.trim() !== '' && v.trim() !== NONE_OPTION; }
+  // Vieno lapo eilutės suvestinei: { cat, item, extra, qty }
+  function summaryRows(st){
+    var rows = [];
+    (st.specMaterials || []).forEach(function(v){ if(isRealValue(v)) rows.push({ cat: 'Mediena', item: v, extra: '', qty: null }); });
+    (st.pairs || []).forEach(function(p){
+      var t = (p.title || '').trim() || 'Skiltis';
+      Object.keys(FIELD_LABELS).forEach(function(k){
+        if(isRealValue(p[k])) rows.push({ cat: t + ': ' + FIELD_LABELS[k], item: p[k], extra: '', qty: null });
+      });
+    });
+    (st.lists || []).forEach(function(l){
+      var title = l.title || '';
+      var isPaint = /dažym|dazym/i.test(title), isMat = /ruoš|ruos/i.test(title), isIdeti = /dėti|deti/i.test(title);
+      (l.lines || []).forEach(function(line){
+        if(!line || typeof line !== 'object') return;
+        if(isPaint || isMat){
+          var v = isPaint ? line.color : line.material;
+          if(isRealValue(v)) rows.push({ cat: isPaint ? 'Dažymas' : 'Ruošiniai', item: v, extra: (line.details || []).join(', '), qty: null });
+        } else if(isIdeti){
+          var q = String(line.qty || '').trim();
+          var hasQty = q !== '' && q !== '0';
+          var dims = [line.length, line.width, line.height].filter(function(x){ return String(x || '').trim(); });
+          var needed = line.simple ? true : (hasQty || (line.detailed && dims.length));
+          if(!needed || !isRealValue(line.item || '')) return;
+          var parts = [];
+          if(isRealValue(line.material)) parts.push(line.material);
+          if(dims.length) parts.push(dims.join('×') + ' mm');
+          if(isRealValue(line.finish)) parts.push(line.finish);
+          if(isRealValue(line.diameter)) parts.push(line.diameter);
+          var n = parseFloat(q.replace(',', '.'));
+          rows.push({ cat: 'Įdėti', item: line.item, extra: parts.join(', '), qty: isFinite(n) ? n : null, qtyText: q });
+        }
+      });
+    });
+    return rows;
+  }
+  function csvCell(v){ v = String(v === null || v === undefined ? '' : v); return /[";\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+  function openSummary(){
+    var entries = lastVisibleIds.map(function(id){ return findEntry(id); }).filter(Boolean);
+    var m = openModal('Medžiagų suvestinė', true);
+    if(!entries.length){ m.body.appendChild(el('div', {class:'md-empty', text:'Nėra lapų, iš kurių galima sudaryti suvestinę.'})); return; }
+    var perProject = [], agg = {}, order = [];
+    entries.forEach(function(e){
+      var st = loadProjectState(e.id); if(!st) return;
+      var rows = summaryRows(st);
+      perProject.push({ entry: e, st: st, rows: rows });
+      rows.forEach(function(r){
+        var key = r.cat + '\u0001' + r.item + '\u0001' + r.extra;
+        if(!agg[key]){ agg[key] = { cat: r.cat, item: r.item, extra: r.extra, sheets: {}, qty: 0, hasQty: false, noQty: 0 }; order.push(key); }
+        var a = agg[key]; a.sheets[e.id] = true;
+        if(r.qty !== null){ a.qty += r.qty; a.hasQty = true; }
+        else if(r.cat === 'Įdėti' && r.qtyText) a.noQty++;
+      });
+    });
+    m.body.appendChild(el('p', {class:'md-note', text:'Suvestinė pagal šiuo metu rodomus lapus: ' + perProject.length + '. Norėdami apimti kitus lapus, pakeiskite paiešką ar filtrą sąraše ir atidarykite suvestinę iš naujo.'}));
+    var cats = [];
+    order.forEach(function(k){ if(cats.indexOf(agg[k].cat) === -1) cats.push(agg[k].cat); });
+    var rank = function(c){ return c === 'Mediena' ? 0 : (c === 'Ruošiniai' ? 2 : (c === 'Dažymas' ? 3 : (c === 'Įdėti' ? 4 : 1))); };
+    cats.sort(function(a, b){ return rank(a) - rank(b) || cmpOpt(a, b); });
+    cats.forEach(function(cat){
+      m.body.appendChild(el('h4', {class:'sum-h', text: cat}));
+      var tbl = el('table', {class:'sum-table'});
+      var isIdeti = cat === 'Įdėti';
+      var hr = el('tr'); ['Pozicija', 'Detalės / aprašas', 'Lapų sk.'].concat(isIdeti ? ['Kiekis, vnt.'] : []).forEach(function(h, hi){ hr.appendChild(el('th', {text: h, class: hi >= 2 ? 'num' : ''})); });
+      tbl.appendChild(hr);
+      order.filter(function(k){ return agg[k].cat === cat; }).sort(function(a, b){ return cmpOpt(agg[a].item + agg[a].extra, agg[b].item + agg[b].extra); }).forEach(function(k){
+        var a = agg[k], tr = el('tr');
+        tr.appendChild(el('td', {text: a.item}));
+        tr.appendChild(el('td', {text: a.extra}));
+        tr.appendChild(el('td', {class:'num', text: String(Object.keys(a.sheets).length)}));
+        if(isIdeti) tr.appendChild(el('td', {class:'num', text: a.hasQty ? String(Math.round(a.qty * 100) / 100) + (a.noQty ? ' +?' : '') : (a.noQty ? '?' : '–')}));
+        tbl.appendChild(tr);
+      });
+      m.body.appendChild(tbl);
+    });
+    if(!cats.length) m.body.appendChild(el('div', {class:'md-empty', text:'Pasirinktuose lapuose dar nėra užpildytų pozicijų.'}));
+    var foot = el('div', {class:'md-foot'});
+    var csv = el('button', {type:'button', class:'primary', text:'⤓ Eksportuoti į CSV (Excel)'});
+    csv.style.cssText = 'padding:9px 16px;border-radius:8px;border:1px solid var(--ink);background:var(--ink);color:#fff;font-weight:600;cursor:pointer;font-family:inherit;font-size:.8rem;';
+    csv.addEventListener('click', function(){
+      var lines = [ ['Projektas', 'Būsena', 'Projektą darė', 'Lapą pildė', 'Kategorija', 'Pozicija', 'Detalės / aprašas', 'Kiekis'].map(csvCell).join(';') ];
+      perProject.forEach(function(pp){
+        var mt = pp.st.meta || {}, title = (pp.entry.title || '').trim() || 'Be pavadinimo';
+        var status = STATUS_LABELS[mt.status] || STATUS_LABELS.draft;
+        pp.rows.forEach(function(r){
+          lines.push([title, status, mt.designer || '', mt.author || '', r.cat, r.item, r.extra, r.qty !== null ? r.qty : (r.qtyText || '')].map(csvCell).join(';'));
+        });
+      });
+      var blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'medziagu-suvestine-' + todayStr() + '.csv';
+      document.body.appendChild(a); a.click();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); a.parentNode.removeChild(a); }, 500);
+    });
+    foot.appendChild(el('span'));
+    foot.appendChild(csv);
+    m.body.appendChild(foot);
+  }
+  function renderFilterChips(counts){
+    var wrap = document.getElementById('filterChips');
+    wrap.innerHTML = '';
+    [
+      ['all', 'Visi'], ['draft', 'Juodraščiai'], ['released', 'Perduoti gamybai'], ['done', 'Pagaminti'], ['missing', 'Trūksta laukų']
+    ].forEach(function(c){
+      var b = el('button', {type:'button', class:'filter-chip' + (listFilter === c[0] ? ' active' : ''), text: c[1] + ' ' + counts[c[0]]});
+      b.addEventListener('click', function(){ listFilter = c[0]; renderProjectList(); });
+      wrap.appendChild(b);
+    });
+    var sum = el('button', {type:'button', class:'filter-chip sum-chip', title:'Medžiagų ir kiekių suvestinė pagal rodomus lapus', text:'Σ Medžiagų suvestinė'});
+    sum.addEventListener('click', openSummary);
+    wrap.appendChild(sum);
+  }
+  document.getElementById('listSearch').addEventListener('input', function(){ listQuery = this.value; renderProjectList(); });
+
   function renderProjectList(){
-    var idx = loadIndex().slice().sort(function(a, b){ return b.updatedAt - a.updatedAt; });
+    var all = loadIndex().slice().sort(function(a, b){ return b.updatedAt - a.updatedAt; });
     var container = document.getElementById('projectsContainer');
     container.innerHTML = '';
 
-    if(idx.length === 0){
+    var infos = {};
+    var counts = { all: all.length, draft: 0, released: 0, done: 0, missing: 0 };
+    all.forEach(function(e){
+      var i = infos[e.id] = projInfo(e);
+      counts[i.status]++;
+      if(i.status !== 'done' && i.missing !== null && i.missing > 0) counts.missing++;
+    });
+    var filtersBox = document.getElementById('listFilters');
+    filtersBox.style.display = (all.length > 1 && filtersBox.getAttribute('data-gate') !== 'hide') ? '' : 'none';
+    renderFilterChips(counts);
+
+    if(all.length === 0){
       var empty = el('div', {class:'list-empty'});
       empty.appendChild(el('div', {text:'Dar nėra sukurtų projektų'}));
       var btn = el('button', {class:'new-project-btn', type:'button', text:'+ Naujas projektas'});
-      btn.addEventListener('click', createNewProject);
+      btn.addEventListener('click', onNewProjectClick);
       empty.appendChild(btn);
       container.appendChild(empty);
       return;
     }
 
+    var q = foldText(listQuery).trim();
+    var idx = all.filter(function(e){
+      var i = infos[e.id];
+      if(!matchesFilter(i)) return false;
+      if(q){ return q.split(/\s+/).every(function(w){ return i.hay.indexOf(w) !== -1; }); }
+      return true;
+    });
+    lastVisibleIds = idx.map(function(e){ return e.id; });
+    if(idx.length === 0){
+      var none = el('div', {class:'list-empty'});
+      none.appendChild(el('div', {text:'Pagal paiešką ar filtrą lapų nerasta.'}));
+      var clr = el('button', {class:'new-project-btn', type:'button', text:'Išvalyti paiešką ir filtrus'});
+      clr.addEventListener('click', function(){ listQuery = ''; listFilter = 'all'; document.getElementById('listSearch').value = ''; renderProjectList(); });
+      none.appendChild(clr);
+      container.appendChild(none);
+      return;
+    }
+
     idx.forEach(function(entry){
+      var info = infos[entry.id], st = info.st;
       var card = el('div', {class:'project-card'});
       var main = el('div', {class:'pc-main'});
       var titleText = (entry.title || '').trim();
       main.appendChild(el('div', {class: 'pc-title' + (titleText ? '' : ' untitled'), text: titleText || 'Be pavadinimo'}));
 
       var meta = el('div', {class:'pc-meta'});
+      var sel = el('select', {class:'pc-status st-' + info.status, title:'Lapo būsena'});
+      STATUS_ORDER.forEach(function(k){
+        var o = el('option', {value:k, text: STATUS_LABELS[k]});
+        if(k === info.status) o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.addEventListener('click', function(ev){ ev.stopPropagation(); });
+      sel.addEventListener('change', function(ev){
+        ev.stopPropagation();
+        setProjectStatus(entry.id, sel.value);
+        renderProjectList();
+      });
+      meta.appendChild(sel);
       meta.appendChild(el('span', {text: 'Atnaujinta ' + fmtDate(entry.updatedAt)}));
-      if(backupDir && entry.editor) meta.appendChild(el('span', {class:'pc-chip', text: '👤 ' + entry.editor}));
+      if(backupDir && remoteLocks[entry.id]) meta.appendChild(el('span', {class:'pc-chip lock', text: '✎ ' + remoteLocks[entry.id].editor + ' redaguoja'}));
+      else if(backupDir && entry.editor) meta.appendChild(el('span', {class:'pc-chip', text: '👤 ' + entry.editor}));
       if(backupDir && entry.dirty) meta.appendChild(el('span', {class:'pc-chip', text: '⟳ rašoma į aplanką'}));
-      var st = loadProjectState(entry.id);
-      if(st){
-        var filled = countFilled(st);
-        meta.appendChild(el('span', {class:'pc-chip', text: filled + ' įrašyti punktai'}));
-        if(st.specMaterials && st.specMaterials.length){
-          meta.appendChild(el('span', {class:'pc-chip', text: st.specMaterials.length === 1 ? st.specMaterials[0] : st.specMaterials.length + ' medžiagos'}));
-        }
+      if(info.status !== 'done' && info.missing !== null && info.missing > 0)
+        meta.appendChild(el('span', {class:'pc-chip warn', text: '⚠ trūksta laukų: ' + info.missing}));
+      if(info.printed){
+        meta.appendChild(el('span', {class:'pc-chip', text: '🖨 atspausdinta ' + (info.printed.date || '')}));
+        if(info.changedAfterPrint) meta.appendChild(el('span', {class:'pc-chip warn', text: '✎ pakeista po spausdinimo'}));
+      }
+      if(st && st.specMaterials && st.specMaterials.length){
+        meta.appendChild(el('span', {class:'pc-chip', text: st.specMaterials.length === 1 ? st.specMaterials[0] : st.specMaterials.length + ' medžiagos'}));
       }
       main.appendChild(meta);
       card.appendChild(main);
 
+      var dup = el('button', {class:'pc-dup', type:'button', title:'Sukurti šio lapo kopiją ir pakeisti parametrus', text:'⧉ Dubliuoti'});
+      dup.addEventListener('click', function(ev){ ev.stopPropagation(); duplicateProject(entry.id); });
+      card.appendChild(dup);
+
       var del = el('button', {class:'pc-del', type:'button', title:'Šalinti projektą', text:'×'});
       del.addEventListener('click', function(ev){
         ev.stopPropagation();
-        uiConfirm('Ištrinti projektą' + (titleText ? ' „' + titleText + '“' : '') + '? Šio veiksmo atšaukti negalima.' +
-          (backupDir ? '\n\nLapo failas bus pašalintas ir iš aplanko – kolegos jo nebematys.' : ''), 'Ištrinti').then(function(ok){
+        uiConfirm('Ištrinti projektą' + (titleText ? ' „' + titleText + '“' : '') + '?' + (backupDir ? '' : ' Šio veiksmo atšaukti negalima.') +
+          (backupDir ? '\n\nLapas bus perkeltas į aplanko šiukšlinę – kolegos jo nebematys, bet jį bus galima atkurti („🗂 Šiukšlinė ir atsargos“).' : ''), 'Ištrinti').then(function(ok){
           if(!ok) return;
           recordTombstone(entry.id);
           deleteProjectState(entry.id);
@@ -1390,6 +2014,36 @@
     });
   }
 
+  // Dubliavimas: panašaus projekto lapas kopijuojamas į naują projektą (be spausdinimo istorijos),
+  // atidaromas kopija, o pavadinimas pažymimas – belieka jį pakeisti ir pataisyti skirtumus.
+  function duplicateProject(id){
+    var src = (id === currentProjectId && state) ? state : loadProjectState(id);
+    if(!src) return;
+    if(id === currentProjectId) saveProjectState(id, state);
+    var copy = clone(src);
+    try { migrate(copy); } catch(e){ /* ignore */ }
+    var base = (copy.title || '').trim();
+    copy.title = (base ? base : 'Be pavadinimo') + ' (kopija)';
+    copy.meta = copy.meta || {};
+    copy.meta.number = '';
+    copy.meta.printed = null;
+    copy.meta.status = 'draft';
+    copy.meta.log = [ { t: 'created', by: logWho(), at: Date.now(), info: 'kopija iš „' + (base || 'Be pavadinimo') + '“' } ];
+    copy.meta.created = todayStr();
+    copy.meta.author = lastAuthor() || copy.meta.author || '';
+    var nid = uid();
+    saveProjectState(nid, copy);
+    var idx = loadIndex();
+    idx.push({ id: nid, title: copy.title, updatedAt: Date.now(), dirty: true, v: 1 });
+    saveIndex(idx);
+    openProject(nid);
+    var tb = document.getElementById('titleBox');
+    if(tb){
+      tb.focus();
+      try { var r = document.createRange(); r.selectNodeContents(tb); var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r); } catch(e){ /* ignore */ }
+    }
+  }
+
   function createNewProject(){
     var id = uid();
     var st = blankProjectState();
@@ -1400,7 +2054,7 @@
     openProject(id);
   }
 
-  document.getElementById('newProjectBtn').addEventListener('click', createNewProject);
+  document.getElementById('newProjectBtn').addEventListener('click', onNewProjectClick);
 
   /* ============== sheet editor ============== */
   var currentProjectId = null;
@@ -1430,9 +2084,13 @@
   // (skilties ar eilutės pašalinimas, pasirinkimas) yra atskiras žingsnis.
   var undoStack = [], redoStack = [], lastSnap = null, lastChangeAt = 0;
   var UNDO_LIMIT = 100;
+  var imgStore = {};   // atšaukimo istorijoje paveikslėliai laikomi pagal žymą, o ne kopijuojami kiekviename žingsnyje
   function snapshotState(){
-    var c = JSON.parse(JSON.stringify(state));
+    var c = JSON.parse(JSON.stringify(state, function(k, v){
+      return (k === 'src' && typeof v === 'string' && v.length > 2000) ? '@img:' + hashStr(v) : v;
+    }));
     delete c.meta;
+    if(state.image && state.image.src) imgStore['@img:' + hashStr(state.image.src)] = state.image.src;
     return JSON.stringify(c);
   }
   function resetHistory(){
@@ -1470,6 +2128,10 @@
     var meta = state.meta;
     state = JSON.parse(snap);
     state.meta = meta;
+    if(state.image && typeof state.image.src === 'string' && state.image.src.indexOf('@img:') === 0){
+      var real = imgStore[state.image.src];
+      if(real) state.image.src = real; else delete state.image;
+    }
     migrate(state);
     lastSnap = snap;
     lastChangeAt = 0;
@@ -1510,12 +2172,15 @@
     undoToastTimer = setTimeout(hideUndoToast, 9000);
   }
 
+  var skipEditLog = false;   // būsenos keitimas ar spausdinimas nėra turinio redagavimas
   function save(){
     if(!currentProjectId) return;
+    if(!skipEditLog) logPush(state, 'edit');
     saveProjectState(currentProjectId, state);
     touchIndexEntry();
     recordHistory();
     scheduleChecks();
+    var lei = document.getElementById('lastEditInfo'); if(lei) lei.textContent = lastEditText();
   }
 
   function showListView(){
@@ -1526,6 +2191,7 @@
     renderProjectList();
     refreshSyncBar();
     scheduleBackup();
+    if(backupDir) refreshLocks();
   }
 
   function openProject(id){
@@ -1540,7 +2206,10 @@
     document.getElementById('sheetView').style.display = '';
     window.scrollTo(0, 0);
     renderAll();
+    syncStatusSelect();
+    var lei0 = document.getElementById('lastEditInfo'); if(lei0) lei0.textContent = lastEditText();
     refreshSyncBar();
+    if(backupDir && listLoaded) refreshLocks();
   }
 
   document.getElementById('backBtn').addEventListener('click', showListView);
@@ -1622,7 +2291,7 @@
     input.placeholder = placeholder;
     var addBtn = el('button', {type:'button', class:'popover-add-btn', title:'Pridėti', text:'+'});
     function go(){
-      var val = input.value.trim();
+      var val = lcOpt(input.value.trim());
       if(!val) return;
       onAdd(val);
       input.value = '';
@@ -1701,6 +2370,7 @@
       wrap.appendChild(el('span', {class:'spec-empty', text:'Pagrindinė medžiaga nepasirinkta'}));
       return;
     }
+    state.specMaterials.sort(cmpOpt);
     state.specMaterials.forEach(function(val, i){
       var chip = el('div', {class:'spec-chip'});
       chip.appendChild(el('span', {text: val}));
@@ -1744,6 +2414,14 @@
       });
       label.appendChild(cb);
       label.appendChild(document.createTextNode(opt));
+      var xm = el('span', {class:'opt-del', title:'Pašalinti iš pasirinkimų sąrašo', text:'×'});
+      xm.addEventListener('click', function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        removeListOption(MEDIENA_KEY, MATERIAL_OPTIONS, opt);
+        var fr = buildSpecPopover();
+        pop.replaceWith(fr); specPopoverEl = fr; fr.classList.add('open');
+      });
+      label.appendChild(xm);
       pop.appendChild(label);
     });
     // Jau pridėtos savos (nestandartinės) medžiagos – kad jas galėtų išjungti
@@ -1764,6 +2442,16 @@
       pop.appendChild(label);
     });
     appendCustomAddRow(pop, 'Kita mediena / medžiaga (įrašykite)...', function(val){
+      if(MATERIAL_OPTIONS.indexOf(val) === -1){        // bendras sąrašas – kitiems projektams
+        MATERIAL_OPTIONS.push(val);
+        noteListAdd(MEDIENA_KEY, val);
+        saveTypeList(MEDIENA_KEY, MATERIAL_OPTIONS);
+        if(RUOSINYS_OPTIONS.indexOf(val) === -1){
+          RUOSINYS_OPTIONS.push(val);
+          noteListAdd(RUOSINYS_KEY, val);
+          saveTypeList(RUOSINYS_KEY, RUOSINYS_OPTIONS);
+        }
+      }
       if(state.specMaterials.indexOf(val) === -1){
         state.specMaterials.push(val);
         var fresh = buildSpecPopover();
@@ -1821,11 +2509,13 @@
       function confirmAdd(){
         var val = input.value.trim();
         if(fieldKey === 'stepType') val = stripStepWord(val);
+        val = lcOpt(val);
         if(!val) return;
         if(optionsArray.indexOf(val) === -1){
           optionsArray.push(val);
           saveTypeList(storageKey, optionsArray);
         }
+        noteListAdd(storageKey, val);
         sectionData[fieldKey] = val;
         closeAllPopovers();
         renderAll();
@@ -1849,6 +2539,19 @@
       if(sectionData[fieldKey] === opt) cls += ' selected';
       if(opt === NONE_OPTION) cls += ' none-opt';
       var item = el('div', {class: cls, text: typeDisplayLabel(opt)});
+      if(opt !== NONE_OPTION && sectionData[fieldKey] !== opt){
+        var xo = el('span', {class:'opt-del', title:'Pašalinti iš pasirinkimų sąrašo', text:'×'});
+        xo.addEventListener('click', function(ev){
+          ev.stopPropagation();
+          closeAllPopovers();
+          uiConfirm('Pašalinti „' + opt + '“ iš pasirinkimų sąrašo?\n\nJis dings iš sąrašo visiems (ir kolegoms aplanke). Jau užpildyti lapai nesikeičia.', 'Pašalinti').then(function(ok){
+            if(!ok) return;
+            removeListOption(storageKey, optionsArray, opt);
+            renderAll();
+          });
+        });
+        item.appendChild(xo);
+      }
       item.addEventListener('click', function(){
         sectionData[fieldKey] = (sectionData[fieldKey] === opt) ? '' : opt;
         closeAllPopovers();
@@ -2117,6 +2820,7 @@
   function renderPaintDetailChips(area, lineObj){
     area.querySelectorAll('.chip').forEach(function(c){ c.remove(); });
     var toggle = area.querySelector('.blanks-toggle');
+    lineObj.details.sort(cmpOpt);
     lineObj.details.forEach(function(val, i){
       var chip = el('div', {class:'chip'});
       chip.appendChild(el('span', {text: val}));
@@ -2152,6 +2856,16 @@
       });
       label.appendChild(cb);
       label.appendChild(document.createTextNode(opt));
+      var xd = el('span', {class:'opt-del', title:'Pašalinti iš pasirinkimų sąrašo', text:'×'});
+      xd.addEventListener('click', function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        removeListOption(PAINT_DETAIL_KEY, PAINT_DETAIL_OPTIONS, opt);
+        var cur = area.querySelector('.blanks-popover');
+        var fr = buildPaintDetailsPopover(lineObj, area);
+        if(cur) cur.replaceWith(fr);
+        fr.classList.add('open');
+      });
+      label.appendChild(xd);
       pop.appendChild(label);
     });
 
@@ -2164,13 +2878,19 @@
     input.placeholder = 'Kita detalė (įrašykite pavadinimą)...';
     var addBtn = el('button', {type:'button', class:'popover-add-btn', title:'Pridėti detalę', text:'+'});
     function addCustom(){
-      var val = input.value.trim();
+      var val = lcOpt(input.value.trim());
       if(!val) return;
       if(lineObj.details.indexOf(val) === -1) lineObj.details.push(val);
-      input.value = '';
+      if(PAINT_DETAIL_OPTIONS.indexOf(val) === -1) PAINT_DETAIL_OPTIONS.push(val);   // bendras sąrašas – kitiems projektams
+      noteListAdd(PAINT_DETAIL_KEY, val);
+      saveTypeList(PAINT_DETAIL_KEY, PAINT_DETAIL_OPTIONS);
       renderPaintDetailChips(area, lineObj);
       save();
-      input.focus();
+      var curPop = area.querySelector('.blanks-popover');
+      var freshPop = buildPaintDetailsPopover(lineObj, area);
+      if(curPop) curPop.replaceWith(freshPop);
+      freshPop.classList.add('open');
+      var ni = freshPop.querySelector('.popover-add-input'); if(ni) ni.focus();
     }
     addBtn.addEventListener('click', function(ev){ ev.stopPropagation(); addCustom(); });
     input.addEventListener('click', function(ev){ ev.stopPropagation(); });
@@ -2189,6 +2909,7 @@
     var pop = buildPaintDetailsPopover(lineObj, area);
     toggle.addEventListener('click', function(ev){
       ev.stopPropagation();
+      pop = area.querySelector('.blanks-popover') || pop;
       var isOpen = pop.classList.contains('open');
       closeAllPopovers();
       if(!isOpen){
@@ -2577,6 +3298,22 @@
     if(!box.textContent || !box.textContent.trim()){ box.style.fontSize = ''; return; }
     var size = TITLE_FONT_MAX;
     box.style.fontSize = size + 'px';
+    if(printPreviewStyle){
+      // Spausdinant ilgas pavadinimas lūžta į 2 eilutes (didesnis šriftas nei vienoje eilutėje).
+      box.style.whiteSpace = 'normal'; box.style.lineHeight = '1.15';
+      var countLines = function(){
+        var r = document.createRange(); r.selectNodeContents(box);
+        var tops = {}, n = 0, rects = r.getClientRects();
+        for(var i = 0; i < rects.length; i++){ var k = Math.round(rects[i].top); if(!tops[k]){ tops[k] = 1; n++; } }
+        return n;
+      };
+      while((countLines() > 2 || box.scrollWidth > box.clientWidth) && size > TITLE_FONT_MIN){
+        size -= 1;
+        box.style.fontSize = size + 'px';
+      }
+      return;
+    }
+    box.style.whiteSpace = ''; box.style.lineHeight = '';
     while(box.scrollWidth > box.clientWidth && size > TITLE_FONT_MIN){
       size -= 1;
       box.style.fontSize = size + 'px';
@@ -2584,6 +3321,55 @@
   }
   window.addEventListener('resize', function(){
     if(state) fitTitleFont();
+  });
+
+  function renderImageBox(){
+    var box = document.getElementById('imageBox'), img = document.getElementById('imageEl');
+    var has = !!(state && state.image && state.image.src);
+    box.style.display = has ? '' : 'none';
+    if(has && img.getAttribute('src') !== state.image.src) img.src = state.image.src;
+    if(!has) img.removeAttribute('src');
+    document.getElementById('imageBtn').textContent = has ? '🖼 Pakeisti brėžinį / nuotrauką' : '🖼 Pridėti brėžinį / nuotrauką';
+  }
+  function loadImageFile(file){
+    return new Promise(function(resolve, reject){
+      var fr = new FileReader();
+      fr.onerror = function(){ reject(new Error('Nepavyko perskaityti failo.')); };
+      fr.onload = function(){
+        var img = new Image();
+        img.onerror = function(){ reject(new Error('Tai nėra paveikslėlis arba formatas nepalaikomas.')); };
+        img.onload = function(){
+          var max = 1400, w = img.naturalWidth, h = img.naturalHeight;
+          if(!w || !h){ reject(new Error('Paveikslėlis tuščias.')); return; }
+          var sc = Math.min(1, max / Math.max(w, h));
+          var c = document.createElement('canvas');
+          c.width = Math.round(w * sc); c.height = Math.round(h * sc);
+          var ctx = c.getContext('2d');
+          ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+          ctx.drawImage(img, 0, 0, c.width, c.height);
+          resolve(c.toDataURL('image/jpeg', 0.82));
+        };
+        img.src = fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
+  }
+  document.getElementById('imageBtn').addEventListener('click', function(){ document.getElementById('imageFileInput').click(); });
+  document.getElementById('imageFileInput').addEventListener('change', function(){
+    var f = this.files && this.files[0];
+    this.value = '';
+    if(!f || !state) return;
+    loadImageFile(f).then(function(src){
+      state.image = { src: src, h: hashStr(src), name: f.name || '' };
+      renderAll(); save();
+      showUndoToast('Brėžinys pridėtas');
+    }, function(e){ uiAlert(e && e.message ? e.message : 'Nepavyko įkelti paveikslėlio.'); });
+  });
+  document.getElementById('imageDel').addEventListener('click', function(){
+    if(!state || !state.image) return;
+    delete state.image;
+    renderAll(); save();
+    showUndoToast('Brėžinys pašalintas');
   });
 
   function renderAll(){
@@ -2610,6 +3396,7 @@
       }, false));
     });
 
+    renderImageBox();
     var notesArea = document.getElementById('notesArea');
     if(notesArea.textContent !== state.notes) notesArea.textContent = state.notes;
     runChecks();
@@ -2650,6 +3437,57 @@
     state.lists.push({ title: '', lines: [''] });
     renderAll(); save();
   });
+  // ---- „⋯ Daugiau“ meniu ----
+  var morePop = document.getElementById('morePop'), moreBtn = document.getElementById('moreBtn');
+  function closeMoreMenu(){ morePop.classList.remove('open'); }
+  moreBtn.addEventListener('click', function(ev){ ev.stopPropagation(); morePop.classList.toggle('open'); });
+  morePop.addEventListener('click', function(ev){ if(ev.target.tagName === 'BUTTON') closeMoreMenu(); });
+  document.addEventListener('click', function(ev){ if(!morePop.contains(ev.target)) closeMoreMenu(); });
+  document.addEventListener('keydown', function(ev){ if(ev.key === 'Escape') closeMoreMenu(); });
+
+  // ---- lapo būsena ----
+  var statusSelect = document.getElementById('statusSelect');
+  STATUS_ORDER.forEach(function(k){ statusSelect.appendChild(el('option', {value: k, text: 'Būsena: ' + STATUS_LABELS[k]})); });
+  function syncStatusSelect(){
+    var v = (state && state.meta && state.meta.status) || 'draft';
+    statusSelect.value = v;
+    statusSelect.className = 'status-select st-' + v;
+  }
+  statusSelect.addEventListener('change', function(){
+    if(!state) return;
+    state.meta.status = statusSelect.value;
+    logPush(state, 'status', STATUS_LABELS[state.meta.status]);
+    syncStatusSelect();
+    skipEditLog = true; save(); skipEditLog = false;
+  });
+  function lastEditText(){
+    var log = (state && state.meta && state.meta.log) || [];
+    for(var i = log.length - 1; i >= 0; i--){
+      if(log[i].t === 'edit') return 'Paskutinį kartą keitė ' + log[i].by + ', ' + fmtDateTime(log[i].end || log[i].at) + '.';
+    }
+    return '';
+  }
+  function showHistory(){
+    if(!state) return;
+    var m = openModal('Lapo istorija', false);
+    var log = (state.meta.log || []).slice().reverse();
+    m.body.appendChild(el('p', {class:'md-note', text:'Kas ir kada kūrė, keitė ar spausdino šį lapą. Iš eilės einantys vieno žmogaus pakeitimai sujungiami į vieną įrašą.'}));
+    if(!log.length){ m.body.appendChild(el('div', {class:'md-empty', text:'Istorijos dar nėra.'})); return; }
+    log.forEach(function(e){
+      var text, when = fmtDateTime(e.at);
+      if(e.t === 'edit'){
+        text = '✎ ' + e.by + ' redagavo';
+        if(e.end && e.end - e.at > 60000) when += ' – ' + fmtTime(new Date(e.end)).slice(0, 5);
+      } else if(e.t === 'print') text = '🖨 ' + e.by + ' atspausdino';
+      else if(e.t === 'status') text = '● ' + e.by + ' pakeitė būseną į „' + (e.info || '') + '“';
+      else if(e.t === 'created') text = '✚ ' + e.by + ' sukūrė lapą' + (e.info ? ' (' + e.info + ')' : '');
+      else text = e.by + ' ' + e.t;
+      m.body.appendChild(toolsRow(text, when, []));
+    });
+  }
+  document.getElementById('historyBtn').addEventListener('click', showHistory);
+  document.getElementById('templateBtn').addEventListener('click', onSaveTemplateClick);
+  document.getElementById('dupBtn').addEventListener('click', function(){ if(currentProjectId) duplicateProject(currentProjectId); });
   document.getElementById('clearBtn').addEventListener('click', function(){
     uiConfirm('Išvalyti šio projekto lapą? Duomenys šiame projekte bus pakeisti tuščiais (galėsite atšaukti mygtuku „Atgal“).', 'Išvalyti').then(function(ok){
       if(!ok) return;
@@ -2665,8 +3503,28 @@
     else doPrint();
   });
   function doPrint(){
+    setPrintTitle();
     fitSheetToPage();
+    var info = printedFontInfo();
+    if(info.minPt < PRINT_MIN_PT){
+      // Lapas labai pilnas: viskas sumažinama, kad tilptų į vieną A4 – įspėjame, kol dar galima taisyti.
+      resetSheetPrintStyles(); restoreAppTitle();
+      var pt = (Math.round(info.minPt * 10) / 10).toString().replace('.', ',');
+      uiDialog({
+        title: 'Spaudinio šriftas bus smulkus',
+        message: 'Kad viskas tilptų į vieną A4 lapą, mažiausias raštas bus apie ' + pt + ' pt. ' +
+                 'Silpnaregiui ar vyresniam žmogui skaityti patogu nuo ~9 pt.\n\n' +
+                 'Kaip padidinti: sutrumpinkite pastabas ir komentarus, pašalinkite nereikalingas eilutes arba sumažinkite brėžinį.',
+        escapeValue: false,
+        buttons: [{ text: 'Grįžti redaguoti', value: false }, { text: 'Spausdinti vis tiek', value: true, primary: true }]
+      }).then(function(ok){
+        if(!ok) return;
+        setPrintTitle(); fitSheetToPage(); window.print(); setTimeout(restoreAppTitle, 1500);
+      });
+      return;
+    }
     window.print();
+    setTimeout(restoreAppTitle, 1500);
   }
 
 
@@ -2778,11 +3636,14 @@
   }
   // Turinio parašas: viskas, ką pakeitus gamyba turi gauti naują versiją
   // (be paties Nr. / užpildžiusiojo / versijų istorijos).
-  function contentSig(){
-    var c = JSON.parse(JSON.stringify(state));
+  function contentSigOf(st){
+    var c = JSON.parse(JSON.stringify(st, function(k, v){
+      return (k === 'src' && typeof v === 'string' && v.length > 2000) ? '@img:' + v.length + ':' + v.slice(-40) : v;
+    }));
     delete c.meta;
     return hashStr(JSON.stringify(c));
   }
+  function contentSig(){ return contentSigOf(state); }
   function currentVersionInfo(){
     var pr = state.meta.printed;
     if(!pr) return { version: 1, date: todayStr(), dirty: false };
@@ -2811,7 +3672,7 @@
 
   var checksTimer = null;
   function runChecks(){
-    if(!state) return;
+    if(!state || !currentProjectId) return;
     markMissing();
     stampRefresh();
   }
@@ -2880,7 +3741,8 @@
     } else if(pr.sig !== sig){
       pr = state.meta.printed = { sig: sig, rows: keys, version: pr.version + 1, date: todayStr(), prevRows: pr.rows, prevVersion: pr.version };
     }
-    save();
+    logPush(state, 'print');
+    skipEditLog = true; save(); skipEditLog = false;
     stampRefresh();
     if(!pr.prevRows) return;
 
@@ -2945,9 +3807,12 @@
   //     sideways counts as "doesn't fit".
   //  4) The title font is fitted to its box width, so it is re-fitted at
   //     every candidate width.
-  var PRINT_PAGE_W = 718, PRINT_PAGE_H = 1047; // A4 printable area in px @96dpi, minus the 10mm @page margin on every side
+  var PRINT_PAGE_W = 741, PRINT_PAGE_H = 1069; // A4 printable area in px @96dpi, minus the 7mm @page margin on every side
   var PRINT_SCALE_MAX = 2;      // never enlarge beyond this
   var PRINT_SCALE_FLOOR = 0.12; // absolute lower bound of the search
+  var PRINT_IMG_STEPS = [62, 54]; // brėžinio max. aukštis (mm, prieš mastelį)
+  var PRINT_GOOD_SCALE = 0.86;            // nuo šio mastelio (~11 pt tekstas) brėžinio nebemažiname
+  var PRINT_MIN_PT = 8.5;                 // mažesnis šriftas – įspėjame prieš spausdinant
   var printHiddenEls = [];
   var printPreviewStyle = null;
   var printActive = false, printActiveSince = 0;
@@ -3135,7 +4000,21 @@
     // A small safety margin against rounding/font-metric differences between
     // this measurement and the actual print render.
     var targetH = PRINT_PAGE_H * 0.98;
-    var scale = solvePrintScale(sheet, targetH);
+    // Brėžinys užima daug vietos. Jei lapas pilnas ir tekstas dėl to tampa per smulkus,
+    // brėžinio aukštis mažinamas pakopomis (62 → 54 mm), kol tekstas pasidaro
+    // pakankamai didelis – svarbiausia, kad būtų lengva skaityti tekstą.
+    var imgEl = document.getElementById('imageEl'), imgBox = document.getElementById('imageBox');
+    var hasImg = !!(imgEl && imgBox && imgBox.style.display !== 'none' && !isHiddenForPrint(imgBox));
+    var scale;
+    if(hasImg){
+      for(var si = 0; si < PRINT_IMG_STEPS.length; si++){
+        imgEl.style.maxHeight = PRINT_IMG_STEPS[si] + 'mm';
+        scale = solvePrintScale(sheet, targetH);
+        if(scale >= PRINT_GOOD_SCALE) break;
+      }
+    } else {
+      scale = solvePrintScale(sheet, targetH);
+    }
 
     // Apply the chosen scale and pin the wrapper to its real scaled height.
     var h = printHeightAt(sheet, scale);
@@ -3147,9 +4026,33 @@
     printActiveSince = Date.now();
   }
 
+  // Mažiausias šriftas, kuris realiai atsispausdins (pt). Skaičiuojamas po fitSheetToPage().
+  function printedFontInfo(){
+    var sheet = document.getElementById('sheet');
+    if(!sheet) return { minPt: 99, scale: 1 };
+    var m = /scale\(([\d.]+)\)/.exec(sheet.style.transform || '');
+    var sc = m ? parseFloat(m[1]) : 1;
+    var min = Infinity;
+    var walker = document.createTreeWalker(sheet, NodeFilter.SHOW_TEXT, null);
+    var n;
+    while((n = walker.nextNode())){
+      if(!n.nodeValue.trim()) continue;
+      var e = n.parentElement;
+      if(!e || e.getClientRects().length === 0) continue;
+      var cs = getComputedStyle(e);
+      if(cs.visibility === 'hidden') continue;
+      var fs = parseFloat(cs.fontSize);
+      if(fs && fs < min) min = fs;
+    }
+    if(!isFinite(min)) min = 16;
+    return { minPt: min * sc * 0.75, scale: sc };
+  }
+
   function resetSheetPrintStyles(){
     var sheetWrap = document.getElementById('sheetWrap');
     var sheet = document.getElementById('sheet');
+    var pimg = document.getElementById('imageEl');
+    if(pimg) pimg.style.maxHeight = '';
     if(sheet){
       sheet.style.transform = ''; sheet.style.transformOrigin = ''; sheet.style.width = '';
       sheet.style.maxWidth = ''; sheet.style.flex = '';
@@ -3173,8 +4076,13 @@
     }, true);
   });
 
-  window.addEventListener('beforeprint', fitSheetToPage);
-  window.addEventListener('afterprint', resetSheetPrintStyles);
+  // Spausdinant į PDF naršyklė siūlo failo vardą iš puslapio pavadinimo – naudojame tą patį
+  // „Pavadinimas - Projektą darė - Lapą pildė“, kaip ir lapo faile.
+  var APP_TITLE = document.title;
+  function setPrintTitle(){ if(state && currentProjectId) document.title = fileBaseFor(state); }
+  function restoreAppTitle(){ document.title = APP_TITLE; }
+  window.addEventListener('beforeprint', function(){ setPrintTitle(); fitSheetToPage(); });
+  window.addEventListener('afterprint', function(){ resetSheetPrintStyles(); restoreAppTitle(); });
 
 
   // ===================================================================
@@ -3194,6 +4102,18 @@
   var BACKUP_APP = 'gamybos-uzsakymo-lapas';
   var PROJ_DIR = 'projektai';
   var LISTS_FILE = 'sarasai.json';
+  var TPL_DIR = 'sablonai';
+  var LOCKS_DIR = 'uzraktai';
+  var LOCK_TTL_MS = 75000;        // žyma galioja, jei jos laikas pasikeitė per pastarąsias ~75 s
+  var LOCK_BEAT_MS = 20000;
+  var lockSeen = {};              // failo vardas -> { ts, seenAt }  (nepriklauso nuo kompiuterių laikrodžių)
+  var locksBusy = false;
+  var TRASH_DIR = 'istrinta';
+  var SAFE_DIR = 'atsargos';
+  var SAFE_KEEP_DAYS = 14;
+  var trashCount = 0;
+  var lastBackupAt = 0;
+  var SAFE_REFRESH_MS = 3 * 3600 * 1000;   // dienos kopija atnaujinama ne dažniau kaip kas 3 val.
   var TOMB_KEY = 'gbk-deleted';
   var SYNC_EVERY_MS = 30000;
   var backupDir;            // FileSystemDirectoryHandle (arba undefined)
@@ -3300,6 +4220,7 @@
     r[PAINT_COLOR_KEY] = PAINT_COLOR_OPTIONS;
     r[PAINT_DETAIL_KEY] = PAINT_DETAIL_OPTIONS;
     r[RUOSINYS_KEY] = RUOSINYS_OPTIONS;
+    r[MEDIENA_KEY] = MATERIAL_OPTIONS;
     r[IDETI_FINISH_KEY] = IDETI_FINISH_OPTIONS;
     r[IDETI_MATERIAL_KEY] = IDETI_MATERIAL_OPTIONS;
     r[IDETI_DETAIL_FINISH_KEY] = IDETI_DETAIL_FINISH_OPTIONS;
@@ -3340,12 +4261,12 @@
     return t.slice(0, max).replace(/\s+$/, '');
   }
   // „Pavadinimas - Projektą darė - Lapą pildė [id].json“ (tuščios dalys praleidžiamos)
-  function fileNameFor(id, st){
+  function fileBaseFor(st){
     var m = (st && st.meta) || {};
-    var parts = [fnPart(st && st.title, 70) || 'Be pavadinimo', fnPart(m.designer, 30), fnPart(m.author, 30)]
-      .filter(function(x){ return x; });
-    return parts.join(' - ') + ' [' + id + '].json';
+    return [fnPart(st && st.title, 70) || 'Be pavadinimo', fnPart(m.designer, 30), fnPart(m.author, 30)]
+      .filter(function(x){ return x; }).join(' - ');
   }
+  function fileNameFor(id, st){ return fileBaseFor(st) + ' [' + id + '].json'; }
   async function listRemoteProjects(pdir){
     var out = {}, names = {}, dupes = {};
     for await (var ent of pdir.entries()){
@@ -3423,8 +4344,9 @@
       var id = ids[i], r = remote[id];
       var e = findEntry(id);
 
-      if(tombs.indexOf(id) !== -1){           // ištrinta pas mus → pašaliname failą iš aplanko
+      if(tombs.indexOf(id) !== -1){           // ištrinta pas mus → failas keliauja į šiukšlinę
         try {
+          if(remoteNames[id]) await moveToTrash(r, remoteNames[id], me);   // nepavyko → nieko netriname, bandysime vėliau
           var rn = [remoteNames[id]].concat(remoteDupes[id] || []);
           for(var ri = 0; ri < rn.length; ri++){
             if(!rn[ri]) continue;
@@ -3498,6 +4420,7 @@
         remoteNames[rid] = want;
       } catch(err){ /* bandysime kitą kartą */ }
     }
+    try { trashCount = await countJsonFiles(await subdir(TRASH_DIR, false)); } catch(e4){ /* ignore */ }
     if(conflictCopies.length){
       backupMsg = { text: 'Kolega pakeitė tą patį lapą kaip ir jūs, todėl jūsų versija išsaugota atskirai: ' + conflictCopies.join('; ') + '.', kind: 'warn' };
     }
@@ -3508,30 +4431,215 @@
     var me = myName() || 'nežinomas';
     var rf = await readJsonFile(backupDir, LISTS_FILE);
     var remote = (rf && rf.lists) || {};
+    var remoteRemoved = (rf && rf.removed) || {};
     var reg = listRegistry();
+    var ops = loadListOps();
+    var opsSnap = JSON.stringify(ops);
     var remoteChanged = false;
-    var merged = {};
+    var merged = {}, removedOut = {};
     Object.keys(reg).forEach(function(key){
       var loc = reg[key];
       var rem = Array.isArray(remote[key]) ? remote[key] : null;
+      // pašalinti variantai: failo ∪ mano nauji pašalinimai − mano iš naujo pridėti
+      var removed = [];
+      (Array.isArray(remoteRemoved[key]) ? remoteRemoved[key] : []).concat(ops.rm[key] || []).forEach(function(v){
+        v = lcOpt(v);
+        if(typeof v === 'string' && removed.indexOf(v) === -1 && (ops.add[key] || []).indexOf(v) === -1) removed.push(v);
+      });
       var out = [];
       function add(v){
         if(key === STEP_TYPES_KEY) v = stripStepWord(v);
+        v = lcOpt(v);
+        if(typeof v === 'string' && v !== NONE_OPTION && removed.indexOf(v) !== -1) return;
         if(typeof v === 'string' && out.indexOf(v) === -1) out.push(v);
       }
       (rem || []).forEach(add);
       loc.forEach(add);
-      var ni = out.indexOf(NONE_OPTION);
-      if(ni > 0){ out.splice(ni, 1); out.unshift(NONE_OPTION); }
+      orderList(out);
       merged[key] = out;
+      if(removed.length) removedOut[key] = removed;
       if(!rem || JSON.stringify(rem) !== JSON.stringify(out)) remoteChanged = true;
+      if(JSON.stringify(Array.isArray(remoteRemoved[key]) ? remoteRemoved[key] : []) !== JSON.stringify(removed)) remoteChanged = true;
       if(JSON.stringify(loc) !== JSON.stringify(out)){
         loc.length = 0;
         out.forEach(function(v){ loc.push(v); });
         try { localStorage.setItem(key, JSON.stringify(out)); } catch(e){ /* ignore */ }
       }
     });
-    if(remoteChanged) await writeJsonFile(backupDir, LISTS_FILE, { format: 1, updatedAt: Date.now(), editor: me, lists: merged });
+    if(remoteChanged) await writeJsonFile(backupDir, LISTS_FILE, { format: 1, updatedAt: Date.now(), editor: me, lists: merged, removed: removedOut });
+    if(JSON.stringify(loadListOps()) === opsSnap) saveListOps({ rm: {}, add: {} });   // viskas įrašyta į failą
+  }
+
+  // ---- „dabar redaguoja“ žymos: uzraktai/<lapo id>.<kliento id>.json, atnaujinamos kas ~20 s ----
+  function clientId(){
+    try {
+      var c = localStorage.getItem('gbk-client');
+      if(!c){ c = 'c' + Math.random().toString(36).slice(2, 10); localStorage.setItem('gbk-client', c); }
+      return c;
+    } catch(e){ return 'c-anon'; }
+  }
+  async function doRefreshLocks(){
+    var ldir = await backupDir.getDirectoryHandle(LOCKS_DIR, { create: true });
+    var me = clientId(), now = Date.now(), found = {}, names = [];
+    for await (var ent of ldir.entries()){
+      if(ent[1].kind === 'file' && /\.json$/i.test(ent[0])) names.push(ent);
+    }
+    // savo žyma: tik atidarytam ir matomam lapui
+    var mineWanted = (currentProjectId && !document.hidden) ? currentProjectId + '.' + me + '.json' : null;
+    for(var i = 0; i < names.length; i++){
+      var name = names[i][0];
+      var m = /^(p[a-z0-9]+)\.(c[-a-z0-9]+)\.json$/.exec(name);
+      if(!m) continue;
+      if(m[2] === me){
+        if(name !== mineWanted && !(currentProjectId && m[1] === currentProjectId)){ try { await ldir.removeEntry(name); } catch(e){ /* ignore */ } }
+        continue;
+      }
+      var obj = null;
+      try { obj = JSON.parse(await (await names[i][1].getFile()).text()); } catch(e){ continue; }
+      if(!obj || typeof obj.ts !== 'number') continue;
+      var seen = lockSeen[name];
+      if(!seen || seen.ts !== obj.ts) seen = lockSeen[name] = { ts: obj.ts, seenAt: now };
+      if(now - seen.seenAt < LOCK_TTL_MS){
+        var prev = found[m[1]];
+        if(!prev || seen.seenAt > prev.seenAt) found[m[1]] = { editor: obj.editor || 'kolega', seenAt: seen.seenAt };
+      } else if(now - seen.seenAt > 10 * 60 * 1000){
+        try { await ldir.removeEntry(name); } catch(e){ /* ignore */ }      // seniai pamestas failas
+        delete lockSeen[name];
+      }
+    }
+    if(mineWanted){
+      var wh = await (await ldir.getFileHandle(mineWanted, { create: true })).createWritable();
+      await wh.write(JSON.stringify({ id: currentProjectId, client: me, editor: myName() || 'nežinomas', ts: now }));
+      await wh.close();
+    }
+    var changed = JSON.stringify(Object.keys(found).sort().map(function(k){ return k + ':' + found[k].editor; })) !==
+                  JSON.stringify(Object.keys(remoteLocks).sort().map(function(k){ return k + ':' + remoteLocks[k].editor; }));
+    remoteLocks = found;
+    return changed;
+  }
+  function refreshLocks(){
+    if(!backupDir || !listLoaded || locksBusy) return Promise.resolve();
+    locksBusy = true;
+    return ensureBackupPerm(backupDir, false).then(function(ok){ if(!ok) return false; return doRefreshLocks(); })
+      .then(function(changed){
+        if(changed !== false){
+          if(document.getElementById('sheetView').style.display === 'none') renderProjectList();
+          refreshSyncBar();
+        }
+      }, function(){ /* žymos nekritinės */ })
+      .then(function(){ locksBusy = false; });
+  }
+  async function syncTemplates(){
+    var dir = await subdir(TPL_DIR, false);
+    var out = [], seen = {};
+    if(dir){
+      for await (var ent of dir.entries()){
+        if(ent[1].kind !== 'file' || !/\.json$/i.test(ent[0])) continue;
+        var f = await ent[1].getFile();
+        var c = tplCache[ent[0]], obj = null;
+        if(c && c.lm === f.lastModified && c.size === f.size) obj = c.obj;
+        else {
+          try { obj = JSON.parse(await f.text()); } catch(e){ continue; }
+          tplCache[ent[0]] = { lm: f.lastModified, size: f.size, obj: obj };
+        }
+        if(obj && typeof obj.name === 'string' && obj.state && typeof obj.state === 'object'){
+          var o = {}; Object.keys(obj).forEach(function(k){ o[k] = obj[k]; });
+          o.file = ent[0]; out.push(o);
+        }
+      }
+    }
+    templates = out; sortTemplates();
+  }
+
+  // ---- šiukšlinė ir atsargos ----
+  async function subdir(name, create){
+    try { return await backupDir.getDirectoryHandle(name, { create: !!create }); } catch(e){ return null; }
+  }
+  async function countJsonFiles(dir){
+    var n = 0;
+    if(!dir) return 0;
+    for await (var ent of dir.entries()){
+      if(ent[1].kind === 'file' && /\.json$/i.test(ent[0]) && ent[0].charAt(0) !== '_') n++;
+    }
+    return n;
+  }
+  async function listJsonObjects(dir){
+    var out = [];
+    if(!dir) return out;
+    for await (var ent of dir.entries()){
+      if(ent[1].kind !== 'file' || !/\.json$/i.test(ent[0]) || ent[0].charAt(0) === '_') continue;
+      try {
+        var f = await ent[1].getFile();
+        var obj = JSON.parse(await f.text());
+        if(obj && typeof obj.id === 'string' && obj.state) out.push({ name: ent[0], obj: obj });
+      } catch(e){ /* sugadintas failas – praleidžiame */ }
+    }
+    return out;
+  }
+  async function moveToTrash(r, name, me){
+    var tdir = await backupDir.getDirectoryHandle(TRASH_DIR, { create: true });
+    var o = clone(r);
+    o.trashedAt = Date.now(); o.trashedBy = me;
+    await writeJsonFile(tdir, name, o);
+  }
+  function objTitle(o){ return (o.title || (o.state && o.state.title) || '').trim() || 'Be pavadinimo'; }
+  function fmtDateTime(ts){
+    var d = new Date(ts);
+    if(isNaN(d.getTime())) return '?';
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2) + ' ' + fmtTime(d).slice(0, 5);
+  }
+  async function restoreTrashItem(name){
+    var tdir = await subdir(TRASH_DIR, false);
+    if(!tdir) return;
+    var obj = await readJsonFile(tdir, name);
+    if(!obj || !obj.id || !obj.state) return;
+    var pdir = await backupDir.getDirectoryHandle(PROJ_DIR, { create: true });
+    delete obj.trashedAt; delete obj.trashedBy;
+    obj.deleted = false; obj.rev = (obj.rev | 0) + 1; obj.updatedAt = Date.now();
+    await writeJsonFile(pdir, fileNameFor(obj.id, obj.state), obj);
+    await tdir.removeEntry(name);
+    removeTomb(obj.id);
+  }
+  async function purgeTrashItem(name){
+    var tdir = await subdir(TRASH_DIR, false);
+    if(tdir) await tdir.removeEntry(name);
+  }
+  // Kasdieninė atsarginė kopija: visi lapai + sąrašai → atsargos/YYYY-MM-DD/, saugomos paskutinės 14 dienų.
+  async function dailyBackup(){
+    var day = todayStr();
+    if(lastBackupAt && Date.now() - lastBackupAt < SAFE_REFRESH_MS && lastBackupAt > new Date(day + 'T00:00:00').getTime()) return;
+    var pdir = await subdir(PROJ_DIR, false);
+    var n = await countJsonFiles(pdir);
+    if(!n) return;   // dar nėra ką saugoti – bandysime po kito sinchronizavimo
+    var bdir = await backupDir.getDirectoryHandle(SAFE_DIR, { create: true });
+    var existing = null;
+    try { existing = await bdir.getDirectoryHandle(day); } catch(e){ existing = null; }
+    var marker = existing ? await readJsonFile(existing, '_baigta.json') : null;
+    if(marker && marker.savedAt && Date.now() - marker.savedAt < SAFE_REFRESH_MS){ lastBackupAt = marker.savedAt; return; }
+    var dd = await bdir.getDirectoryHandle(day, { create: true });
+    var copied = 0;
+    for await (var ent of pdir.entries()){
+      if(ent[1].kind !== 'file' || !/\.json$/i.test(ent[0])) continue;
+      var f = await ent[1].getFile();
+      var txt = await f.text();
+      var w = await (await dd.getFileHandle(ent[0], { create: true })).createWritable();
+      await w.write(txt); await w.close();
+      copied++;
+    }
+    var lf = await readJsonFile(backupDir, LISTS_FILE);
+    if(lf) await writeJsonFile(dd, LISTS_FILE, lf);
+    await writeJsonFile(dd, '_baigta.json', { savedAt: Date.now(), by: myName() || '', count: copied });
+    lastBackupAt = Date.now();
+    // senesnės nei SAFE_KEEP_DAYS dienų kopijos šalinamos
+    var days = [];
+    for await (var e2 of bdir.entries()){
+      if(e2[1].kind === 'directory' && /^\d{4}-\d{2}-\d{2}$/.test(e2[0])) days.push(e2[0]);
+    }
+    days.sort();
+    while(days.length > SAFE_KEEP_DAYS){
+      var old = days.shift();
+      try { await bdir.removeEntry(old, { recursive: true }); } catch(e3){ /* ignore */ }
+    }
   }
 
   function syncNow(){
@@ -3546,6 +4654,8 @@
           backupNeedsPerm = false;
           await syncProjects();
           await syncLists();
+          try { await syncTemplates(); } catch(errT){ /* šablonai – nekritiniai */ }
+          try { await dailyBackup(); } catch(errB){ /* atsarga – ne kritinė */ }
           syncLastAt = new Date();
           listLoaded = true;
           if(backupMsg && backupMsg.kind === 'err') backupMsg = null;
@@ -3572,6 +4682,13 @@
     if(!bar) return;
     var n = currentProjectId ? syncNotices[currentProjectId] : null;
     bar.innerHTML = '';
+    var lk = (currentProjectId && backupDir) ? remoteLocks[currentProjectId] : null;
+    if(!n && lk){
+      bar.style.display = '';
+      bar.className = 'sync-bar lock';
+      bar.appendChild(el('span', { text: '✎ ' + lk.editor + ' šiuo metu redaguoja šį lapą. Jei keisite abu, vieno pakeitimai gali pasikartoti arba susikirsti – geriau pasitarkite.' }));
+      return;
+    }
     if(!n){ bar.style.display = 'none'; return; }
     bar.style.display = '';
     bar.className = 'sync-bar ' + (n.kind === 'conflict' ? 'conflict' : '');
@@ -3616,6 +4733,130 @@
     syncNow();
   }
 
+  // ---- šiukšlinės ir atsargų langas ----
+  async function afterToolsAction(){
+    try { await syncNow(); } catch(e){ /* ignore */ }
+    try { trashCount = await countJsonFiles(await subdir(TRASH_DIR, false)); } catch(e){ /* ignore */ }
+    renderBackupUI();
+    if(document.getElementById('sheetView').style.display === 'none') renderProjectList();
+  }
+  async function renderTrashTab(host){
+    host.textContent = 'Kraunama…';
+    var items;
+    try { items = await listJsonObjects(await subdir(TRASH_DIR, false)); }
+    catch(e){ host.textContent = 'Nepavyko perskaityti šiukšlinės: ' + (e && e.message ? e.message : e); return; }
+    items.sort(function(a, b){ return (b.obj.trashedAt | 0) - (a.obj.trashedAt | 0); });
+    host.innerHTML = '';
+    host.appendChild(el('p', {class:'md-note', text:'Ištrinti lapai laikomi čia, kol juos pašalinsite visam laikui. Atkūrus, lapas vėl atsiranda projektų sąraše.'}));
+    if(!items.length){ host.appendChild(el('div', {class:'md-empty', text:'Šiukšlinė tuščia.'})); return; }
+    items.forEach(function(it){
+      var meta = 'Ištrynė ' + (it.obj.trashedBy || '?') + ' · ' + fmtDateTime(it.obj.trashedAt);
+      host.appendChild(toolsRow(objTitle(it.obj), meta, [
+        { text: 'Atkurti', fn: function(){ restoreTrashItem(it.name).then(afterToolsAction).then(function(){ renderTrashTab(host); }, function(e){ uiAlert('Nepavyko atkurti: ' + (e && e.message ? e.message : e)); renderTrashTab(host); }); } },
+        { text: 'Ištrinti visam laikui', cls: 'danger', fn: function(){
+          uiConfirm('Visam laikui ištrinti „' + objTitle(it.obj) + '“? Šio veiksmo atšaukti negalima.', 'Ištrinti visam laikui').then(function(ok){
+            if(!ok){ renderTrashTab(host); return; }
+            purgeTrashItem(it.name).then(afterToolsAction).then(function(){ renderTrashTab(host); });
+          });
+        } }
+      ]));
+    });
+    var foot = el('div', {class:'md-foot'});
+    var emp = el('button', {type:'button', class:'md-link', text:'Ištuštinti šiukšlinę'});
+    emp.addEventListener('click', function(){
+      uiConfirm('Visam laikui ištrinti visus šiukšlinės lapus (' + items.length + ')? Šio veiksmo atšaukti negalima.', 'Ištuštinti').then(function(ok){
+        if(!ok) return;
+        items.reduce(function(pr, it){ return pr.then(function(){ return purgeTrashItem(it.name); }); }, Promise.resolve())
+          .then(afterToolsAction).then(function(){ renderTrashTab(host); });
+      });
+    });
+    foot.appendChild(emp);
+    host.appendChild(foot);
+  }
+  async function writeRestored(obj, asCopy, day){
+    var pdir = await backupDir.getDirectoryHandle(PROJ_DIR, { create: true });
+    var o = clone(obj);
+    if(asCopy){
+      o.id = uid(); o.rev = 1;
+      o.state.title = objTitle(obj) + ' (atkurta ' + day + ')';
+      o.title = o.state.title;
+    } else {
+      o.rev = (o.rev | 0) + 1;
+    }
+    o.deleted = false; o.updatedAt = Date.now();
+    await writeJsonFile(pdir, fileNameFor(o.id, o.state), o);
+  }
+  async function renderBackupsTab(host){
+    host.textContent = 'Kraunama…';
+    var bdir = await subdir(SAFE_DIR, false), days = [];
+    try {
+      if(bdir) for await (var ent of bdir.entries()){
+        if(ent[1].kind === 'directory' && /^\d{4}-\d{2}-\d{2}$/.test(ent[0])) days.push(ent[0]);
+      }
+    } catch(e){ host.textContent = 'Nepavyko perskaityti atsargų: ' + (e && e.message ? e.message : e); return; }
+    days.sort().reverse();
+    host.innerHTML = '';
+    host.appendChild(el('p', {class:'md-note', text:'Kiekvieną dieną (pirmą kartą atidarius lapą) aplanke „' + SAFE_DIR + '“ išsaugoma visų lapų kopija; laikomos paskutinės ' + SAFE_KEEP_DAYS + ' dienų. Čia galite susigrąžinti ištrintą lapą arba senesnę jo versiją (kaip kopiją).'}));
+    if(!days.length){ host.appendChild(el('div', {class:'md-empty', text:'Atsarginių kopijų dar nėra – pirmoji bus sukurta, kai aplanke bus bent vienas lapas.'})); return; }
+    for(var i = 0; i < days.length; i++){
+      (function(day){
+        host.appendChild(toolsRow(day, '', [ { text: 'Peržiūrėti lapus', fn: function(){ renderBackupDay(host, day); } } ]));
+      })(days[i]);
+    }
+  }
+  async function renderBackupDay(host, day){
+    host.textContent = 'Kraunama…';
+    var bdir = await subdir(SAFE_DIR, false), dd = null, items = [], cur = {};
+    try {
+      dd = bdir ? await bdir.getDirectoryHandle(day) : null;
+      items = await listJsonObjects(dd);
+      cur = await listRemoteProjects(await backupDir.getDirectoryHandle(PROJ_DIR, { create: true }));
+    } catch(e){ host.textContent = 'Nepavyko perskaityti kopijos: ' + (e && e.message ? e.message : e); return; }
+    items.sort(function(a, b){ return cmpOpt(objTitle(a.obj), objTitle(b.obj)); });
+    host.innerHTML = '';
+    var back = el('button', {type:'button', class:'md-link', text:'← Visos atsargos'});
+    back.addEventListener('click', function(){ renderBackupsTab(host); });
+    host.appendChild(back);
+    host.appendChild(el('p', {class:'md-note', text:'Atsarginė kopija ' + day + ' · lapų: ' + items.length + '. „Atkurti“ grąžina aplanke nebeesantį lapą; esamo lapo senesnę versiją galima atkurti tik kaip atskirą kopiją.'}));
+    var missing = items.filter(function(it){ return !cur[it.obj.id]; });
+    if(missing.length){
+      var all = el('button', {type:'button', class:'primary', text:'Atkurti visus trūkstamus (' + missing.length + ')'});
+      all.style.cssText = 'margin:0 0 6px;padding:8px 14px;border-radius:8px;border:1px solid var(--ink);background:var(--ink);color:#fff;font-weight:600;cursor:pointer;font-family:inherit;font-size:.8rem;';
+      all.addEventListener('click', function(){
+        all.disabled = true;
+        missing.reduce(function(pr, it){ return pr.then(function(){ return writeRestored(it.obj, false, day); }); }, Promise.resolve())
+          .then(afterToolsAction).then(function(){ renderBackupDay(host, day); }, function(e){ uiAlert('Nepavyko atkurti: ' + (e && e.message ? e.message : e)); renderBackupDay(host, day); });
+      });
+      host.appendChild(all);
+    }
+    items.forEach(function(it){
+      var st = it.obj.state || {}, m = st.meta || {};
+      var meta = [m.designer ? 'darė ' + m.designer : '', m.author ? 'pildė ' + m.author : ''].filter(Boolean).join(' · ');
+      var exists = !!cur[it.obj.id];
+      host.appendChild(toolsRow(objTitle(it.obj), (exists ? 'yra aplanke' : 'nėra aplanke') + (meta ? ' · ' + meta : ''), [
+        exists
+          ? { text: 'Atkurti kaip kopiją', fn: function(){ writeRestored(it.obj, true, day).then(afterToolsAction).then(function(){ renderBackupDay(host, day); }, function(e){ uiAlert('Nepavyko atkurti: ' + (e && e.message ? e.message : e)); renderBackupDay(host, day); }); } }
+          : { text: 'Atkurti', fn: function(){ writeRestored(it.obj, false, day).then(afterToolsAction).then(function(){ renderBackupDay(host, day); }, function(e){ uiAlert('Nepavyko atkurti: ' + (e && e.message ? e.message : e)); renderBackupDay(host, day); }); } }
+      ]));
+    });
+  }
+  function openFolderTools(startTab){
+    if(!backupDir) return;
+    var m = openModal('Šiukšlinė ir atsargos', true);
+    var tabs = el('div', {class:'md-tabs'});
+    var tT = el('button', {type:'button', text:'🗑 Šiukšlinė'}), tB = el('button', {type:'button', text:'🗂 Atsarginės kopijos'});
+    tabs.appendChild(tT); tabs.appendChild(tB);
+    var host = el('div');
+    m.body.appendChild(tabs); m.body.appendChild(host);
+    function show(tab){
+      tT.className = tab === 'trash' ? 'active' : ''; tB.className = tab === 'backups' ? 'active' : '';
+      if(tab === 'trash') renderTrashTab(host); else renderBackupsTab(host);
+    }
+    tT.addEventListener('click', function(){ show('trash'); });
+    tB.addEventListener('click', function(){ show('backups'); });
+    show(startTab || 'trash');
+  }
+
   // ---- būsenos tekstas ----
   function setBackupMsg(text, kind){ backupMsg = text ? { text: text, kind: kind || '' } : null; renderBackupUI(); }
   function renderBackupUI(){
@@ -3639,10 +4880,16 @@
     var showList = (gate === 'ok' || gate === 'unsupported');
     cont.style.display = showList ? '' : 'none';
     newBtn.style.display = showList ? '' : 'none';
+    var fbox = document.getElementById('listFilters');
+    fbox.setAttribute('data-gate', showList ? 'show' : 'hide');
+    if(!showList) fbox.style.display = 'none';
     panel.className = 'backup-panel' + (showList ? '' : ' gate');
     pickBtn.style.display = (gate === 'unsupported' || gate === 'loading') ? 'none' : '';
     nowBtn.style.display = (gate === 'unsupported' || gate === 'loading' || gate === 'nodir') ? 'none' : '';
     dlBtn.style.display = upBtn.style.display = (gate === 'unsupported') ? '' : 'none';
+    var toolsBtn = document.getElementById('toolsBtn');
+    toolsBtn.style.display = (gate === 'ok') ? '' : 'none';
+    toolsBtn.textContent = '🗂 Šiukšlinė ir atsargos' + (trashCount ? ' (' + trashCount + ')' : '');
     pickBtn.className = (gate === 'nodir') ? 'primary' : '';
     nowBtn.className = (gate === 'perm' || gate === 'err') ? 'primary' : '';
 
@@ -3805,8 +5052,10 @@
       if(!loc || !Array.isArray(o.lists[key])) return;
       o.lists[key].forEach(function(v){
         if(key === STEP_TYPES_KEY) v = stripStepWord(v);
+        v = lcOpt(v);
         if(typeof v === 'string' && loc.indexOf(v) === -1){ loc.push(v); n++; }
       });
+      orderList(loc);
       try { localStorage.setItem(key, JSON.stringify(loc)); } catch(e){ /* ignore */ }
     });
     return 'Pridėta pasirinkimų iš sąrašo failo: ' + n + '.';
@@ -3829,7 +5078,7 @@
         return askName.then(function(nm){
           if(nm && nm.trim()) rememberAuthor(nm.trim());
           backupDir = h; backupNeedsPerm = false; backupMsg = null; remoteCache = {};
-          kvReset(); syncNotices = {}; listLoaded = false; legacyOffered = false; syncLastAt = undefined;
+          kvReset(); syncNotices = {}; listLoaded = false; legacyOffered = false; syncLastAt = undefined; templates = []; tplCache = {}; remoteLocks = {}; lockSeen = {};
           renderBackupUI(); renderProjectList();
           return idbSet('dir', h).catch(function(){ /* ignore */ }).then(function(){
             return ensureBackupPerm(h, true).then(function(ok){
@@ -3911,6 +5160,7 @@
 
   document.getElementById('backupPickBtn').addEventListener('click', onPickDir);
   document.getElementById('backupNowBtn').addEventListener('click', onSyncNow);
+  document.getElementById('toolsBtn').addEventListener('click', function(){ openFolderTools('trash'); });
   document.getElementById('backupDownloadBtn').addEventListener('click', onDownload);
   document.getElementById('backupUploadBtn').addEventListener('click', function(){
     document.getElementById('backupFileInput').click();
@@ -3938,8 +5188,9 @@
       });
     }).catch(function(){ backupInited = true; renderBackupUI(); });
     setInterval(function(){ if(backupDir && listLoaded && !document.hidden && !syncBusy) syncNow(); }, SYNC_EVERY_MS);
+    setInterval(function(){ if(backupDir && listLoaded) refreshLocks(); }, LOCK_BEAT_MS);
     document.addEventListener('visibilitychange', function(){
-      if(backupDir && listLoaded) syncNow();   // paslėpiant langą – įrašome, grįžus – atnaujiname
+      if(backupDir && listLoaded){ syncNow(); refreshLocks(); }   // paslėpiant langą – įrašome, grįžus – atnaujiname
     });
     window.addEventListener('beforeunload', function(e){
       var unsaved = loadIndex().some(function(x){
