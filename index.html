@@ -399,6 +399,7 @@
      how it will print, without losing the ability to edit it. */
   .type-select-btn:hover, .type-select-btn.open { border-color: #ddd; background: #fff; }
   .type-select-btn.placeholder { color: #b9b4a8; font-weight: 400; }
+  .type-select-btn.locked { cursor: default; pointer-events: none; }
   .type-select-btn .caret {
     font-size: 0.6rem; color: #999; line-height: 1; transition: transform .15s, opacity .15s; transform: rotate(0deg);
     opacity: 0.35;
@@ -1272,6 +1273,103 @@
       material: '', length: '', width: '', height: '',
       simple: !!simple, detailed: !!detailed
     };
+  }
+
+  // ---- Kamštukai pagal Dažymo spalvas ----
+  // Kiek spalvų pasirinkta skiltyje „Dažymas“, tiek eilučių „Kamštukai“ atsiranda skiltyje „Įdėti“
+  // (po vieną kiekvienai spalvai) – belieka įrašyti vienetų skaičių. Eilutė turi `autoColor` –
+  // spalvą, pagal kurią ji sukurta; kiekis išlieka, kai keičiasi kitos spalvos.
+  //  • pašalinus spalvą iš Dažymo – pašalinama jos eilutė; pašalinus visas – lieka viena paprasta „Kamštukai“;
+  //  • ranka pašalinta kamštukų eilutė neatsiranda iš naujo (spalva įrašoma į `kamSkip`);
+  //  • jei lape visai nėra kamštukų eilutės – nieko nekuriama;
+  //  • atidarant seną lapą nieko nekeičiama – sinchronizuojama tik pakeitus spalvas.
+  function findListByTitle(st, re){
+    var found = null;
+    (st.lists || []).forEach(function(l){ if(!found && re.test(l.title || '')) found = l; });
+    return found;
+  }
+  function paintColors(st){
+    var out = [], seen = {};
+    var pl = findListByTitle(st, /dažym|dazym/i);
+    (pl ? pl.lines || [] : []).forEach(function(l){
+      var c = l && typeof l.color === 'string' ? l.color.trim() : '';
+      if(!c || c === NONE_OPTION || seen[c]) return;
+      seen[c] = true; out.push(c);
+    });
+    return out;
+  }
+  function kamSigOf(st){
+    var il = findListByTitle(st, /dėti|deti/i);
+    return paintColors(st).join('\u0001') + '|' + ((il && il.kamSkip) || []).join('\u0001');
+  }
+  function isPlainKamRow(l){
+    return l && typeof l === 'object' && !l.simple && !l.detailed && typeof l.autoColor !== 'string' && /kamštuk|kamstuk/i.test(l.item || '');
+  }
+  function syncKamstukai(st){
+    var il = findListByTitle(st, /dėti|deti/i);
+    if(!il || !Array.isArray(il.lines)) return false;
+    var colors = paintColors(st);
+    var skip = Array.isArray(il.kamSkip) ? il.kamSkip : [];
+    // Ranka pašalintų spalvų sąrašas: paliekamos tik tos, kurios dar yra Dažyme.
+    var keptSkip = skip.filter(function(c){ return colors.indexOf(c) >= 0; });
+    if(keptSkip.length !== skip.length){ if(keptSkip.length) il.kamSkip = keptSkip; else delete il.kamSkip; }
+    var target = colors.filter(function(c){ return keptSkip.indexOf(c) < 0; });
+
+    var lines = il.lines;
+    var E = lines.filter(function(l){ return l && typeof l === 'object' && typeof l.autoColor === 'string'; });
+    var base = null;
+    if(!E.length){
+      for(var i = 0; i < lines.length; i++){ if(isPlainKamRow(lines[i])){ base = lines[i]; break; } }
+      if(!base) return false;                 // kamštukų eilutės nėra (pašalinta) – nekuriame
+    }
+    var changed = false;
+
+    if(!colors.length){                       // spalvų nebėra – grįžtame prie vienos paprastos eilutės
+      if(!E.length) return false;
+      var first = E[0];
+      delete first.autoColor; first.finish = '';
+      lines.splice(0, lines.length, ...lines.filter(function(l){ return E.indexOf(l) < 0 || l === first; }));
+      return true;
+    }
+
+    if(!target.length && !E.length) return false;
+    var pool = E.slice();
+    if(!pool.length){ base.autoColor = '\u0000'; pool = [base]; }   // paprasta eilutė tampa pirma spalvos eilute
+    var oldOrder = lines.filter(function(l){ return pool.indexOf(l) >= 0; });
+    var pos = lines.indexOf(oldOrder[0]);
+
+    var rowFor = {};
+    target.forEach(function(c){
+      for(var j = 0; j < pool.length; j++){ if(pool[j].autoColor === c){ rowFor[c] = pool[j]; pool.splice(j, 1); break; } }
+    });
+    var result = [];
+    target.forEach(function(c){
+      var r = rowFor[c];
+      if(!r){
+        if(pool.length){ r = pool.shift(); }                      // pervadinta spalva – kiekis lieka
+        else { r = newIdetiLine('Kamštukai'); }
+      }
+      if(r.autoColor !== c || r.finish !== c){ changed = true; }
+      r.autoColor = c; r.finish = c;
+      result.push(r);
+    });
+    var rest = lines.filter(function(l){ return oldOrder.indexOf(l) < 0; });
+    var newLines = rest.slice();
+    newLines.splice(Math.min(pos, newLines.length), 0, ...result);
+    if(newLines.length !== lines.length || newLines.some(function(l, k){ return l !== lines[k]; })) changed = true;
+    if(changed){ lines.splice(0, lines.length, ...newLines); }
+    return changed;
+  }
+  var kamSig = null;
+  function maybeSyncKamstukai(){
+    if(!state) return false;
+    var sig = kamSigOf(state);
+    if(kamSig === null){ kamSig = sig; return false; }   // ką tik atidarytas lapas – nieko nekeičiame
+    if(sig === kamSig) return false;
+    kamSig = sig;
+    var ch = syncKamstukai(state);
+    kamSig = kamSigOf(state);
+    return ch;
   }
 
   // ---- užsakymo žyma (Nr., užpildė, versija) ----
@@ -2262,6 +2360,7 @@
     migrate(st);
     currentProjectId = id;
     state = st;
+    kamSig = null;
     resetHistory();
     hideUndoToast();
     document.getElementById('projectListView').style.display = 'none';
@@ -3148,14 +3247,20 @@
 
     // "Apvalūs" has no use for a finish choice — skip it entirely.
     // "Kamštukai" uses the same short apdaila list as "Pap. detalė".
-    if(!isApvalus && !isSilikonas){
+    var isAuto = typeof lineObj.autoColor === 'string';
+    if(isAuto){
+      // Spalva paimta iš Dažymo – čia nekeičiama, tik rodoma.
+      var lockWrap = el('div', {class:'ideti-finish-wrap ideti-auto-finish', title:'Spalva paimta iš skilties „Dažymas“'});
+      lockWrap.appendChild(el('span', {class:'type-select-btn locked', text: typeDisplayLabel(lineObj.autoColor)}));
+      row.appendChild(lockWrap);
+    } else if(!isApvalus && !isSilikonas){
       var finishOptions = isKamstukai ? IDETI_DETAIL_FINISH_OPTIONS : IDETI_FINISH_OPTIONS;
       var finishKey = isKamstukai ? IDETI_DETAIL_FINISH_KEY : IDETI_FINISH_KEY;
       row.appendChild(makeDropdown('finish', finishOptions, finishKey, 'Apdaila'));
     }
 
     // „Kamštukai“: tik apdaila ir vienetai (be diametro).
-    if(!isSilikonas && !isKamstukai) row.appendChild(makeDropdown('diameter', IDETI_DIAMETER_OPTIONS, IDETI_DIAMETER_KEY, 'Diametras'));
+    if(!isSilikonas && !isKamstukai && !isAuto) row.appendChild(makeDropdown('diameter', IDETI_DIAMETER_OPTIONS, IDETI_DIAMETER_KEY, 'Diametras'));
 
     var qtyWrap = el('div', {class:'ideti-qty-wrap'});
     var qty = el('div', {class:'ideti-qty-input', contenteditable:'true', 'data-ph':'0'});
@@ -3175,6 +3280,11 @@
 
     var del = el('button', {class:'del-line', type:'button', title:'Šalinti eilutę', text:'×'});
     del.addEventListener('click', function(){
+      if(isAuto){
+        // Ranka pašalinta spalvos eilutė neatsiranda iš naujo, kol spalva lieka Dažyme.
+        var idl = findListByTitle(state, /dėti|deti/i);
+        if(idl){ if(!Array.isArray(idl.kamSkip)) idl.kamSkip = []; if(idl.kamSkip.indexOf(lineObj.autoColor) < 0) idl.kamSkip.push(lineObj.autoColor); }
+      }
       lines.splice(idx, 1);
       if(lines.length === 0) lines.push(newIdetiLine());
       renderAll();
@@ -3430,6 +3540,7 @@
   });
 
   function renderAll(){
+    if(maybeSyncKamstukai()){ Promise.resolve().then(function(){ if(state && currentProjectId) save(); }); }
     var titleBox = document.getElementById('titleBox');
     if(titleBox.textContent !== state.title) titleBox.textContent = state.title;
     fitTitleFont();
