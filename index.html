@@ -665,6 +665,68 @@
   }
   .add-section-bar button:hover { color: var(--ink); border-color: var(--ink); }
 
+  /* ---- Pildymo ekranas = spaudinys ----
+     Ekrane lapas atrodo taip pat kontrastingai kaip popieriuje (žr. skaitomumo taisykles
+     @media print bloke): tamsus tekstas, stipresni rėmeliai, žali pavadinimų ruožai, didesni
+     raštai. Reikšmės čia tos pačios kaip spaudinio, todėl nėra skirtumo tarp to, ką matote ir
+     ką atspausdinsite. Valdymo mygtukai (×, komentaras) ekrane liko, tik tamsesni. */
+  @media screen {
+    .sheet .box { border: 1.6px solid #333; border-radius: 8px; }
+    .sheet .box-title-row {
+      background: #cde6da; color: #06382a; border-bottom: 2.2px solid #0b6b4d;
+      font-size: 0.9rem; font-weight: 800; letter-spacing: 0.04em; border-radius: 6.4px 6.4px 0 0;
+    }
+    .sheet .stamp-row { font-size: 0.88rem; }
+    .sheet .stamp-label, .sheet .field-label, .sheet .type-picker-label, .sheet .ideti-unit, .sheet .ideti-dim-x { color: #1c1c1c; }
+    .sheet .stamp-val { color: #000; font-weight: 700; }
+    .sheet .field-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; }
+    .sheet .type-picker-label { font-size: 0.86rem; font-weight: 500; }
+    .sheet .ideti-unit, .sheet .ideti-dim-x { font-size: 0.82rem; font-weight: 500; }
+    .sheet .type-select-btn { font-size: 0.95rem; font-weight: 800; color: #0a5a42; }
+    .sheet .type-select-btn.placeholder { color: #444; font-weight: 600; }
+    .sheet .type-select-btn .caret { color: #333; opacity: 0.7; }
+    .sheet .ideti-qty-input, .sheet .ideti-dim-input { color: #0a5a42; font-weight: 800; font-size: 0.92rem; }
+    .sheet .ideti-initials { font-size: 0.85rem; color: #000; }
+    .sheet [data-ph]:empty:before { color: #6a6a6a; }
+    .sheet .line-text { font-size: 0.92rem; line-height: 1.3; color: #000; }
+    .sheet .paint-details, .sheet .paint-details .chip { font-size: 0.92rem; color: #000; }
+    .sheet .chip, .sheet .spec-chip { font-size: 0.82rem; font-weight: 600; color: #000; background: #ece9e1; border: 1px solid #555; max-width: none; }
+    .sheet .spec-chip { font-size: 0.9rem; }
+    .sheet .chip .rm, .sheet .spec-chip .rm { color: #555; }
+    .sheet .row-comment-area { font-size: 0.86rem; color: #000; background: #f1efe8; border: 1px solid #888; line-height: 1.3; border-radius: 4px; padding: 3px 8px; }
+    .sheet .notes-box .notes-area { font-size: 0.92rem; line-height: 1.4; color: #000; }
+    .sheet .line-row, .sheet .type-picker-row, .sheet .row-comment-row { border-bottom-color: #777; }
+    .sheet .ideti-finish-wrap, .sheet .ideti-qty-wrap, .sheet .ideti-initials, .sheet .ideti-dim-wrap { border-left-color: #777; }
+    .sheet .ideti-dim-input { border-bottom-color: #555; }
+    .sheet .blanks-area { max-width: 50%; }
+    .sheet .chip, .sheet .spec-chip { white-space: normal; overflow: visible; text-overflow: clip; }
+    .sheet .paint-details .chip { background: none; border: none; padding: 0; font-weight: 400; }
+    .sheet .row-comment-btn, .sheet .del-field, .sheet .del-line, .sheet .del-section, .sheet .section-comment-btn { color: #555; }
+    .sheet .del-field { opacity: 1; }
+    .sheet .row-comment-btn.has-comment, .sheet .section-comment-btn.has-comment { color: #0a5a42; }
+    .sheet .blanks-toggle { color: #222; border-color: #777; font-size: 0.78rem; }
+    .sheet .add-line { color: #333; }
+    .sheet .stamp-val[contenteditable]:hover, .sheet .stamp-val[contenteditable]:focus { border-bottom-color: #555; }
+    .sheet .spec-empty { color: #444; font-size: 0.9rem; }
+    .sheet .yesno-select-btn.yes, .sheet .yesno-select-btn.no { color: #fff; font-size: 0.95rem; font-weight: 800; }
+    .sheet .yesno-select-btn .caret { color: #fff; opacity: 0.9; }
+    .sheet .yesno-select-btn.no { background: #b3402f; border-color: #b3402f; }
+    .sheet .yesno-select-btn.yes { background: #0a5a42; border-color: #0a5a42; }
+    /* išskleidžiami sąrašai: tamsesnis ir didesnis tekstas */
+    .sheet .blanks-popover { border: 1.5px solid #555; min-width: 250px; max-width: 340px; }
+    .sheet .stair-type-opt { font-size: 0.92rem; color: #111; padding: 8px 9px; }
+    .sheet .stair-type-opt:before { border-color: #555; width: 8px; height: 8px; }
+    .sheet .stair-type-opt.selected { color: #0a5a42; font-weight: 800; }
+    .sheet .stair-type-opt.none-opt { color: #333; }
+    .sheet .stair-type-opt.add-new { color: #0a5a42; font-weight: 700; border-top-color: #999; }
+    .sheet .stair-type-opt .opt-del, .sheet .blanks-popover label .opt-del { opacity: .8; color: #b3402f; font-size: 1rem; }
+    .sheet .blanks-popover label { font-size: 0.9rem; color: #111; padding: 6px 3px; }
+    .sheet .blanks-popover .grp-title { font-size: 0.74rem; font-weight: 700; color: #333; }
+    .sheet .blanks-popover .empty-msg { font-size: 0.86rem; color: #333; }
+    .sheet .popover-add-row { border-top-color: #999; }
+    .sheet .popover-add-input { font-size: 0.9rem; color: #000; border-color: #777; }
+  }
+
   /* Fixed page geometry so the auto-fit script (fitSheetToPage, in the
      script block) can compute an exact scale against a known printable
      area — without this, a different default paper size/margins on the
@@ -3298,8 +3360,8 @@
     if(!box.textContent || !box.textContent.trim()){ box.style.fontSize = ''; return; }
     var size = TITLE_FONT_MAX;
     box.style.fontSize = size + 'px';
-    if(printPreviewStyle){
-      // Spausdinant ilgas pavadinimas lūžta į 2 eilutes (didesnis šriftas nei vienoje eilutėje).
+    {
+      // Ilgas pavadinimas (ekrane ir spaudinyje) lūžta į 2 eilutes – šriftas didesnis nei vienoje eilutėje.
       box.style.whiteSpace = 'normal'; box.style.lineHeight = '1.15';
       var countLines = function(){
         var r = document.createRange(); r.selectNodeContents(box);
@@ -3312,11 +3374,6 @@
         box.style.fontSize = size + 'px';
       }
       return;
-    }
-    box.style.whiteSpace = ''; box.style.lineHeight = '';
-    while(box.scrollWidth > box.clientWidth && size > TITLE_FONT_MIN){
-      size -= 1;
-      box.style.fontSize = size + 'px';
     }
   }
   window.addEventListener('resize', function(){
