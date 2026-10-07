@@ -103,13 +103,6 @@
   }
   .filter-chip:hover { color: var(--ink); }
   .filter-chip.active { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .filter-chip.sum-chip { margin-left: auto; }
-  .missing-dialog .sum-h { margin: 16px 0 6px; font-size: 0.82rem; color: var(--ink); }
-  .missing-dialog .sum-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-  .missing-dialog .sum-table th { text-align: left; font-weight: 600; color: #777; font-size: 0.72rem; padding: 4px 8px; border-bottom: 1px solid #e6e2d8; }
-  .missing-dialog .sum-table td { padding: 6px 8px; border-bottom: 1px solid #f0ede6; vertical-align: top; }
-  .missing-dialog .sum-table .num { text-align: right; white-space: nowrap; }
-  .missing-dialog .sum-table th.num { text-align: right; }
   .project-card .pc-chip.warn { background: #fff1d6; border-color: #e6b866; color: #8a5200; }
   .project-card .pc-chip.lock { background: #e3f1fb; border-color: #9cc7e8; color: #1c5a85; }
   .project-card .pc-status {
@@ -117,7 +110,6 @@
     border: 1px solid #d8d4c8; background: #f4f2ec; color: #666; outline: none;
   }
   .project-card .pc-status.st-released { background: #e3f1fb; border-color: #9cc7e8; color: #1c5a85; }
-  .project-card .pc-status.st-done { background: #e2f3ea; border-color: #8fcaa9; color: #17694a; }
   .list-empty {
     text-align: center; padding: 48px 20px; color: var(--muted); font-size: 0.86rem;
     background: var(--card); border: 1px dashed var(--card-border); border-radius: 12px;
@@ -173,7 +165,6 @@
     border: 1px solid #d8d4c8; background: #f4f2ec; color: #555; outline: none;
   }
   .toolbar .status-select.st-released { background: #e3f1fb; border-color: #9cc7e8; color: #1c5a85; }
-  .toolbar .status-select.st-done { background: #e2f3ea; border-color: #8fcaa9; color: #17694a; }
   .toolbar .save-hint { font-size: 0.72rem; color: var(--muted); width: 100%; order: 99; margin-top: 2px; }
 
   /* ================= SHEET ================= */
@@ -202,6 +193,8 @@
     font-size: clamp(1.15rem, 2.4vw, 1.4rem); font-weight: 800; letter-spacing: -0.02em; color: var(--ink);
     white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
   }
+  /* Mediena – laisvo teksto laukas (rašoma kaip pavadinimas); šriftas derinamas fitBoxFont. */
+  #specBox { font-size: 1.15rem; font-weight: 700; color: var(--ink); line-height: 1.15; white-space: normal; overflow-wrap: anywhere; }
   [contenteditable]:focus { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
   /* ---- užsakymo žyma: Nr., užpildė, data, versija ---- */
   .stamp-row {
@@ -214,6 +207,15 @@
   .stamp-val[contenteditable]:hover, .stamp-val[contenteditable]:focus { border-bottom-color: #bbb; outline: none; }
   .stamp-val[data-ph]:empty:before { font-size: 0.74rem; }
   #stampDateItem { margin-left: auto; }
+  .stamp-dest-wrap { margin-left: 0; }
+  .stamp-dest .type-select-btn { font-size: inherit; font-weight: 700; padding: 0 4px; color: #222; border-bottom: 1px dashed transparent; border-radius: 4px; }
+  .stamp-dest .type-select-btn.placeholder { font-size: 0.74rem; font-weight: 400; color: #b9b4a8; }
+  .stamp-dest .blanks-popover { right: auto; left: 0; min-width: 190px; }
+  .dest-opt { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; font: inherit; font-size: 0.95rem; font-weight: 700; color: #111; background: none; border: none; border-radius: 6px; padding: 7px 8px; cursor: pointer; }
+  .dest-opt:hover { background: var(--paper); }
+  .dest-opt.sel:before { content: '✓'; color: var(--accent); }
+  .dest-opt:not(.sel):before { content: ''; display: inline-block; width: 0.8em; }
+  .dest-opt.none { font-weight: 400; color: #777; }
   .stamp-ver { background: var(--ink); color: #fff; border-radius: 10px; padding: 1px 9px; min-width: 0; font-weight: 700; line-height: 1.3; }
 
   /* ---- Atgal / Pirmyn ir pranešimas apie pašalinimą ---- */
@@ -618,6 +620,10 @@
     opacity: 0; transition: color .15s, opacity .15s;
   }
   .add-line:hover { color: var(--accent); }
+  .both-sides-row { align-items: center; border-bottom: 1px solid var(--divider); }
+  .both-sides-row .both-sides-label { flex: none; white-space: nowrap; padding: 9px 0 9px 16px; }
+  .both-sides-row .both-sides-text { font-weight: 600; padding-left: 8px; }
+  .both-sides-row .del-line { opacity: 1; }
   .box:hover .add-line, .box:focus-within .add-line { opacity: 1; }
 
   .del-section {
@@ -680,6 +686,8 @@
     .sheet .stamp-row { font-size: 0.88rem; }
     .sheet .stamp-label, .sheet .field-label, .sheet .type-picker-label, .sheet .ideti-unit, .sheet .ideti-dim-x { color: #1c1c1c; }
     .sheet .stamp-val { color: #000; font-weight: 700; }
+    .sheet .stamp-dest .type-select-btn { font-size: inherit; font-weight: 700; color: #000; padding: 0 4px; }
+    .sheet .stamp-dest .type-select-btn .caret { color: #333; }
     .sheet .field-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; }
     .sheet .type-picker-label { font-size: 0.86rem; font-weight: 500; }
     .sheet .ideti-unit, .sheet .ideti-dim-x { font-size: 0.82rem; font-weight: 500; }
@@ -849,6 +857,7 @@
     .stamp-row { font-size: 0.88rem; }
     .stamp-label, .field-label, .type-picker-label, .ideti-unit, .ideti-dim-x { color: #1c1c1c !important; }
     .stamp-val { color: #000; font-weight: 700; }
+    .stamp-dest .type-select-btn { font-size: inherit !important; font-weight: 700 !important; color: #000 !important; padding: 0 !important; }
     .field-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; }
     .type-picker-label { font-size: 0.86rem; font-weight: 500; }
     .ideti-unit { font-size: 0.82rem; font-weight: 500; }
@@ -949,6 +958,7 @@
       <div class="stamp-row" id="stampRow">
         <span class="stamp-item" id="stampDesignerItem"><span class="stamp-label">Projektą darė</span><span class="stamp-val" id="stampDesigner" contenteditable="true" data-ph="vardas, pavardė"></span></span>
         <span class="stamp-item" id="stampAuthorItem"><span class="stamp-label">Lapą pildė</span><span class="stamp-val" id="stampAuthor" contenteditable="true" data-ph="vardas, pavardė"></span></span>
+        <span class="stamp-item stamp-dest" id="stampDestItem"><span class="stamp-label">Projektas skirtas</span><span class="type-picker-wrap stamp-dest-wrap" id="stampDestWrap"></span></span>
         <span class="stamp-item stamp-auto" id="stampDateItem"><span class="stamp-label">Data</span><span class="stamp-val" id="stampDate"></span></span>
       </div>
       <div class="header-row">
@@ -958,12 +968,7 @@
         </div>
         <div class="field-with-label">
           <div class="field-label">Mediena</div>
-          <div class="box header-box spec-box">
-            <div class="spec-chips-wrap" id="specChips"></div>
-            <div class="spec-picker">
-              <button class="blanks-toggle" type="button" id="specAddBtn">+ pasirinkti medžiagą</button>
-            </div>
-          </div>
+          <div class="box header-box" id="specBox" contenteditable="true" data-ph="Mediena"></div>
         </div>
       </div>
 
@@ -1037,8 +1042,8 @@
     while(log.length > LOG_MAX) log.shift();
   }
 
-  var STATUS_ORDER = ['draft', 'released', 'done'];
-  var STATUS_LABELS = { draft: 'juodraštis', released: 'perduota gamybai', done: 'pagaminta' };
+  var STATUS_ORDER = ['draft', 'released'];
+  var STATUS_LABELS = { draft: 'juodraštis', released: 'perduota gamybai' };
 
   var MEDIENA_KEY = 'gamybos-mediena';
   var DEFAULT_MATERIALS = [
@@ -1269,7 +1274,7 @@
   // wood type, L×W×H, quantity, finish and initials.
   function newIdetiLine(item, simple, detailed){
     return {
-      item: item || '', qty: '', initials: '', finish: '', diameter: '',
+      item: item || '', qty: detailed ? '1' : '', initials: '', finish: '', diameter: '',   // „Pap. detalė“ – paprastai 1 vnt.
       material: '', length: '', width: '', height: '',
       simple: !!simple, detailed: !!detailed
     };
@@ -1388,16 +1393,16 @@
 
   function blankProjectState(){
     return {
-      meta: { number: '', noNumber: false, designer: '', author: lastAuthor(), created: todayStr(), printed: null, status: 'draft', log: [ { t: 'created', by: logWho(), at: Date.now(), info: '' } ] },
+      meta: { number: '', noNumber: false, designer: '', author: '', created: todayStr(), printed: null, status: 'draft', log: [ { t: 'created', by: logWho(), at: Date.now(), info: '' } ] },
       title: '',
-      specMaterials: [],
+      mediena: '', destination: '',
       pairs: [
         { title: 'Laiptai', stairType: '', baseType: '', stepType: '', handrailType: '', postType: '', lines: [ newPairLine('') ] },
         { title: 'Balkonas', baseType: '', handrailType: '', postType: '', lines: [ newPairLine('') ] }
       ],
       lists: [
         { title: 'Ruošiniai', lines: [ newMaterialLine() ] },
-        { title: 'Dažymas', lines: [ newPaintLine() ], bothSides: false },
+        { title: 'Dažymas', lines: [ newPaintLine() ], bothSidesText: '' },
         { title: 'Įdėti', lines: [
             newIdetiLine('Silikonas'), newIdetiLine('Kamštukai'), newIdetiLine('Apvalūs'),
             newIdetiLine('Dažai', true), newIdetiLine('Beicas', true), newIdetiLine('Apvalūs 300 mm', true),
@@ -1494,7 +1499,10 @@
 
   // Upgrade older saved project states where pair lines were plain strings.
   function migrate(s){
-    if(!Array.isArray(s.specMaterials)) s.specMaterials = [];
+    // „Mediena“ – laisvas tekstas (anksčiau – žymos iš sąrašo). Senos žymos paverčiamos tekstu, bet paliekamos
+    // nepaliestos (kad nepasikeistų jau atspausdinto lapo turinio parašas), kol mediena nepakeista ranka.
+    if(typeof s.destination !== 'string') s.destination = '';
+    if(typeof s.mediena !== 'string') s.mediena = Array.isArray(s.specMaterials) ? s.specMaterials.join(', ') : '';
     if(!s.meta || typeof s.meta !== 'object') s.meta = {};
     if(typeof s.meta.number !== 'string') s.meta.number = '';
     if(typeof s.meta.author !== 'string') s.meta.author = '';
@@ -1502,9 +1510,10 @@
     s.meta.noNumber = !!s.meta.noNumber;
     if(!s.meta.created) s.meta.created = todayStr();
     if(!s.meta.printed || typeof s.meta.printed !== 'object') s.meta.printed = null;
+    if(s.meta.status === 'done') s.meta.status = 'released';   // būsena „pagaminta“ panaikinta
     if(STATUS_ORDER.indexOf(s.meta.status) === -1) s.meta.status = 'draft';
     if(!Array.isArray(s.meta.log)) s.meta.log = [];
-    s.specMaterials = s.specMaterials.map(lcOpt).filter(function(v, i, a){ return v && a.indexOf(v) === i; }).sort(cmpOpt);
+    if(Array.isArray(s.specMaterials)) s.specMaterials = s.specMaterials.map(lcOpt).filter(function(v, i, a){ return v && a.indexOf(v) === i; }).sort(cmpOpt);
     (s.pairs || []).forEach(function(p){
       ['stairType', 'baseType', 'stepType', 'handrailType', 'postType'].forEach(function(k){ if(typeof p[k] === 'string') p[k] = lcOpt(p[k]); });
       if(/laiptai/i.test(p.title || '')){
@@ -1588,7 +1597,12 @@
           return newPaintLine();
         });
         if(l.lines.length === 0) l.lines.push(newPaintLine());
-        if(typeof l.bothSides !== 'boolean') l.bothSides = false;
+        // Senas klausimas „Ar yra detalių, kurios matosi iš abiejų pusių?“ (Taip/Ne) pakeistas laisvu tekstu.
+        if(typeof l.bothSidesText !== 'string'){
+          l.bothSidesText = (l.bothSides === true) ? ((typeof l.bothSidesComment === 'string' && l.bothSidesComment.trim()) || 'taip') : '';
+        }
+        delete l.bothSides; delete l.bothSidesComment;
+        l.bothSidesOff = !!l.bothSidesOff;
       } else if(isRuosiniai){
         l.lines = (l.lines || []).map(function(item){
           if(item && typeof item === 'object'){
@@ -1901,7 +1915,8 @@
     if(!(st.title || '').trim()) n++;
     if(!m.designer) n++;
     if(!m.author) n++;
-    if(!(st.specMaterials || []).length) n++;
+    if(!medienaOf(st).trim()) n++;
+    if(!(st.destination || '').trim()) n++;
     (st.pairs || []).forEach(function(p){
       var keys = /laiptai/i.test(p.title || '') ? ['stairType', 'baseType', 'stepType', 'handrailType', 'postType']
                : (/balkon/i.test(p.title || '') ? ['baseType', 'handrailType', 'postType'] : []);
@@ -1924,19 +1939,19 @@
   function projInfo(entry){
     var st = loadProjectState(entry.id) || {};
     var m = st.meta || {};
-    var status = STATUS_ORDER.indexOf(m.status) !== -1 ? m.status : 'draft';
+    var status = m.status === 'done' ? 'released' : (STATUS_ORDER.indexOf(m.status) !== -1 ? m.status : 'draft');
     var printed = m.printed && typeof m.printed === 'object' ? m.printed : null;
     var changedAfterPrint = false;
     if(printed && printed.sig){ try { changedAfterPrint = (printed.sig !== contentSigOf(st)); } catch(e){ changedAfterPrint = false; } }
-    var hay = [entry.title, m.designer, m.author, entry.editor, (st.specMaterials || []).join(' '), STATUS_LABELS[status]].join(' ');
+    var hay = [entry.title, m.designer, m.author, entry.editor, medienaOf(st), st.destination || '', STATUS_LABELS[status]].join(' ');
     return {
       st: st, status: status, missing: missingCountFromState(st),
       printed: printed, changedAfterPrint: changedAfterPrint, hay: foldText(hay)
     };
   }
   function matchesFilter(info){
-    if(listFilter === 'draft' || listFilter === 'released' || listFilter === 'done') return info.status === listFilter;
-    if(listFilter === 'missing') return info.status !== 'done' && info.missing !== null && info.missing > 0;
+    if(listFilter === 'draft' || listFilter === 'released') return info.status === listFilter;
+    if(listFilter === 'missing') return info.missing !== null && info.missing > 0;
     return true;
   }
   function setProjectStatus(id, status){
@@ -1949,122 +1964,16 @@
     mutateEntry(id, function(x){ x.updatedAt = Date.now(); x.dirty = true; x.v = (x.v | 0) + 1; });
     if(id === currentProjectId && state){ state.meta.status = status; }
   }
-  // ---- medžiagų suvestinė pagal rodomus lapus (+ eksportas į CSV) ----
-  var lastVisibleIds = [];
-  var FIELD_LABELS = { stairType: 'laiptų tipas', baseType: 'tvorelės tipas', stepType: 'pakopų tipas', handrailType: 'porankių tipas', postType: 'stulpų tipas' };
-  function isRealValue(v){ return typeof v === 'string' && v.trim() !== '' && v.trim() !== NONE_OPTION; }
-  // Vieno lapo eilutės suvestinei: { cat, item, extra, qty }
-  function summaryRows(st){
-    var rows = [];
-    (st.specMaterials || []).forEach(function(v){ if(isRealValue(v)) rows.push({ cat: 'Mediena', item: v, extra: '', qty: null }); });
-    (st.pairs || []).forEach(function(p){
-      var t = (p.title || '').trim() || 'Skiltis';
-      Object.keys(FIELD_LABELS).forEach(function(k){
-        if(isRealValue(p[k])) rows.push({ cat: t + ': ' + FIELD_LABELS[k], item: p[k], extra: '', qty: null });
-      });
-    });
-    (st.lists || []).forEach(function(l){
-      var title = l.title || '';
-      var isPaint = /dažym|dazym/i.test(title), isMat = /ruoš|ruos/i.test(title), isIdeti = /dėti|deti/i.test(title);
-      (l.lines || []).forEach(function(line){
-        if(!line || typeof line !== 'object') return;
-        if(isPaint || isMat){
-          var v = isPaint ? line.color : line.material;
-          if(isRealValue(v)) rows.push({ cat: isPaint ? 'Dažymas' : 'Ruošiniai', item: v, extra: (line.details || []).join(', '), qty: null });
-        } else if(isIdeti){
-          var q = String(line.qty || '').trim();
-          var hasQty = q !== '' && q !== '0';
-          var dims = [line.length, line.width, line.height].filter(function(x){ return String(x || '').trim(); });
-          var needed = line.simple ? true : (hasQty || (line.detailed && dims.length));
-          if(!needed || !isRealValue(line.item || '')) return;
-          var parts = [];
-          if(isRealValue(line.material)) parts.push(line.material);
-          if(dims.length) parts.push(dims.join('×') + ' mm');
-          if(isRealValue(line.finish)) parts.push(line.finish);
-          if(isRealValue(line.diameter)) parts.push(line.diameter);
-          var n = parseFloat(q.replace(',', '.'));
-          rows.push({ cat: 'Įdėti', item: line.item, extra: parts.join(', '), qty: isFinite(n) ? n : null, qtyText: q });
-        }
-      });
-    });
-    return rows;
-  }
-  function csvCell(v){ v = String(v === null || v === undefined ? '' : v); return /[";\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
-  function openSummary(){
-    var entries = lastVisibleIds.map(function(id){ return findEntry(id); }).filter(Boolean);
-    var m = openModal('Medžiagų suvestinė', true);
-    if(!entries.length){ m.body.appendChild(el('div', {class:'md-empty', text:'Nėra lapų, iš kurių galima sudaryti suvestinę.'})); return; }
-    var perProject = [], agg = {}, order = [];
-    entries.forEach(function(e){
-      var st = loadProjectState(e.id); if(!st) return;
-      var rows = summaryRows(st);
-      perProject.push({ entry: e, st: st, rows: rows });
-      rows.forEach(function(r){
-        var key = r.cat + '\u0001' + r.item + '\u0001' + r.extra;
-        if(!agg[key]){ agg[key] = { cat: r.cat, item: r.item, extra: r.extra, sheets: {}, qty: 0, hasQty: false, noQty: 0 }; order.push(key); }
-        var a = agg[key]; a.sheets[e.id] = true;
-        if(r.qty !== null){ a.qty += r.qty; a.hasQty = true; }
-        else if(r.cat === 'Įdėti' && r.qtyText) a.noQty++;
-      });
-    });
-    m.body.appendChild(el('p', {class:'md-note', text:'Suvestinė pagal šiuo metu rodomus lapus: ' + perProject.length + '. Norėdami apimti kitus lapus, pakeiskite paiešką ar filtrą sąraše ir atidarykite suvestinę iš naujo.'}));
-    var cats = [];
-    order.forEach(function(k){ if(cats.indexOf(agg[k].cat) === -1) cats.push(agg[k].cat); });
-    var rank = function(c){ return c === 'Mediena' ? 0 : (c === 'Ruošiniai' ? 2 : (c === 'Dažymas' ? 3 : (c === 'Įdėti' ? 4 : 1))); };
-    cats.sort(function(a, b){ return rank(a) - rank(b) || cmpOpt(a, b); });
-    cats.forEach(function(cat){
-      m.body.appendChild(el('h4', {class:'sum-h', text: cat}));
-      var tbl = el('table', {class:'sum-table'});
-      var isIdeti = cat === 'Įdėti';
-      var hr = el('tr'); ['Pozicija', 'Detalės / aprašas', 'Lapų sk.'].concat(isIdeti ? ['Kiekis, vnt.'] : []).forEach(function(h, hi){ hr.appendChild(el('th', {text: h, class: hi >= 2 ? 'num' : ''})); });
-      tbl.appendChild(hr);
-      order.filter(function(k){ return agg[k].cat === cat; }).sort(function(a, b){ return cmpOpt(agg[a].item + agg[a].extra, agg[b].item + agg[b].extra); }).forEach(function(k){
-        var a = agg[k], tr = el('tr');
-        tr.appendChild(el('td', {text: a.item}));
-        tr.appendChild(el('td', {text: a.extra}));
-        tr.appendChild(el('td', {class:'num', text: String(Object.keys(a.sheets).length)}));
-        if(isIdeti) tr.appendChild(el('td', {class:'num', text: a.hasQty ? String(Math.round(a.qty * 100) / 100) + (a.noQty ? ' +?' : '') : (a.noQty ? '?' : '–')}));
-        tbl.appendChild(tr);
-      });
-      m.body.appendChild(tbl);
-    });
-    if(!cats.length) m.body.appendChild(el('div', {class:'md-empty', text:'Pasirinktuose lapuose dar nėra užpildytų pozicijų.'}));
-    var foot = el('div', {class:'md-foot'});
-    var csv = el('button', {type:'button', class:'primary', text:'⤓ Eksportuoti į CSV (Excel)'});
-    csv.style.cssText = 'padding:9px 16px;border-radius:8px;border:1px solid var(--ink);background:var(--ink);color:#fff;font-weight:600;cursor:pointer;font-family:inherit;font-size:.8rem;';
-    csv.addEventListener('click', function(){
-      var lines = [ ['Projektas', 'Būsena', 'Projektą darė', 'Lapą pildė', 'Kategorija', 'Pozicija', 'Detalės / aprašas', 'Kiekis'].map(csvCell).join(';') ];
-      perProject.forEach(function(pp){
-        var mt = pp.st.meta || {}, title = (pp.entry.title || '').trim() || 'Be pavadinimo';
-        var status = STATUS_LABELS[mt.status] || STATUS_LABELS.draft;
-        pp.rows.forEach(function(r){
-          lines.push([title, status, mt.designer || '', mt.author || '', r.cat, r.item, r.extra, r.qty !== null ? r.qty : (r.qtyText || '')].map(csvCell).join(';'));
-        });
-      });
-      var blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'medziagu-suvestine-' + todayStr() + '.csv';
-      document.body.appendChild(a); a.click();
-      setTimeout(function(){ URL.revokeObjectURL(a.href); a.parentNode.removeChild(a); }, 500);
-    });
-    foot.appendChild(el('span'));
-    foot.appendChild(csv);
-    m.body.appendChild(foot);
-  }
   function renderFilterChips(counts){
     var wrap = document.getElementById('filterChips');
     wrap.innerHTML = '';
     [
-      ['all', 'Visi'], ['draft', 'Juodraščiai'], ['released', 'Perduoti gamybai'], ['done', 'Pagaminti'], ['missing', 'Trūksta laukų']
+      ['all', 'Visi'], ['draft', 'Juodraščiai'], ['released', 'Perduoti gamybai'], ['missing', 'Trūksta laukų']
     ].forEach(function(c){
       var b = el('button', {type:'button', class:'filter-chip' + (listFilter === c[0] ? ' active' : ''), text: c[1] + ' ' + counts[c[0]]});
       b.addEventListener('click', function(){ listFilter = c[0]; renderProjectList(); });
       wrap.appendChild(b);
     });
-    var sum = el('button', {type:'button', class:'filter-chip sum-chip', title:'Medžiagų ir kiekių suvestinė pagal rodomus lapus', text:'Σ Medžiagų suvestinė'});
-    sum.addEventListener('click', openSummary);
-    wrap.appendChild(sum);
   }
   document.getElementById('listSearch').addEventListener('input', function(){ listQuery = this.value; renderProjectList(); });
 
@@ -2074,11 +1983,11 @@
     container.innerHTML = '';
 
     var infos = {};
-    var counts = { all: all.length, draft: 0, released: 0, done: 0, missing: 0 };
+    var counts = { all: all.length, draft: 0, released: 0, missing: 0 };
     all.forEach(function(e){
       var i = infos[e.id] = projInfo(e);
       counts[i.status]++;
-      if(i.status !== 'done' && i.missing !== null && i.missing > 0) counts.missing++;
+      if(i.missing !== null && i.missing > 0) counts.missing++;
     });
     var filtersBox = document.getElementById('listFilters');
     filtersBox.style.display = (all.length > 1 && filtersBox.getAttribute('data-gate') !== 'hide') ? '' : 'none';
@@ -2101,7 +2010,6 @@
       if(q){ return q.split(/\s+/).every(function(w){ return i.hay.indexOf(w) !== -1; }); }
       return true;
     });
-    lastVisibleIds = idx.map(function(e){ return e.id; });
     if(idx.length === 0){
       var none = el('div', {class:'list-empty'});
       none.appendChild(el('div', {text:'Pagal paiešką ar filtrą lapų nerasta.'}));
@@ -2137,14 +2045,14 @@
       if(backupDir && remoteLocks[entry.id]) meta.appendChild(el('span', {class:'pc-chip lock', text: '✎ ' + remoteLocks[entry.id].editor + ' redaguoja'}));
       else if(backupDir && entry.editor) meta.appendChild(el('span', {class:'pc-chip', text: '👤 ' + entry.editor}));
       if(backupDir && entry.dirty) meta.appendChild(el('span', {class:'pc-chip', text: '⟳ rašoma į aplanką'}));
-      if(info.status !== 'done' && info.missing !== null && info.missing > 0)
+      if(info.missing !== null && info.missing > 0)
         meta.appendChild(el('span', {class:'pc-chip warn', text: '⚠ trūksta laukų: ' + info.missing}));
       if(info.printed){
         meta.appendChild(el('span', {class:'pc-chip', text: '🖨 atspausdinta ' + (info.printed.date || '')}));
         if(info.changedAfterPrint) meta.appendChild(el('span', {class:'pc-chip warn', text: '✎ pakeista po spausdinimo'}));
       }
-      if(st && st.specMaterials && st.specMaterials.length){
-        meta.appendChild(el('span', {class:'pc-chip', text: st.specMaterials.length === 1 ? st.specMaterials[0] : st.specMaterials.length + ' medžiagos'}));
+      if(st && st.destination){
+        meta.appendChild(el('span', {class:'pc-chip', text: st.destination}));
       }
       main.appendChild(meta);
       card.appendChild(main);
@@ -2190,7 +2098,7 @@
     copy.meta.status = 'draft';
     copy.meta.log = [ { t: 'created', by: logWho(), at: Date.now(), info: 'kopija iš „' + (base || 'Be pavadinimo') + '“' } ];
     copy.meta.created = todayStr();
-    copy.meta.author = lastAuthor() || copy.meta.author || '';
+    copy.meta.author = '';   // „Lapą pildė“ kiekvieną kartą įrašomas ranka
     var nid = uid();
     saveProjectState(nid, copy);
     var idx = loadIndex();
@@ -2524,132 +2432,71 @@
     return area;
   }
 
-  function renderSpecChips(){
-    var wrap = document.getElementById('specChips');
-    wrap.innerHTML = '';
-    if(state.specMaterials.length === 0){
-      wrap.appendChild(el('span', {class:'spec-empty', text:'Pagrindinė medžiaga nepasirinkta'}));
-      return;
-    }
-    state.specMaterials.sort(cmpOpt);
-    state.specMaterials.forEach(function(val, i){
-      var chip = el('div', {class:'spec-chip'});
-      chip.appendChild(el('span', {text: val}));
-      var rm = el('span', {class:'rm', title:'Šalinti', text:'×'});
-      rm.addEventListener('click', function(ev){
-        ev.stopPropagation();
-        state.specMaterials.splice(i, 1);
-        renderSpecChips();
-        refreshSpecPopoverChecks();
-        save();
-      });
-      chip.appendChild(rm);
-      wrap.appendChild(chip);
-    });
+  function medienaOf(st){
+    if(typeof st.mediena === 'string') return st.mediena;
+    return Array.isArray(st.specMaterials) ? st.specMaterials.join(', ') : '';
   }
-
-  var specPopoverEl = null;
-
-  function refreshSpecPopoverChecks(){
-    if(!specPopoverEl) return;
-    specPopoverEl.querySelectorAll('input[type=checkbox]').forEach(function(cb){
-      cb.checked = state.specMaterials.indexOf(cb.value) !== -1;
-    });
+  function renderMediena(){
+    var sb = document.getElementById('specBox');
+    if(sb.textContent !== (state.mediena || '')) sb.textContent = state.mediena || '';
+    fitTitleFont();
   }
-
-  function buildSpecPopover(){
-    var pop = el('div', {class:'blanks-popover'});
-    var materials = (state && state.specMaterials) || [];
-    MATERIAL_OPTIONS.forEach(function(opt){
-      var label = el('label');
-      var cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.value = opt;
-      cb.checked = materials.indexOf(opt) !== -1;
-      cb.addEventListener('change', function(){
-        var idx = state.specMaterials.indexOf(opt);
-        if(cb.checked && idx === -1) state.specMaterials.push(opt);
-        if(!cb.checked && idx !== -1) state.specMaterials.splice(idx, 1);
-        renderSpecChips();
-        save();
-      });
-      label.appendChild(cb);
-      label.appendChild(document.createTextNode(opt));
-      var xm = el('span', {class:'opt-del', title:'Pašalinti iš pasirinkimų sąrašo', text:'×'});
-      xm.addEventListener('click', function(ev){
-        ev.preventDefault(); ev.stopPropagation();
-        removeListOption(MEDIENA_KEY, MATERIAL_OPTIONS, opt);
-        var fr = buildSpecPopover();
-        pop.replaceWith(fr); specPopoverEl = fr; fr.classList.add('open');
-      });
-      label.appendChild(xm);
-      pop.appendChild(label);
-    });
-    // Jau pridėtos savos (nestandartinės) medžiagos – kad jas galėtų išjungti
-    materials.forEach(function(opt){
-      if(MATERIAL_OPTIONS.indexOf(opt) !== -1) return;
-      var label = el('label');
-      var cb = document.createElement('input');
-      cb.type = 'checkbox'; cb.value = opt; cb.checked = true;
-      cb.addEventListener('change', function(){
-        var idx = state.specMaterials.indexOf(opt);
-        if(!cb.checked && idx !== -1) state.specMaterials.splice(idx, 1);
-        if(cb.checked && idx === -1) state.specMaterials.push(opt);
-        renderSpecChips();
-        save();
-      });
-      label.appendChild(cb);
-      label.appendChild(document.createTextNode(opt));
-      pop.appendChild(label);
-    });
-    appendCustomAddRow(pop, 'Kita mediena / medžiaga (įrašykite)...', function(val){
-      if(MATERIAL_OPTIONS.indexOf(val) === -1){        // bendras sąrašas – kitiems projektams
-        MATERIAL_OPTIONS.push(val);
-        noteListAdd(MEDIENA_KEY, val);
-        saveTypeList(MEDIENA_KEY, MATERIAL_OPTIONS);
-        if(RUOSINYS_OPTIONS.indexOf(val) === -1){
-          RUOSINYS_OPTIONS.push(val);
-          noteListAdd(RUOSINYS_KEY, val);
-          saveTypeList(RUOSINYS_KEY, RUOSINYS_OPTIONS);
-        }
-      }
-      if(state.specMaterials.indexOf(val) === -1){
-        state.specMaterials.push(val);
-        var fresh = buildSpecPopover();
-        pop.replaceWith(fresh);
-        specPopoverEl = fresh;
-        fresh.classList.add('open');
-        var inp = fresh.querySelector('.popover-add-input'); if(inp) inp.focus();
-      }
-      renderSpecChips();
+  (function(){
+    var sb = document.getElementById('specBox');
+    sb.addEventListener('input', function(){
+      if(!state) return;
+      state.mediena = sb.textContent;
+      delete state.specMaterials;     // sena žymų forma nebenaudojama, kai mediena rašoma ranka
+      fitTitleFont();
       save();
     });
-    return pop;
-  }
-
-  function initSpecPicker(){
-    var picker = document.querySelector('.spec-picker');
-    var toggle = document.getElementById('specAddBtn');
-    specPopoverEl = buildSpecPopover();
-    picker.appendChild(specPopoverEl);
-    toggle.addEventListener('click', function(ev){
-      ev.stopPropagation();
-      var isOpen = specPopoverEl.classList.contains('open');
-      closeAllPopovers();
-      if(!isOpen){
-        var fresh = buildSpecPopover();
-        specPopoverEl.replaceWith(fresh);
-        specPopoverEl = fresh;
-        specPopoverEl.classList.add('open');
-      }
+    sb.addEventListener('keydown', function(ev){
+      if(ev.key === 'Enter'){ ev.preventDefault(); sb.blur(); }
     });
-  }
-  document.addEventListener('click', function(e){
-    if(specPopoverEl && specPopoverEl.classList.contains('open') && !e.target.closest('.spec-picker')){
-      specPopoverEl.classList.remove('open');
+    sb.addEventListener('paste', function(ev){
+      ev.preventDefault();
+      var t = ((ev.clipboardData || window.clipboardData).getData('text') || '').replace(/\s+/g, ' ');
+      document.execCommand('insertText', false, t);
+    });
+  })();
+
+  // ---- „Projektas skirtas“ (lapo viršuje): Bergen / Oslo / Stavanger / Astire ----
+  var DEST_OPTIONS = ['Bergen', 'Oslo', 'Stavanger', 'Astire'];
+  function renderDest(){
+    var wrap = document.getElementById('stampDestWrap');
+    if(!wrap || !state) return;
+    wrap.textContent = '';
+    var cur = state.destination || '';
+    var btn = el('button', { class: 'type-select-btn' + (cur ? '' : ' placeholder'), type: 'button', id: 'stampDest' });
+    btn.appendChild(el('span', { text: cur || 'Pasirinkti' }));
+    btn.appendChild(el('span', { class: 'caret', text: '▾' }));
+    var pop = el('div', { class: 'blanks-popover' });
+    function choose(v){
+      state.destination = v;
+      closeAllPopovers();
+      renderDest();
+      markMissing();
+      save();
     }
-  });
-  initSpecPicker();
+    var opts = DEST_OPTIONS.slice();
+    if(cur && opts.indexOf(cur) === -1) opts.push(cur);
+    opts.forEach(function(o){
+      var b = el('button', { type: 'button', class: 'dest-opt' + (o === cur ? ' sel' : ''), text: o });
+      b.addEventListener('click', function(ev){ ev.stopPropagation(); choose(o); });
+      pop.appendChild(b);
+    });
+    var none = el('button', { type: 'button', class: 'dest-opt none', text: 'nenurodyta' });
+    none.addEventListener('click', function(ev){ ev.stopPropagation(); choose(''); });
+    pop.appendChild(none);
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var isOpen = pop.classList.contains('open');
+      closeAllPopovers();
+      if(!isOpen){ pop.classList.add('open'); btn.classList.add('open'); }
+    });
+    wrap.appendChild(pop);
+    wrap.appendChild(btn);
+  }
 
   // Generic single-select dropdown w/ an editable, shared option list.
   // fieldKey is the property on sectionData holding the current value.
@@ -2957,6 +2804,25 @@
     row.appendChild(wrap);
     box.appendChild(row);
     appendFieldComment(box, row, sectionData, fieldKey);
+  }
+
+  // „Detalės matomos iš abiejų pusių“ (Dažymas): laisvo teksto laukas + × visai pašalinti, jei tokių detalių nėra.
+  function appendBothSidesRow(box, sectionData){
+    if(typeof sectionData.bothSidesText !== 'string') sectionData.bothSidesText = '';
+    var row = el('div', {class:'line-row both-sides-row'});
+    row.appendChild(el('span', {class:'type-picker-label both-sides-label', text:'Detalės matomos iš abiejų pusių:'}));
+    var text = el('div', {class:'line-text both-sides-text', contenteditable:'true', 'data-ph':'įrašykite, kurios detalės…'});
+    text.textContent = sectionData.bothSidesText;
+    text.addEventListener('input', function(){ sectionData.bothSidesText = text.textContent; save(); });
+    row.appendChild(text);
+    var del = el('button', {class:'del-line', type:'button', title:'Pašalinti šį lauką (jei tokių detalių nėra)', text:'×'});
+    del.addEventListener('click', function(){
+      sectionData.bothSidesOff = true;
+      sectionData.bothSidesText = '';
+      renderAll();
+    });
+    row.appendChild(del);
+    box.appendChild(row);
   }
 
   function makePairLineRow(lines, idx){
@@ -3408,15 +3274,15 @@
     var isLaiptaiBox = isPair && /laiptai/i.test(sectionData.title || '');
     var isBalkonasBox = isPair && /balkon/i.test(sectionData.title || '');
     if(isLaiptaiBox){
-      appendTypePickerRow(box, sectionData, 'stairType', 'Laiptų tipas:', 'Pasirinkti tipą', STAIR_TYPE_OPTIONS, STAIR_TYPES_KEY);
-      appendTypePickerRow(box, sectionData, 'baseType', 'Tvorelės tipas:', 'Pasirinkti tipą', BASE_TYPE_OPTIONS, BASE_TYPES_KEY);
-      appendTypePickerRow(box, sectionData, 'stepType', 'Pakopų tipas:', 'Pasirinkti tipą', STEP_TYPE_OPTIONS, STEP_TYPES_KEY);
-      appendTypePickerRow(box, sectionData, 'handrailType', 'Porankių tipas:', 'Pasirinkti tipą', HANDRAIL_TYPE_OPTIONS, HANDRAIL_TYPES_KEY);
-      appendTypePickerRow(box, sectionData, 'postType', 'Stulpų tipas:', 'Pasirinkti tipą', POST_TYPE_OPTIONS, POST_TYPES_KEY);
+      appendTypePickerRow(box, sectionData, 'stairType', 'Laiptai:', 'Pasirinkti', STAIR_TYPE_OPTIONS, STAIR_TYPES_KEY);
+      appendTypePickerRow(box, sectionData, 'baseType', 'Tvorelė:', 'Pasirinkti', BASE_TYPE_OPTIONS, BASE_TYPES_KEY);
+      appendTypePickerRow(box, sectionData, 'stepType', 'Pakopa:', 'Pasirinkti', STEP_TYPE_OPTIONS, STEP_TYPES_KEY);
+      appendTypePickerRow(box, sectionData, 'handrailType', 'Porankis:', 'Pasirinkti', HANDRAIL_TYPE_OPTIONS, HANDRAIL_TYPES_KEY);
+      appendTypePickerRow(box, sectionData, 'postType', 'Stulpas:', 'Pasirinkti', POST_TYPE_OPTIONS, POST_TYPES_KEY);
     } else if(isBalkonasBox){
-      appendTypePickerRow(box, sectionData, 'baseType', 'Tvorelės tipas:', 'Pasirinkti tipą', BASE_TYPE_OPTIONS, BASE_TYPES_KEY);
-      appendTypePickerRow(box, sectionData, 'handrailType', 'Porankių tipas:', 'Pasirinkti tipą', HANDRAIL_TYPE_OPTIONS, HANDRAIL_TYPES_KEY);
-      appendTypePickerRow(box, sectionData, 'postType', 'Stulpų tipas:', 'Pasirinkti tipą', POST_TYPE_OPTIONS, POST_TYPES_KEY);
+      appendTypePickerRow(box, sectionData, 'baseType', 'Tvorelė:', 'Pasirinkti', BASE_TYPE_OPTIONS, BASE_TYPES_KEY);
+      appendTypePickerRow(box, sectionData, 'handrailType', 'Porankis:', 'Pasirinkti', HANDRAIL_TYPE_OPTIONS, HANDRAIL_TYPES_KEY);
+      appendTypePickerRow(box, sectionData, 'postType', 'Stulpas:', 'Pasirinkti', POST_TYPE_OPTIONS, POST_TYPES_KEY);
     }
 
     flushRemovedFields(box, sectionData);
@@ -3424,8 +3290,8 @@
     var isDazymasBox = !isPair && /dažym|dazym/i.test(sectionData.title || '');
     var isRuosiniaiBox = !isPair && /ruoš|ruos/i.test(sectionData.title || '');
     var isIdetiBox = !isPair && /dėti|deti/i.test(sectionData.title || '');
-    if(isDazymasBox){
-      appendYesNoRow(box, sectionData, 'bothSides', 'Ar yra detalių, kurios matosi iš abiejų pusių?');
+    if(isDazymasBox && !sectionData.bothSidesOff){
+      appendBothSidesRow(box, sectionData);
     }
 
     var linesWrap = el('div', {class:'lines'});
@@ -3454,6 +3320,15 @@
       focusLastLine(box);
     });
     box.appendChild(addLine);
+    if(isDazymasBox && sectionData.bothSidesOff){
+      var restore = el('button', {class:'add-line both-sides-restore', type:'button', text:'+ detalės matomos iš abiejų pusių'});
+      restore.addEventListener('click', function(){
+        sectionData.bothSidesOff = false;
+        renderAll(); save();
+        var bt = document.querySelector('.both-sides-text'); if(bt) bt.focus();
+      });
+      box.appendChild(restore);
+    }
     return box;
   }
 
@@ -3465,26 +3340,27 @@
   // Grows a short title as large as possible and shrinks a long one just
   // enough to still fit on one line, instead of a fixed size for every name.
   var TITLE_FONT_MAX = 44, TITLE_FONT_MIN = 15;
-  function fitTitleFont(){
-    var box = document.getElementById('titleBox');
+  // Šriftas didžiausias, kuris dar telpa į maxLines eilučių. Naudojama pavadinimui ir medienai.
+  function fitBoxFont(box, max, min, maxLines){
     if(!box.textContent || !box.textContent.trim()){ box.style.fontSize = ''; return; }
-    var size = TITLE_FONT_MAX;
+    var size = max;
     box.style.fontSize = size + 'px';
-    {
-      // Ilgas pavadinimas (ekrane ir spaudinyje) lūžta į 2 eilutes – šriftas didesnis nei vienoje eilutėje.
-      box.style.whiteSpace = 'normal'; box.style.lineHeight = '1.15';
-      var countLines = function(){
-        var r = document.createRange(); r.selectNodeContents(box);
-        var tops = {}, n = 0, rects = r.getClientRects();
-        for(var i = 0; i < rects.length; i++){ var k = Math.round(rects[i].top); if(!tops[k]){ tops[k] = 1; n++; } }
-        return n;
-      };
-      while((countLines() > 2 || box.scrollWidth > box.clientWidth) && size > TITLE_FONT_MIN){
-        size -= 1;
-        box.style.fontSize = size + 'px';
-      }
-      return;
+    box.style.whiteSpace = 'normal'; box.style.lineHeight = '1.15';
+    var countLines = function(){
+      var r = document.createRange(); r.selectNodeContents(box);
+      var tops = {}, n = 0, rects = r.getClientRects();
+      for(var i = 0; i < rects.length; i++){ var k = Math.round(rects[i].top); if(!tops[k]){ tops[k] = 1; n++; } }
+      return n;
+    };
+    while((countLines() > maxLines || box.scrollWidth > box.clientWidth) && size > min){
+      size -= 1;
+      box.style.fontSize = size + 'px';
     }
+  }
+  function fitTitleFont(){
+    fitBoxFont(document.getElementById('titleBox'), TITLE_FONT_MAX, TITLE_FONT_MIN, 2);
+    var sb = document.getElementById('specBox');
+    if(sb) fitBoxFont(sb, 30, 14, 3);
   }
   window.addEventListener('resize', function(){
     if(state) fitTitleFont();
@@ -3544,7 +3420,8 @@
     var titleBox = document.getElementById('titleBox');
     if(titleBox.textContent !== state.title) titleBox.textContent = state.title;
     fitTitleFont();
-    renderSpecChips();
+    renderMediena();
+    renderDest();
 
     var pairsGrid = document.getElementById('pairsGrid');
     pairsGrid.innerHTML = '';
@@ -3713,8 +3590,8 @@
     if(!tb.textContent.trim()) out.push({ label: 'Projekto pavadinimas', el: tb });
     if(!state.meta.designer) out.push({ label: 'Kas darė projektą (lapo viršuje)', el: document.getElementById('stampDesignerItem') });
     if(!state.meta.author) out.push({ label: 'Kas pildė lapą (lapo viršuje)', el: document.getElementById('stampAuthorItem') });
-    var spec = document.querySelector('.spec-box');
-    if(!state.specMaterials.length) out.push({ label: 'Mediena (pagrindinė medžiaga)', el: spec });
+    if(!medienaOf(state).trim()) out.push({ label: 'Mediena', el: document.getElementById('specBox') });
+    if(!(state.destination || '').trim()) out.push({ label: 'Kam skirtas projektas (lapo viršuje)', el: document.getElementById('stampDestItem') });
 
     // Visi skilčių pasirinkimo laukai laikomi trūkstamais, kol nepasirinkta
     // (arba „– nėra –“, arba laukas pašalinamas „×“).
@@ -3809,6 +3686,10 @@
       return (k === 'src' && typeof v === 'string' && v.length > 2000) ? '@img:' + v.length + ':' + v.slice(-40) : v;
     }));
     delete c.meta;
+    // Suderinamumas su anksčiau spausdintais lapais: nauji laukai, kol nepakeisti, parašo nekeičia.
+    if(typeof c.mediena === 'string' && (!Array.isArray(c.specMaterials) || c.mediena === c.specMaterials.join(', '))
+       && (Array.isArray(c.specMaterials) || c.mediena === '')) delete c.mediena;
+    if(!c.destination) delete c.destination;
     return hashStr(JSON.stringify(c));
   }
   function contentSig(){ return contentSigOf(state); }
@@ -3833,8 +3714,7 @@
   });
   document.getElementById('stampAuthor').addEventListener('input', function(){
     if(!state) return;
-    state.meta.author = this.textContent.trim();
-    rememberAuthor(state.meta.author);
+    state.meta.author = this.textContent.trim();   // tik šio lapo laukas – nebeįsimenamas kaip naudotojo vardas
     save();
   });
 
@@ -3863,10 +3743,9 @@
     function add(elm, key){ if(key) entries.push({ el: elm, key: key }); }
     var tb = document.getElementById('titleBox');
     if(tb.textContent.trim()) add(tb, 'Pavadinimas | ' + tb.textContent.trim());
-    var chips = Array.prototype.map.call(document.querySelectorAll('#specChips .spec-chip'), function(c){
-      return c.firstChild ? c.firstChild.textContent.trim() : '';
-    }).filter(Boolean);
-    if(chips.length) add(document.querySelector('.spec-box'), 'Mediena | ' + chips.join(', '));
+    var med = document.getElementById('specBox').textContent.trim();
+    if(med) add(document.getElementById('specBox'), 'Mediena | ' + med);
+    if(state && state.destination) add(document.getElementById('stampDestItem'), 'Projektas skirtas | ' + state.destination);
     Array.prototype.forEach.call(document.querySelectorAll('#pairsGrid > .box, #fullStack > .box'), function(box){
       var bt = boxTitleOf(box) || 'Skiltis';
       Array.prototype.forEach.call(box.children, function(kid){
@@ -4046,7 +3925,12 @@
     for(var i = 0; i < btns.length; i++){
       if(isNoneLabel(btns[i].textContent)) btns[i].parentNode.removeChild(btns[i]);
     }
-    if(row.classList.contains('ideti-detail-row')) stripAll(clone, '.line-text'); // the name alone isn't content
+    if(row.classList.contains('ideti-detail-row')){
+      stripAll(clone, '.line-text'); // the name alone isn't content
+      // Numatytasis „1 vnt.“ pats savaime nėra turinys – be medžiagos, matmenų ar apdailos eilutė nespausdinama.
+      var q = clone.querySelector('.ideti-qty-input');
+      if(q && q.textContent.trim() === '1' && q.parentNode) q.parentNode.removeChild(q);
+    }
     return clone.textContent.replace(/\s+/g, '') === '';
   }
   function boxHasContent(box){
@@ -4086,6 +3970,12 @@
       if(c.textContent.trim() === '') hideForPrint(c);
     });
 
+    // 3b) Dažymas: „detalės matomos iš abiejų pusių“ be įrašo – nespausdinama
+    Array.prototype.forEach.call(sheet.querySelectorAll('.both-sides-row'), function(r){
+      var t = r.querySelector('.both-sides-text');
+      if(!t || !t.textContent.trim()) hideForPrint(r);
+    });
+
     // 4) notes box, when there are no notes
     var notesBox = sheet.querySelector('.notes-box');
     var notes = document.getElementById('notesArea');
@@ -4100,15 +3990,15 @@
     if(pairs && pairs.children.length && Array.prototype.every.call(pairs.children, isHiddenForPrint)) hideForPrint(pairs);
 
     // 5b) užsakymo žyma: tušti Nr. / užpildė laukai nespausdinami
+    if(!state || !state.destination) hideForPrint(document.getElementById('stampDestItem'));
     [['stampDesigner', 'stampDesignerItem'], ['stampAuthor', 'stampAuthorItem']].forEach(function(p){
       var v = document.getElementById(p[0]);
       if(v && !v.textContent.trim()) hideForPrint(document.getElementById(p[1]));
     });
 
     // 6) no main material chosen: drop that box and let the title use the full width
-    var chips = document.querySelectorAll('#specChips .spec-chip');
-    var specField = document.getElementById('specChips') && document.getElementById('specChips').closest('.field-with-label');
-    if(!chips.length && specField){
+    var specField = document.getElementById('specBox').closest('.field-with-label');
+    if(!document.getElementById('specBox').textContent.trim() && specField){
       hideForPrint(specField);
       var hr = document.querySelector('.header-row');
       if(hr) hr.style.gridTemplateColumns = '1fr';
@@ -4369,7 +4259,7 @@
   function isBlankProject(st){
     if(!st) return true;
     if((st.title || '').trim() || (st.notes || '').trim()) return false;
-    if(st.specMaterials && st.specMaterials.length) return false;
+    if(medienaOf(st).trim() || (st.destination || '').trim()) return false;
     var typed = false;
     (st.pairs || []).forEach(function(p){
       ['stairType', 'baseType', 'stepType', 'handrailType', 'postType'].forEach(function(k){ if(p[k]) typed = true; });
