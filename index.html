@@ -1961,7 +1961,7 @@
   }
   // ---- paieška visame lapo tekste ----
   var SEARCH_SKIP_KEYS = { meta: 1, image: 1, removedFields: 1, kamSkip: 1, autoColor: 1, bothSidesOff: 1, simple: 1, detailed: 1, id: 1 };
-  var SEARCH_KEY_LABELS = { sectionComment: 'komentaras', stairTypeComment: 'komentaras', baseTypeComment: 'komentaras', stepTypeComment: 'komentaras',
+  var SEARCH_KEY_LABELS = { sectionComment: 'komentaras', rowComment: 'komentaras', stairTypeComment: 'komentaras', baseTypeComment: 'komentaras', stepTypeComment: 'komentaras',
     handrailTypeComment: 'komentaras', postTypeComment: 'komentaras', bothSidesText: 'detalės matomos iš abiejų pusių', notes: 'papildoma informacija' };
   // Visi lapo tekstai su vieta, kur jie surašyti: [{ where, text }]
   function collectSearchTexts(st){
@@ -3533,6 +3533,13 @@
       else if(isPair) rowEl = makePairLineRow(sectionData.lines, idx);
       else rowEl = makeListLineRow(sectionData.lines, idx);
       linesWrap.appendChild(rowEl);
+      // Komentaro piktograma kiekvienai eilutei (Ruošiniai, Dažymas, Įdėti, skilčių eilutės)
+      var rowObj = sectionData.lines[idx];
+      if(rowObj && typeof rowObj === 'object'){
+        appendFieldComment(linesWrap, rowEl, rowObj, 'row');
+        var cbtn = rowEl.querySelector(':scope > .row-comment-btn'), delBtn = rowEl.querySelector(':scope > .del-line');
+        if(cbtn && delBtn) rowEl.insertBefore(cbtn, delBtn);
+      }
     });
     box.appendChild(linesWrap);
 
@@ -3914,6 +3921,7 @@
   // (be paties Nr. / užpildžiusiojo / versijų istorijos).
   function contentSigOf(st){
     var c = JSON.parse(JSON.stringify(st, function(k, v){
+      if(k === 'rowComment' && v === '') return undefined;     // tuščias eilutės komentaras parašo nekeičia
       return (k === 'src' && typeof v === 'string' && v.length > 2000) ? '@img:' + v.length + ':' + v.slice(-40) : v;
     }));
     delete c.meta;
@@ -3987,7 +3995,8 @@
           if(kid.textContent.trim()) rows.push(kid);
         } else if(kid.classList.contains('lines')){
           Array.prototype.forEach.call(kid.children, function(r){
-            if(!rowIsBlank(r)) rows.push(r);
+            if(r.classList.contains('row-comment-row')){ if(r.textContent.trim()) rows.push(r); }
+            else if(!rowIsBlank(r)) rows.push(r);
           });
         }
         rows.forEach(function(r){ add(r, bt + ' | ' + cleanRowText(r)); });
@@ -4193,6 +4202,8 @@
     // 2) blank list rows — but the standard Įdėti checklist rows always stay
     Array.prototype.forEach.call(sheet.querySelectorAll('.lines > .line-row'), function(row){
       if(row.classList.contains('ideti-line-row') && !row.classList.contains('ideti-detail-row')) return;
+      var nx = row.nextElementSibling;
+      if(nx && nx.classList.contains('row-comment-row') && nx.textContent.trim() !== '') return;   // eilutė su komentaru lieka
       if(rowIsBlank(row)) hideForPrint(row);
     });
 
