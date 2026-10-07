@@ -193,8 +193,6 @@
     font-size: clamp(1.15rem, 2.4vw, 1.4rem); font-weight: 800; letter-spacing: -0.02em; color: var(--ink);
     white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
   }
-  /* Mediena – laisvo teksto laukas (rašoma kaip pavadinimas); šriftas derinamas fitBoxFont. */
-  #specBox { font-size: 1.15rem; font-weight: 700; color: var(--ink); line-height: 1.15; white-space: normal; overflow-wrap: anywhere; }
   [contenteditable]:focus { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
   /* ---- užsakymo žyma: Nr., užpildė, data, versija ---- */
   .stamp-row {
@@ -358,6 +356,14 @@
   .spec-chip .rm { cursor: pointer; color: #bbb; font-size: 0.78rem; opacity: 0; transition: color .15s, opacity .15s; }
   .spec-chip .rm:hover { color: var(--danger); }
   .spec-chip:hover .rm, .spec-chip:focus-within .rm { opacity: 1; }
+  /* Mediena rodoma kaip paprastas tekstas (kaip pavadinimas), be burbuliukų; pasirinkimai lieka – × pasirodo užvedus. */
+  .spec-chips-wrap { display: block; text-align: center; font-size: 1.15rem; font-weight: 700; line-height: 1.2; color: var(--ink); overflow-wrap: anywhere; }
+  .spec-chips-wrap .spec-chip, .sheet .spec-chips-wrap .spec-chip {
+    display: inline-block; position: relative; background: none; border: none; border-radius: 0; padding: 0;
+    font-size: inherit; font-weight: inherit; color: inherit; white-space: normal; max-width: none; overflow: visible;
+  }
+  .spec-chips-wrap .spec-chip:not(:last-child):after { content: ', '; white-space: pre; }
+  .spec-chips-wrap .spec-chip .rm { position: absolute; top: -0.5em; right: 0; font-size: 0.6em; line-height: 1; background: #fff; border-radius: 50%; padding: 1px 3px; }
   .spec-empty { font-size: 0.85rem; color: #b9b4a8; }
   .spec-picker { position: relative; }
 
@@ -709,6 +715,8 @@
     .sheet .ideti-dim-input { border-bottom-color: #555; }
     .sheet .blanks-area { max-width: 50%; }
     .sheet .chip, .sheet .spec-chip { white-space: normal; overflow: visible; text-overflow: clip; }
+    .sheet .spec-chips-wrap { color: #000; }
+    .sheet .spec-chips-wrap .spec-chip { border: none; background: none; font-size: inherit; font-weight: inherit; color: #000; padding: 0; }
     .sheet .paint-details .chip { background: none; border: none; padding: 0; font-weight: 400; }
     .sheet .row-comment-btn, .sheet .del-field, .sheet .del-line, .sheet .del-section, .sheet .section-comment-btn { color: #555; }
     .sheet .del-field { opacity: 1; }
@@ -880,6 +888,8 @@
     /* Pavadinimai neapkarpomi: ekrane ilgi ruošinių ženkliukai baigiasi „…“, o ant popieriaus
        tai reikštų prarastą informaciją – spausdinant rodomas visas tekstas (jei reikia, laužomas). */
     .chip, .spec-chip { max-width: none !important; overflow: visible !important; text-overflow: clip !important; white-space: normal !important; }
+    .spec-chips-wrap .spec-chip { background: none !important; border: none !important; padding: 0 !important; border-radius: 0 !important; font-size: inherit !important; font-weight: inherit !important; color: #000 !important; }
+    .spec-chips-wrap { color: #000; }
     .blanks-area { max-width: 55%; }
     .row-comment-row { padding: 0 12px 3px; }
     .row-comment-area { padding: 1px 8px; border-radius: 4px; }
@@ -956,8 +966,8 @@
   <div class="sheet-wrap" id="sheetWrap">
     <div class="sheet" id="sheet">
       <div class="stamp-row" id="stampRow">
-        <span class="stamp-item" id="stampDesignerItem"><span class="stamp-label">Projektą darė</span><span class="stamp-val" id="stampDesigner" contenteditable="true" data-ph="vardas, pavardė"></span></span>
-        <span class="stamp-item" id="stampAuthorItem"><span class="stamp-label">Lapą pildė</span><span class="stamp-val" id="stampAuthor" contenteditable="true" data-ph="vardas, pavardė"></span></span>
+        <span class="stamp-item" id="stampDesignerItem"><span class="stamp-label">Projektą darė</span><span class="stamp-val" id="stampDesigner" contenteditable="true" data-ph="vardas"></span></span>
+        <span class="stamp-item" id="stampAuthorItem"><span class="stamp-label">Lapą pildė</span><span class="stamp-val" id="stampAuthor" contenteditable="true" data-ph="vardas"></span></span>
         <span class="stamp-item stamp-dest" id="stampDestItem"><span class="stamp-label">Projektas skirtas</span><span class="type-picker-wrap stamp-dest-wrap" id="stampDestWrap"></span></span>
         <span class="stamp-item stamp-auto" id="stampDateItem"><span class="stamp-label">Data</span><span class="stamp-val" id="stampDate"></span></span>
       </div>
@@ -968,7 +978,12 @@
         </div>
         <div class="field-with-label">
           <div class="field-label">Mediena</div>
-          <div class="box header-box" id="specBox" contenteditable="true" data-ph="Mediena"></div>
+          <div class="box header-box spec-box" id="specBox">
+            <div class="spec-chips-wrap" id="specChips"></div>
+            <div class="spec-picker">
+              <button class="blanks-toggle" type="button" id="specAddBtn">+ pasirinkti medžiagą</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1395,7 +1410,7 @@
     return {
       meta: { number: '', noNumber: false, designer: '', author: '', created: todayStr(), printed: null, status: 'draft', log: [ { t: 'created', by: logWho(), at: Date.now(), info: '' } ] },
       title: '',
-      mediena: '', destination: '',
+      specMaterials: [], destination: '',
       pairs: [
         { title: 'Laiptai', stairType: '', baseType: '', stepType: '', handrailType: '', postType: '', lines: [ newPairLine('') ] },
         { title: 'Balkonas', baseType: '', handrailType: '', postType: '', lines: [ newPairLine('') ] }
@@ -1502,7 +1517,9 @@
     // „Mediena“ – laisvas tekstas (anksčiau – žymos iš sąrašo). Senos žymos paverčiamos tekstu, bet paliekamos
     // nepaliestos (kad nepasikeistų jau atspausdinto lapo turinio parašas), kol mediena nepakeista ranka.
     if(typeof s.destination !== 'string') s.destination = '';
-    if(typeof s.mediena !== 'string') s.mediena = Array.isArray(s.specMaterials) ? s.specMaterials.join(', ') : '';
+    // (trumpam buvusi laisvo teksto „mediena“ – paverčiama viena žyma)
+    if(!Array.isArray(s.specMaterials)) s.specMaterials = (typeof s.mediena === 'string' && s.mediena.trim()) ? [s.mediena.trim()] : [];
+    delete s.mediena;
     if(!s.meta || typeof s.meta !== 'object') s.meta = {};
     if(typeof s.meta.number !== 'string') s.meta.number = '';
     if(typeof s.meta.author !== 'string') s.meta.author = '';
@@ -1513,7 +1530,7 @@
     if(s.meta.status === 'done') s.meta.status = 'released';   // būsena „pagaminta“ panaikinta
     if(STATUS_ORDER.indexOf(s.meta.status) === -1) s.meta.status = 'draft';
     if(!Array.isArray(s.meta.log)) s.meta.log = [];
-    if(Array.isArray(s.specMaterials)) s.specMaterials = s.specMaterials.map(lcOpt).filter(function(v, i, a){ return v && a.indexOf(v) === i; }).sort(cmpOpt);
+    s.specMaterials = s.specMaterials.map(lcOpt).filter(function(v, i, a){ return v && a.indexOf(v) === i; }).sort(cmpOpt);
     (s.pairs || []).forEach(function(p){
       ['stairType', 'baseType', 'stepType', 'handrailType', 'postType'].forEach(function(k){ if(typeof p[k] === 'string') p[k] = lcOpt(p[k]); });
       if(/laiptai/i.test(p.title || '')){
@@ -2054,6 +2071,9 @@
       if(st && st.destination){
         meta.appendChild(el('span', {class:'pc-chip', text: st.destination}));
       }
+      if(st && st.specMaterials && st.specMaterials.length){
+        meta.appendChild(el('span', {class:'pc-chip', text: st.specMaterials.length === 1 ? st.specMaterials[0] : st.specMaterials.length + ' medžiagos'}));
+      }
       main.appendChild(meta);
       card.appendChild(main);
 
@@ -2318,7 +2338,7 @@
     openPopoverId = null;
   }
   document.addEventListener('click', function(e){
-    if(!e.target.closest('.blanks-area, .type-picker-wrap')) closeAllPopovers();
+    if(!e.target.closest('.blanks-area, .type-picker-wrap, .spec-picker')) closeAllPopovers();
   });
 
   function renderChips(area, lineObj){
@@ -2433,32 +2453,136 @@
   }
 
   function medienaOf(st){
-    if(typeof st.mediena === 'string') return st.mediena;
     return Array.isArray(st.specMaterials) ? st.specMaterials.join(', ') : '';
   }
-  function renderMediena(){
-    var sb = document.getElementById('specBox');
-    if(sb.textContent !== (state.mediena || '')) sb.textContent = state.mediena || '';
+  function renderSpecChips(){
+    var wrap = document.getElementById('specChips');
+    wrap.innerHTML = '';
+    if(state.specMaterials.length === 0){
+      wrap.appendChild(el('span', {class:'spec-empty', text:'Pagrindinė medžiaga nepasirinkta'}));
+      fitTitleFont();
+      return;
+    }
+    state.specMaterials.sort(cmpOpt);
+    state.specMaterials.forEach(function(val, i){
+      var chip = el('div', {class:'spec-chip'});
+      chip.appendChild(el('span', {text: val}));
+      var rm = el('span', {class:'rm', title:'Šalinti', text:'×'});
+      rm.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        state.specMaterials.splice(i, 1);
+        renderSpecChips();
+        refreshSpecPopoverChecks();
+        save();
+      });
+      chip.appendChild(rm);
+      wrap.appendChild(chip);
+    });
     fitTitleFont();
   }
-  (function(){
-    var sb = document.getElementById('specBox');
-    sb.addEventListener('input', function(){
-      if(!state) return;
-      state.mediena = sb.textContent;
-      delete state.specMaterials;     // sena žymų forma nebenaudojama, kai mediena rašoma ranka
-      fitTitleFont();
+
+  var specPopoverEl = null;
+
+  function refreshSpecPopoverChecks(){
+    if(!specPopoverEl) return;
+    specPopoverEl.querySelectorAll('input[type=checkbox]').forEach(function(cb){
+      cb.checked = state.specMaterials.indexOf(cb.value) !== -1;
+    });
+  }
+
+  function buildSpecPopover(){
+    var pop = el('div', {class:'blanks-popover'});
+    var materials = (state && state.specMaterials) || [];
+    MATERIAL_OPTIONS.forEach(function(opt){
+      var label = el('label');
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = opt;
+      cb.checked = materials.indexOf(opt) !== -1;
+      cb.addEventListener('change', function(){
+        var idx = state.specMaterials.indexOf(opt);
+        if(cb.checked && idx === -1) state.specMaterials.push(opt);
+        if(!cb.checked && idx !== -1) state.specMaterials.splice(idx, 1);
+        renderSpecChips();
+        save();
+      });
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(opt));
+      var xm = el('span', {class:'opt-del', title:'Pašalinti iš pasirinkimų sąrašo', text:'×'});
+      xm.addEventListener('click', function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        removeListOption(MEDIENA_KEY, MATERIAL_OPTIONS, opt);
+        var fr = buildSpecPopover();
+        pop.replaceWith(fr); specPopoverEl = fr; fr.classList.add('open');
+      });
+      label.appendChild(xm);
+      pop.appendChild(label);
+    });
+    // Jau pridėtos savos (nestandartinės) medžiagos – kad jas galėtų išjungti
+    materials.forEach(function(opt){
+      if(MATERIAL_OPTIONS.indexOf(opt) !== -1) return;
+      var label = el('label');
+      var cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.value = opt; cb.checked = true;
+      cb.addEventListener('change', function(){
+        var idx = state.specMaterials.indexOf(opt);
+        if(!cb.checked && idx !== -1) state.specMaterials.splice(idx, 1);
+        if(cb.checked && idx === -1) state.specMaterials.push(opt);
+        renderSpecChips();
+        save();
+      });
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(opt));
+      pop.appendChild(label);
+    });
+    appendCustomAddRow(pop, 'Kita mediena / medžiaga (įrašykite)...', function(val){
+      if(MATERIAL_OPTIONS.indexOf(val) === -1){        // bendras sąrašas – kitiems projektams
+        MATERIAL_OPTIONS.push(val);
+        noteListAdd(MEDIENA_KEY, val);
+        saveTypeList(MEDIENA_KEY, MATERIAL_OPTIONS);
+        if(RUOSINYS_OPTIONS.indexOf(val) === -1){
+          RUOSINYS_OPTIONS.push(val);
+          noteListAdd(RUOSINYS_KEY, val);
+          saveTypeList(RUOSINYS_KEY, RUOSINYS_OPTIONS);
+        }
+      }
+      if(state.specMaterials.indexOf(val) === -1){
+        state.specMaterials.push(val);
+        var fresh = buildSpecPopover();
+        pop.replaceWith(fresh);
+        specPopoverEl = fresh;
+        fresh.classList.add('open');
+        var inp = fresh.querySelector('.popover-add-input'); if(inp) inp.focus();
+      }
+      renderSpecChips();
       save();
     });
-    sb.addEventListener('keydown', function(ev){
-      if(ev.key === 'Enter'){ ev.preventDefault(); sb.blur(); }
+    return pop;
+  }
+
+  function initSpecPicker(){
+    var picker = document.querySelector('.spec-picker');
+    var toggle = document.getElementById('specAddBtn');
+    specPopoverEl = buildSpecPopover();
+    picker.appendChild(specPopoverEl);
+    toggle.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      var isOpen = specPopoverEl.classList.contains('open');
+      closeAllPopovers();
+      if(!isOpen){
+        var fresh = buildSpecPopover();
+        specPopoverEl.replaceWith(fresh);
+        specPopoverEl = fresh;
+        specPopoverEl.classList.add('open');
+      }
     });
-    sb.addEventListener('paste', function(ev){
-      ev.preventDefault();
-      var t = ((ev.clipboardData || window.clipboardData).getData('text') || '').replace(/\s+/g, ' ');
-      document.execCommand('insertText', false, t);
-    });
-  })();
+  }
+  document.addEventListener('click', function(e){
+    if(specPopoverEl && specPopoverEl.classList.contains('open') && !e.target.closest('.spec-picker')){
+      specPopoverEl.classList.remove('open');
+    }
+  });
+  initSpecPicker();
 
   // ---- „Projektas skirtas“ (lapo viršuje): Bergen / Oslo / Stavanger / Astire ----
   var DEST_OPTIONS = ['Bergen', 'Oslo', 'Stavanger', 'Astire'];
@@ -3341,14 +3465,20 @@
   // enough to still fit on one line, instead of a fixed size for every name.
   var TITLE_FONT_MAX = 44, TITLE_FONT_MIN = 15;
   // Šriftas didžiausias, kuris dar telpa į maxLines eilučių. Naudojama pavadinimui ir medienai.
-  function fitBoxFont(box, max, min, maxLines){
+  function fitBoxFont(box, max, min, maxLines, itemSel){
     if(!box.textContent || !box.textContent.trim()){ box.style.fontSize = ''; return; }
     var size = max;
     box.style.fontSize = size + 'px';
     box.style.whiteSpace = 'normal'; box.style.lineHeight = '1.15';
     var countLines = function(){
-      var r = document.createRange(); r.selectNodeContents(box);
-      var tops = {}, n = 0, rects = r.getClientRects();
+      var rects;
+      if(itemSel){   // žymos: eilučių skaičius pagal aukštį; viena žyma neturi lūžti į dvi eilutes
+        var lh = parseFloat(box.style.fontSize) * 1.15, split = false;
+        Array.prototype.forEach.call(box.querySelectorAll(itemSel), function(e){ if(e.getBoundingClientRect().height > lh * 1.5) split = true; });
+        return Math.round(box.scrollHeight / lh) + (split ? 99 : 0);
+      }
+      var r = document.createRange(); r.selectNodeContents(box); rects = r.getClientRects();
+      var tops = {}, n = 0;
       for(var i = 0; i < rects.length; i++){ var k = Math.round(rects[i].top); if(!tops[k]){ tops[k] = 1; n++; } }
       return n;
     };
@@ -3359,8 +3489,8 @@
   }
   function fitTitleFont(){
     fitBoxFont(document.getElementById('titleBox'), TITLE_FONT_MAX, TITLE_FONT_MIN, 2);
-    var sb = document.getElementById('specBox');
-    if(sb) fitBoxFont(sb, 30, 14, 3);
+    var sb = document.getElementById('specChips');
+    if(sb && sb.querySelector('.spec-chip')) fitBoxFont(sb, 30, 14, 3, '.spec-chip'); else if(sb) sb.style.fontSize = '';
   }
   window.addEventListener('resize', function(){
     if(state) fitTitleFont();
@@ -3420,7 +3550,7 @@
     var titleBox = document.getElementById('titleBox');
     if(titleBox.textContent !== state.title) titleBox.textContent = state.title;
     fitTitleFont();
-    renderMediena();
+    renderSpecChips();
     renderDest();
 
     var pairsGrid = document.getElementById('pairsGrid');
@@ -3590,7 +3720,7 @@
     if(!tb.textContent.trim()) out.push({ label: 'Projekto pavadinimas', el: tb });
     if(!state.meta.designer) out.push({ label: 'Kas darė projektą (lapo viršuje)', el: document.getElementById('stampDesignerItem') });
     if(!state.meta.author) out.push({ label: 'Kas pildė lapą (lapo viršuje)', el: document.getElementById('stampAuthorItem') });
-    if(!medienaOf(state).trim()) out.push({ label: 'Mediena', el: document.getElementById('specBox') });
+    if(!state.specMaterials.length) out.push({ label: 'Mediena (pagrindinė medžiaga)', el: document.getElementById('specBox') });
     if(!(state.destination || '').trim()) out.push({ label: 'Kam skirtas projektas (lapo viršuje)', el: document.getElementById('stampDestItem') });
 
     // Visi skilčių pasirinkimo laukai laikomi trūkstamais, kol nepasirinkta
@@ -3686,9 +3816,7 @@
       return (k === 'src' && typeof v === 'string' && v.length > 2000) ? '@img:' + v.length + ':' + v.slice(-40) : v;
     }));
     delete c.meta;
-    // Suderinamumas su anksčiau spausdintais lapais: nauji laukai, kol nepakeisti, parašo nekeičia.
-    if(typeof c.mediena === 'string' && (!Array.isArray(c.specMaterials) || c.mediena === c.specMaterials.join(', '))
-       && (Array.isArray(c.specMaterials) || c.mediena === '')) delete c.mediena;
+    // Suderinamumas su anksčiau spausdintais lapais: tuščias „Projektas skirtas“ parašo nekeičia.
     if(!c.destination) delete c.destination;
     return hashStr(JSON.stringify(c));
   }
@@ -3743,8 +3871,10 @@
     function add(elm, key){ if(key) entries.push({ el: elm, key: key }); }
     var tb = document.getElementById('titleBox');
     if(tb.textContent.trim()) add(tb, 'Pavadinimas | ' + tb.textContent.trim());
-    var med = document.getElementById('specBox').textContent.trim();
-    if(med) add(document.getElementById('specBox'), 'Mediena | ' + med);
+    var chips = Array.prototype.map.call(document.querySelectorAll('#specChips .spec-chip'), function(c){
+      return c.firstChild ? c.firstChild.textContent.trim() : '';
+    }).filter(Boolean);
+    if(chips.length) add(document.getElementById('specBox'), 'Mediena | ' + chips.join(', '));
     if(state && state.destination) add(document.getElementById('stampDestItem'), 'Projektas skirtas | ' + state.destination);
     Array.prototype.forEach.call(document.querySelectorAll('#pairsGrid > .box, #fullStack > .box'), function(box){
       var bt = boxTitleOf(box) || 'Skiltis';
@@ -3997,8 +4127,9 @@
     });
 
     // 6) no main material chosen: drop that box and let the title use the full width
-    var specField = document.getElementById('specBox').closest('.field-with-label');
-    if(!document.getElementById('specBox').textContent.trim() && specField){
+    var chips = document.querySelectorAll('#specChips .spec-chip');
+    var specField = document.getElementById('specChips') && document.getElementById('specChips').closest('.field-with-label');
+    if(!chips.length && specField){
       hideForPrint(specField);
       var hr = document.querySelector('.header-row');
       if(hr) hr.style.gridTemplateColumns = '1fr';
@@ -5132,7 +5263,7 @@
       if(!h) return;
       var flush = backupDir ? syncNow() : Promise.resolve();   // neįrašyti pakeitimai – į seną aplanką
       return flush.then(function(){
-        var askName = myName() ? Promise.resolve(null) : uiPrompt('Įveskite savo vardą – jį matys kolegos (pvz. Jonas P.):', '', 'Vardas, pavardė');
+        var askName = myName() ? Promise.resolve(null) : uiPrompt('Įveskite savo vardą – jį matys kolegos (pvz. Jonas):', '', 'Vardas');
         return askName.then(function(nm){
           if(nm && nm.trim()) rememberAuthor(nm.trim());
           backupDir = h; backupNeedsPerm = false; backupMsg = null; remoteCache = {};
