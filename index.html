@@ -75,6 +75,9 @@
   .project-card .pc-title { font-size: 0.92rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .project-card .pc-title.untitled { color: #b9b4a8; font-weight: 500; font-style: normal; }
   .project-card .pc-meta { font-size: 0.74rem; color: var(--muted); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .project-card .pc-hits { margin-top: 5px; display: flex; flex-direction: column; gap: 2px; font-size: 0.8rem; color: var(--ink); }
+  .project-card .pc-hit-where { color: var(--muted); font-size: 0.72rem; margin-right: 6px; }
+  .project-card .pc-hits mark { background: #ffe58a; color: #000; border-radius: 3px; padding: 0 2px; font-weight: 700; }
   .project-card .pc-chip {
     background: var(--chip-bg); border: 1px solid var(--card-border); border-radius: 20px;
     padding: 1px 9px; font-size: 0.68rem; color: var(--muted-2); white-space: nowrap;
@@ -224,6 +227,8 @@
   }
   .backup-panel h2 { margin: 0 0 4px; font-size: 0.92rem; }
   .backup-panel .backup-info { color: var(--muted); font-size: 0.78rem; line-height: 1.45; margin: 0 0 10px; }
+  .backup-panel .backup-path { color: var(--ink); font-size: 0.82rem; line-height: 1.5; margin: -4px 0 10px; }
+  .backup-panel .backup-path code { font-family: inherit; font-weight: 700; background: var(--chip-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 1px 7px; user-select: all; display: inline-block; max-width: 100%; overflow-wrap: anywhere; margin-top: 3px; }
   .backup-panel .backup-info.warn { color: #8a5200; }
   .backup-panel .backup-info.err { color: var(--danger); }
   .backup-panel.gate { text-align: center; padding: 26px 20px; margin: 24px 0; }
@@ -916,6 +921,7 @@
     <div class="backup-panel" id="backupPanel">
       <h2 id="backupTitle">📁 Lapų aplankas</h2>
       <p class="backup-info" id="backupInfo"></p>
+      <p class="backup-path" id="backupPath">Kur ieškoti aplanko: <code>Klatre Eiendom Dropbox\klatreeiendom.no\8. Sales tools\Lean doc_\GAMYBOS KOMENTARAI</code></p>
       <div class="backup-actions">
         <button type="button" class="primary" id="backupPickBtn">📁 Pasirinkti aplanką</button>
         <button type="button" id="backupNowBtn">⟳ Sinchronizuoti dabar</button>
@@ -926,7 +932,7 @@
       </div>
     </div>
     <div class="list-filters" id="listFilters" style="display:none;">
-      <input type="search" id="listSearch" placeholder="Ieškoti: pavadinimas, projektuotojas, pildytojas, mediena…" autocomplete="off">
+      <input type="search" id="listSearch" placeholder="Ieškoti pagal bet kurį žodį lape: pavadinimas, komentarai, medžiagos, spalvos…" autocomplete="off">
       <div class="filter-chips" id="filterChips"></div>
     </div>
     <div id="projectsContainer"></div>
@@ -1953,6 +1959,86 @@
     });
     return n;
   }
+  // ---- paieška visame lapo tekste ----
+  var SEARCH_SKIP_KEYS = { meta: 1, image: 1, removedFields: 1, kamSkip: 1, autoColor: 1, bothSidesOff: 1, simple: 1, detailed: 1, id: 1 };
+  var SEARCH_KEY_LABELS = { sectionComment: 'komentaras', stairTypeComment: 'komentaras', baseTypeComment: 'komentaras', stepTypeComment: 'komentaras',
+    handrailTypeComment: 'komentaras', postTypeComment: 'komentaras', bothSidesText: 'detalės matomos iš abiejų pusių', notes: 'papildoma informacija' };
+  // Visi lapo tekstai su vieta, kur jie surašyti: [{ where, text }]
+  function collectSearchTexts(st){
+    var out = [];
+    function walk(v, where, key){
+      if(typeof v === 'string'){
+        var t = v.replace(/\s+/g, ' ').trim();
+        if(t && !/^data:/.test(t)) out.push({ where: where + (SEARCH_KEY_LABELS[key] ? ' · ' + SEARCH_KEY_LABELS[key] : ''), text: t });
+      } else if(typeof v === 'number'){
+        // skaičiai (kiekiai) – kaip tekstas
+        out.push({ where: where, text: String(v) });
+      } else if(Array.isArray(v)){
+        v.forEach(function(x){ walk(x, where, key); });
+      } else if(v && typeof v === 'object'){
+        var w = (typeof v.title === 'string' && v.title.trim()) ? v.title.trim() : where;
+        Object.keys(v).forEach(function(k){
+          if(SEARCH_SKIP_KEYS[k] || k === 'title') return;
+          walk(v[k], w, k);
+        });
+      }
+    }
+    if(!st) return out;
+    if(typeof st.title === 'string' && st.title.trim()) out.push({ where: 'Pavadinimas', text: st.title.trim() });
+    if(Array.isArray(st.specMaterials)) st.specMaterials.forEach(function(m){ out.push({ where: 'Mediena', text: m }); });
+    if(st.destination) out.push({ where: 'Projektas skirtas', text: st.destination });
+    if(typeof st.notes === 'string' && st.notes.trim()) out.push({ where: 'Papildoma informacija', text: st.notes.replace(/\s+/g, ' ').trim() });
+    walk(st.pairs, 'Skiltis', '');
+    walk(st.lists, 'Sąrašas', '');
+    return out;
+  }
+  // Atitikmenų ištraukos kortelei: kur ir kokiame kontekste rastas ieškomas žodis (iki 3 vietų).
+  function searchHitsFor(info, words){
+    var hits = [], seen = {};
+    for(var i = 0; i < info.texts.length && hits.length < 3; i++){
+      var t = info.texts[i], ft = foldText(t.text);
+      if(ft.length !== t.text.length) continue;               // rašmenų ilgiai nesutampa – ištraukos nerodome
+      var first = -1, len = 0;
+      for(var k = 0; k < words.length; k++){
+        var at = ft.indexOf(words[k]);
+        if(at !== -1 && (first === -1 || at < first)){ first = at; len = words[k].length; }
+      }
+      if(first === -1) continue;
+      var key = t.where + '|' + t.text;
+      if(seen[key]) continue; seen[key] = 1;
+      hits.push({ where: t.where, text: t.text, ft: ft });
+    }
+    return hits;
+  }
+  function highlightInto(node, text, ft, words){
+    var marks = [];
+    words.forEach(function(w){
+      var from = 0, at;
+      while(w && (at = ft.indexOf(w, from)) !== -1){ marks.push([at, at + w.length]); from = at + w.length; }
+    });
+    marks.sort(function(a, b){ return a[0] - b[0]; });
+    var merged = [];
+    marks.forEach(function(m){
+      var last = merged[merged.length - 1];
+      if(last && m[0] <= last[1]) last[1] = Math.max(last[1], m[1]); else merged.push([m[0], m[1]]);
+    });
+    // trumpa ištrauka aplink pirmą atitikmenį
+    var start = 0, end = text.length;
+    if(merged.length && text.length > 110){
+      start = Math.max(0, merged[0][0] - 45); end = Math.min(text.length, merged[0][0] + 65);
+    }
+    if(start > 0) node.appendChild(document.createTextNode('… '));
+    var pos = start;
+    merged.forEach(function(m){
+      if(m[1] <= start || m[0] >= end) return;
+      var a = Math.max(m[0], start), b = Math.min(m[1], end);
+      if(a > pos) node.appendChild(document.createTextNode(text.slice(pos, a)));
+      node.appendChild(el('mark', { text: text.slice(a, b) }));
+      pos = b;
+    });
+    if(pos < end) node.appendChild(document.createTextNode(text.slice(pos, end)));
+    if(end < text.length) node.appendChild(document.createTextNode(' …'));
+  }
   function projInfo(entry){
     var st = loadProjectState(entry.id) || {};
     var m = st.meta || {};
@@ -1960,9 +2046,10 @@
     var printed = m.printed && typeof m.printed === 'object' ? m.printed : null;
     var changedAfterPrint = false;
     if(printed && printed.sig){ try { changedAfterPrint = (printed.sig !== contentSigOf(st)); } catch(e){ changedAfterPrint = false; } }
-    var hay = [entry.title, m.designer, m.author, entry.editor, medienaOf(st), st.destination || '', STATUS_LABELS[status]].join(' ');
+    var texts = collectSearchTexts(st);
+    var hay = [entry.title, m.designer, m.author, entry.editor, STATUS_LABELS[status]].concat((st.pairs || []).concat(st.lists || []).map(function(b){ return b && b.title; })).concat(texts.map(function(t){ return t.text; })).join(' | ');
     return {
-      st: st, status: status, missing: missingCountFromState(st),
+      st: st, status: status, missing: missingCountFromState(st), texts: texts,
       printed: printed, changedAfterPrint: changedAfterPrint, hay: foldText(hay)
     };
   }
@@ -2075,6 +2162,20 @@
         meta.appendChild(el('span', {class:'pc-chip', text: st.specMaterials.length === 1 ? st.specMaterials[0] : st.specMaterials.length + ' medžiagos'}));
       }
       main.appendChild(meta);
+      if(q){
+        var words = q.split(/\s+/).filter(Boolean);
+        var hits = searchHitsFor(info, words);
+        if(hits.length){
+          var hitBox = el('div', {class:'pc-hits'});
+          hits.forEach(function(h){
+            var line = el('div', {class:'pc-hit'});
+            line.appendChild(el('span', {class:'pc-hit-where', text: h.where + ':'}));
+            highlightInto(line, h.text, h.ft, words);
+            hitBox.appendChild(line);
+          });
+          main.appendChild(hitBox);
+        }
+      }
       card.appendChild(main);
 
       var dup = el('button', {class:'pc-dup', type:'button', title:'Sukurti šio lapo kopiją ir pakeisti parametrus', text:'⧉ Dubliuoti'});
@@ -5120,6 +5221,7 @@
       tb = '💾 Aplankas' + (syncLastAt ? ' ' + fmtTime(syncLastAt).slice(0, 5) : '');
     }
     info.textContent = text;
+    var pathHint = document.getElementById('backupPath'); if(pathHint) pathHint.style.display = (gate === 'unsupported') ? 'none' : '';
     info.className = 'backup-info' + (kind ? ' ' + kind : '');
     st.textContent = tb;
     st.className = 'backup-status' + (tbWarn ? ' warn' : '');
